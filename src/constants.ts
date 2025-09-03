@@ -288,7 +288,7 @@ export const translations: Translations = {
     ibera_desc_main: "Los Esteros del Iberá son uno de los humedales más importantes del mundo, un paraíso de biodiversidad ideal para el ecoturismo familiar.",
 
     // --- DATES & DURATIONS (from itinerario_detallado.md) ---
-    buenosaires_dates_duration: "- **Estadía**: 26/09 al 29/09 (4 días)\n- **Llegada a Arg.**: 26/09/2025 (EZE)\n- **Partida de Arg.**: 28/10/2025 (EZE)",
+    buenosaires_dates_duration: "- **Estadía**: 26/09 al 29/09 (4 días)\n- **Llegada a Arg.**: 26/09/2025 a las 20:25 (EZE)\n- **Partida de Arg.**: 28/10/2025 a las 21:30 (EZE)",
     rosario_dates_duration: "- **Estadía**: 30/09 al 03/10 (4 días)\n- **Cómo llegar**: Bus desde Buenos Aires.",
     bariloche_dates_duration: "- **Estadía**: 05/10 al 09/10 (5 días)\n- **Cómo llegar**: Bus nocturno desde Rosario.",
     mendoza_dates_duration: "- **Estadía**: 10/10 al 13/10 (4 días)\n- **Cómo llegar**: Vuelo desde Bariloche (BRC).",
@@ -602,7 +602,7 @@ export const translations: Translations = {
     ibera_desc_main: "אסטרוס דל איברה הם אחד מבתי הגידול הלחים החשובים בעולם, גן עדן למגוון ביולוגי אידיאלי לתיירות אקולוגית משפחתית.",
 
     // --- DATES & DURATIONS (from itinerario_detallado_he.md) ---
-    buenosaires_dates_duration: "- **שהייה**: 26/09 עד 29/09 (4 ימים)\n- **הגעה לארגנטינה**: 26/09/2025 (EZE)\n- **עזיבה מארגנטינה**: 28/10/2025 (EZE)",
+    buenosaires_dates_duration: "- **שהייה**: 26/09 עד 29/09 (4 ימים)\n- **הגעה לארגנטינה**: 26/09/2025 בשעה 20:25 (EZE)\n- **עזיבה מארגנטינה**: 28/10/2025 בשעה 21:30 (EZE)",
     rosario_dates_duration: "- **שהייה**: 30/09 עד 03/10 (4 ימים)\n- **איך מגיעים**: אוטובוס מבואנוס איירס.",
     bariloche_dates_duration: "- **שהייה**: 05/10 עד 09/10 (5 ימים)\n- **איך מגיעים**: אוטובוס לילה מרוסאריו.",
     mendoza_dates_duration: "- **שהייה**: 10/10 עד 13/10 (4 ימים)\n- **איך מגיעים**: טיסה מברילוצ'ה (BRC).",
