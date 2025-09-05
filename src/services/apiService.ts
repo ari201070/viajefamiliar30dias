@@ -5,17 +5,18 @@ import { POLYGON_API_KEY, translations } from '../constants.ts';
 // --- Gemini AI Service ---
 let ai: GoogleGenAI | null = null;
 
-// API key MUST be obtained from environment variables
-if (import.meta.env.VITE_API_KEY) {
-  ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
+// API key MUST be obtained EXCLUSIVELY from process.env.API_KEY
+// Assume this variable is pre-configured, valid, and accessible.
+if (process.env.API_KEY) {
+  ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 } else {
-  console.warn("Gemini API key not found in import.meta.env.VITE_API_KEY. AI features will be limited.");
+  console.warn("Gemini API key not found in process.env.API_KEY. AI features will be limited.");
 }
 
 export const askGemini = async (userPrompt: string, currentLanguage: Language): Promise<string> => {
   if (!ai) {
-    const apiKeyMissingMessage = "AI service is unavailable (API key from import.meta.env.VITE_API_KEY is missing).";
-    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-import.meta.env.VITE_API_KEY).` : apiKeyMissingMessage;
+    const apiKeyMissingMessage = "AI service is unavailable (API key from process.env.API_KEY is missing).";
+    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-process.env.API_KEY).` : apiKeyMissingMessage;
   }
   try {
     const languageInstruction = currentLanguage === Language.HE ? "Respond in Hebrew." : "Respond in Spanish.";
@@ -39,8 +40,8 @@ export const sendMessageInChat = async (
   currentLanguage: Language
 ): Promise<string> => {
   if (!ai) {
-    const apiKeyMissingMessage = "AI service is unavailable (API key from import.meta.env.VITE_API_KEY is missing).";
-    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-import.meta.env.VITE_API_KEY).` : apiKeyMissingMessage;
+    const apiKeyMissingMessage = "AI service is unavailable (API key from process.env.API_KEY is missing).";
+    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-process.env.API_KEY).` : apiKeyMissingMessage;
   }
   try {
     // The language instruction is now part of the system instruction, but we add a final reinforcement.
@@ -97,9 +98,9 @@ export const findEventsWithGoogleSearch = async (
   currentLanguage: Language
 ): Promise<{ text: string; sources: GroundingChunk[] }> => {
   if (!ai) {
-    const apiKeyMissingMessage = "AI service is unavailable (API key from import.meta.env.VITE_API_KEY is missing).";
+    const apiKeyMissingMessage = "AI service is unavailable (API key from process.env.API_KEY is missing).";
     const text = currentLanguage === Language.HE 
-      ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-import.meta.env.VITE_API_KEY).` 
+      ? `שירות הבינה המלאכותית אינו זמין (חסר מפתח API ב-process.env.API_KEY).` 
       : apiKeyMissingMessage;
     return { text, sources: [] };
   }
