@@ -21,6 +21,40 @@ Este documento describe el flujo de trabajo para el desarrollo y despliegue del 
     *   Esto se gestiona desde el panel de Firebase.
     *   URL de Firebase: `https://studio.firebase.google.com/viajefamiliar30dias-36794250`
 
+## Comandos de Git para Sincronizar
+
+Estos son los comandos que debes ejecutar en la terminal de Cloud Workstation para mantener tu código sincronizado con GitHub.
+
+1.  **Ver el estado de tus cambios:**
+
+    '''bash
+    git status
+    '''
+
+2.  **Traer los últimos cambios de GitHub:**
+
+    '''bash
+    git pull
+    '''
+
+3.  **Añadir tus cambios al área de preparación:**
+
+    '''bash
+    git add .
+    '''
+
+4.  **Confirmar tus cambios:**
+
+    '''bash
+    git commit -m "Un mensaje descriptivo de tus cambios"
+    '''
+
+5.  **Subir tus cambios a GitHub:**
+
+    '''bash
+    git push
+    '''
+
 **Resumen del Flujo:**
 
 `AI Studio -> Commit a GitHub -> Pull en Cloud Workstation (opcional) -> Despliegue en Firebase`
