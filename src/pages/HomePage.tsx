@@ -12,6 +12,7 @@ import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
 import GeneralAIQuery from '../components/home/GeneralAIQuery.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
+import AIChatFab from '../components/AIChatFab.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -218,6 +219,8 @@ const HomePage: React.FC = () => {
       <GeneralAIQuery />
       
       <CurrencyConverter />
+
+      <AIChatFab />
     </div>
   );
 };

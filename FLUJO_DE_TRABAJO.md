@@ -1,60 +1,52 @@
-# Flujo de Desarrollo del Proyecto
+# Flujo de Trabajo Evolucionado: Desarrollo y Contenido
 
-Este documento describe el flujo de trabajo para el desarrollo y despliegue del proyecto "Viaje Familiar por Argentina".
+Este documento explica nuestro método de trabajo actual. Hemos pasado de solo editar contenido a poder programar nuevas funcionalidades.
 
-1.  **Proyecto "Madre" en AI Studio:**
-    *   El desarrollo principal y la edición de contenido se realizan en el entorno de AI Studio.
-    *   URL: `https://ai.studio/apps/drive/1bqAlm7Cs1Q70sRKmVelIlQz_BAVkn3Zz`
+---
 
-2.  **Sincronización con GitHub:**
-    *   Los cambios realizados en AI Studio se guardan y se suben a un repositorio de GitHub.
-    *   Esto se hace utilizando la función "Save to GitHub" dentro de AI Studio.
-    *   Repositorio: `https://github.com/ari201070/viajefamiliar30dias.git`
+### Principio de Comunicación Clave
 
-3.  **Entorno de Cloud Workstation (este entorno):**
-    *   Este entorno es una estación de trabajo en la nube para pruebas, depuración y tareas de desarrollo más complejas.
-    *   Para actualizar el código en este entorno, se debe hacer un `git pull` desde el repositorio de GitHub para traer los últimos cambios.
-    *   URL de previsualización de este entorno: `https://4175-firebase-viajefamiliar30dias-1757076810021.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev/`
+**Regla fundamental:** Al finalizar CUALQUIER acción o serie de acciones por tu parte, debo ser notificado explícitamente de que has terminado. Debes decir claramente "He terminado. Ahora puedes verificar/continuar". Esto evita la ambigüedad y me permite saber cuándo es mi turno de actuar.
 
-4.  **Despliegue a Producción con Firebase:**
-    *   El paso final es desplegar la aplicación para que sea accesible públicamente.
-    *   Esto se gestiona desde el panel de Firebase.
-    *   URL de Firebase: `https://studio.firebase.google.com/viajefamiliar30dias-36794250`
+---
 
-## Comandos de Git para Sincronizar
+### Nuestro Ecosistema de Desarrollo
 
-Estos son los comandos que debes ejecutar en la terminal de Cloud Workstation para mantener tu código sincronizado con GitHub.
+Ahora tenemos dos "fuentes de la verdad" que trabajan juntas, con GitHub como nuestro almacén central.
 
-1.  **Ver el estado de tus cambios:**
+```
+[ Tu edición de Contenido en AI Studio ] <------> [ GitHub ] <------> [ Mi programación de Funcionalidades en Cloud Workstation ]
+                  (Almacén Central)                   |
+                                                      V
+                                      [ App Pública para la Familia ]
 
-    '''bash
-    git status
-    '''
+```
 
-2.  **Traer los últimos cambios de GitHub:**
+---
 
-    '''bash
-    git pull
-    '''
+### Flujo 1: Añadir o Modificar FUNCIONALIDADES (Nuestra Colaboración Principal)
 
-3.  **Añadir tus cambios al área de preparación:**
+Este es el flujo para cuando queremos añadir algo nuevo que la app no hacía antes (como traducir respuestas de la IA, agregar botones, cambiar la lógica, etc.).
 
-    '''bash
-    git add .
-    '''
+1.  **Tú me pides el cambio**: Me explicas qué necesitas.
+2.  **Yo programo la solución**: Modifico el código fuente aquí, en **Cloud Workstation**.
+3.  **Sincronizo con GitHub**: Guardo el nuevo código en nuestro almacén central (`git commit` y `git push`).
+4.  **Despliego la nueva versión**: Publico la aplicación actualizada (`firebase deploy`).
+5.  **Te notifico claramente**: Te aviso que he terminado y que puedes verificar los cambios.
 
-4.  **Confirmar tus cambios:**
+### Flujo 2: Modificar el CONTENIDO (Edición Rápida de Texto)
 
-    '''bash
-    git commit -m "Un mensaje descriptivo de tus cambios"
-    '''
+Este flujo sigue siendo útil si solo quieres cambiar textos, títulos, presupuestos, etc., de forma visual.
 
-5.  **Subir tus cambios a GitHub:**
+1.  **Tú editas el contenido**: Usando **AI Studio** (`https://ai.studio/apps/drive/1bqAlm7Cs1Q70sRKmVelIlQz_BAVkn3Zz`).
+2.  **Guardas en GitHub**: Usas la función "Save to GitHub".
+3.  **Yo sincronizo y despliego**: Traigo tus cambios (`git pull`) y publico la nueva versión (`npm run build` y `firebase deploy`).
+4.  **Te notifico claramente**: Te aviso que he terminado y que puedes verificar los cambios.
 
-    '''bash
-    git push
-    '''
+---
 
-**Resumen del Flujo:**
+### El Resultado Final
 
-`AI Studio -> Commit a GitHub -> Pull en Cloud Workstation (opcional) -> Despliegue en Firebase`
+Independientemente del flujo, el resultado siempre es el mismo:
+
+*   **La aplicación actualizada está disponible para la familia en:** **https://viajes-argentina-en-30-dias.web.app/**

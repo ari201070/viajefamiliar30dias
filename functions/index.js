@@ -1,32 +1,84 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { v2 } = require("@google-cloud/translate");
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// --- UTILS ---
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+const MODEL_NAME = "gemini-pro";
+// Make sure to set API_KEY in your environment variables
+const API_KEY = process.env.API_KEY; 
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const translateClient = new v2.Translate();
+
+const callGenerativeModel = async (prompt, history, userText) => {
+    const chat = model.startChat({
+        history: history.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }],
+        })),
+        generationConfig: {
+            maxOutputTokens: 2048,
+        },
+    });
+
+    try {
+        const result = await chat.sendMessage(userText);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        logger.error("Error calling generative model:", error);
+        throw new HttpsError("internal", "Failed to get response from AI model.", {
+            details: error.message,
+        });
+    }
+};
+
+// --- CLOUD FUNCTIONS ---
+
+exports.sendMessageInChat = onCall(async (request) => {
+    logger.info("sendMessageInChat called with data:", { data: request.data });
+
+    const { systemInstruction, history, userText } = request.data;
+    if (systemInstruction === undefined || history === undefined || userText === undefined) {
+        throw new HttpsError(
+            "invalid-argument",
+            "The function must be called with 'systemInstruction', 'history', and 'userText'."
+        );
+    }
+    
+    // The new Gemini API handles the system instruction as part of the conversation history.
+    const fullHistory = [
+        { role: 'user', text: systemInstruction },
+        { role: 'model', text: 'Ok, I understand. Let\'s start.' }, 
+        ...history
+    ];
+
+    return await callGenerativeModel(systemInstruction, fullHistory, userText);
+});
+
+exports.translateText = onCall(async (request) => {
+    logger.info("translateText called with data:", { data: request.data });
+
+    const { text, targetLang } = request.data;
+    if (!text || !targetLang) {
+        throw new HttpsError(
+            "invalid-argument",
+            "The function must be called with 'text' and 'targetLang'."
+        );
+    }
+
+    try {
+        const [translation] = await translateClient.translate(text, targetLang);
+        return translation;
+    } catch (error) {
+        logger.error("Translation API call failed:", error);
+        throw new HttpsError("internal", "Failed to translate text.", {
+            details: error.message,
+        });
+    }
+});
