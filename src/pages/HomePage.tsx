@@ -10,7 +10,7 @@ import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
 import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
-import GeneralAIQuery from '../components/home/GeneralAIQuery.tsx';
+import ReusableAIChat from '../components/ReusableAIChat.tsx'; // Import the new component
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
 import AIChatFab from '../components/AIChatFab.tsx';
 
@@ -216,7 +216,12 @@ const HomePage: React.FC = () => {
 
       <PackingList />
 
-      <GeneralAIQuery />
+      {/* Replace GeneralAIQuery with ReusableAIChat */}
+      <ReusableAIChat 
+        titleKey="iaTitulo"
+        iconClass="fa-robot"
+        basePrompt={t('general_ai_prompt_home')} 
+      />
       
       <CurrencyConverter />
 

@@ -9,7 +9,7 @@ import BudgetTable from '../components/BudgetTable.tsx';
 import { AIResponseType } from '../types.ts';
 import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.ts';
 import { findEventsWithGoogleSearch } from '../services/apiService.ts';
-import AIChatBox from '../components/AIChatBox.tsx';
+import ReusableAIChat from '../components/ReusableAIChat.tsx';
 
 const CityDetailPage: React.FC = () => {
   const { cityId } = useParams<{ cityId: string }>();
@@ -245,7 +245,13 @@ const CityDetailPage: React.FC = () => {
 
           {/* AI Chat Sections */}
           {AI_PROMPT_CONFIGS.map(config => (
-              <AIChatBox key={config.promptKeySuffix} config={config} city={city} />
+              <ReusableAIChat 
+                key={config.promptKeySuffix} 
+                titleKey={`ai_chat_title_${config.promptKeySuffix}`}
+                iconClass={config.icon}
+                basePrompt={t(config.promptKeySuffix)}
+                cityContext={t(city.nameKey)}
+              />
           ))}
 
         </div>
