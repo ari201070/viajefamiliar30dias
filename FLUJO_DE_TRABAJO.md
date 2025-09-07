@@ -21,6 +21,10 @@ Este documento describe el flujo de trabajo para el desarrollo y despliegue del 
     *   Esto se gestiona desde el panel de Firebase.
     *   URL de Firebase: `https://studio.firebase.google.com/viajefamiliar30dias-36794250`
 
+5.  **Aplicación Web en Producción:**
+    *   Esta es la URL pública de la aplicación, visible para los usuarios finales.
+    *   URL: `https://viajes-argentina-en-30-dias.web.app`
+
 ## Comandos de Git para Sincronizar
 
 Estos son los comandos que debes ejecutar en la terminal de Cloud Workstation para mantener tu código sincronizado con GitHub.
@@ -55,6 +59,18 @@ Estos son los comandos que debes ejecutar en la terminal de Cloud Workstation pa
     git push
     '''
 
+### Nota Importante sobre `git push --force`
+
+En situaciones excepcionales, como después de haber usado `git reset --hard` para revertir el repositorio a un estado anterior, el comando `git push` normal fallará. Esto ocurre porque la historia del repositorio local ha sido reescrita y ya no es compatible con la historia del repositorio remoto en GitHub.
+
+En estos casos, y **solo si estás 100% seguro de que la versión de tu repositorio local es la correcta y debe sobreescribir la versión remota**, debes forzar la subida con el siguiente comando:
+
+'''bash
+git push --force origin main
+'''
+
+**Advertencia:** Usar `git push --force` es una acción destructiva que puede eliminar cambios hechos por otras personas. Úsalo con extrema precaución y solo cuando sea absolutamente necesario para corregir un error, como en el caso de una reversión con `git reset`.
+
 **Resumen del Flujo:**
 
-`AI Studio -> Commit a GitHub -> Pull en Cloud Workstation (opcional) -> Despliegue en Firebase`
+`AI Studio -> Commit a GitHub -> Pull en Cloud Workstation (opcional) -> Despliegue en Firebase -> URL Pública`
