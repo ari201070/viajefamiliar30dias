@@ -75,7 +75,7 @@ export const translateText = async (text: string, targetLanguage: Language): Pro
   }
   try {
     const targetLanguageName = translations[targetLanguage][`language_name_${targetLanguage}`] || (targetLanguage === 'he' ? 'Hebrew' : 'Spanish');
-    const systemInstruction = `You are an expert translator. Translate the given text into ${targetLanguageName}. Do not add any commentary, preamble, or notes. Only provide the direct translation.`;
+    const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apologies, or preambles like "Translated from...". Just the translation. The target language is ${targetLanguageName}.`;
     
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",

@@ -228,6 +228,8 @@ export const translations: Translations = {
     consultarBtn: "Consultar",
     iaError: "Error al contactar la IA. Intenta de nuevo más tarde.",
     iaProcessing: "Procesando tu consulta...",
+    iaDescription_homepage: "Usa este chat para hacer preguntas generales sobre el itinerario, la cultura argentina, o cualquier otra duda que tengas sobre tu viaje.",
+    ai_prompt_general: "Eres un asistente de viajes experto en Argentina. Responde a las preguntas del usuario sobre su itinerario de 30 días, cultura, logística y consejos generales. Sé amable, servicial y proporciona información precisa.",
     // Currency Converter
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
@@ -372,6 +374,8 @@ export const translations: Translations = {
     ai_chat_input_placeholder: "Escribe tu mensaje...",
     ai_translate_button_text: "Traducir a {lang}",
     ai_translated_from_label: "Traducido de {lang}:",
+    ai_new_chat: "Nueva Conversación",
+    ai_translate_chat: "Traducir Conversación",
     language_name_es: "Español",
     language_name_he: "Hebreo",
 
@@ -542,6 +546,8 @@ export const translations: Translations = {
     consultarBtn: "התייעץ",
     iaError: "שגיאה בתקשורת עם הבינה המלאכותית. נסו שוב מאוחר יותר.",
     iaProcessing: "מעבד את פנייתך...",
+    iaDescription_homepage: "השתמש בצ'אט זה כדי לשאול שאלות כלליות על המסלול, התרבות הארגנטינאית, או כל שאלה אחרת שיש לך לגבי הטיול שלך.",
+    ai_prompt_general: "אתה סוכן נסיעות מומחה לארגנטינה. ענה על שאלות המשתמש לגבי מסלול הטיול שלהם בן 30 הימים, תרבות, לוגיסטיקה וטיפים כלליים. היה אדיב, מועיל וספק מידע מדויק.",
     // Currency Converter
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
@@ -686,6 +692,8 @@ export const translations: Translations = {
     ai_chat_input_placeholder: "כתוב את הודעתך...",
     ai_translate_button_text: "תרגם ל-{lang}",
     ai_translated_from_label: "תורגם מ-{lang}:",
+    ai_new_chat: "שיחה חדשה",
+    ai_translate_chat: "תרגם שיחה",
     language_name_es: "ספרדית",
     language_name_he: "עברית",
 

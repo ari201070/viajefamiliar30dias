@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { City, PointOfInterest } from '../types.ts';
 import { useAppContext } from '../App.tsx';
 
@@ -17,6 +18,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ cities, selectedCityCoo
   const poiMarkersRef = useRef<any[]>([]);
   const cityMarkersRef = useRef<any[]>([]);
   const { t, language } = useAppContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (mapRef.current && typeof L !== 'undefined' && !mapInstanceRef.current) {
@@ -44,8 +46,16 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ cities, selectedCityCoo
         cityMarkersRef.current.forEach(marker => mapInstanceRef.current.removeLayer(marker));
         cityMarkersRef.current = [];
         cities.forEach(city => {
-            const marker = L.marker(city.coords).addTo(mapInstanceRef.current)
-              .bindPopup(t(city.nameKey));
+            const marker = L.marker(city.coords).addTo(mapInstanceRef.current);
+
+            // Navigate on click
+            marker.on('click', () => {
+              navigate(`/city/${city.id}`);
+            });
+
+            // Show city name on hover
+            marker.bindTooltip(t(city.nameKey));
+
             cityMarkersRef.current.push(marker);
         });
     }
@@ -78,7 +88,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ cities, selectedCityCoo
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cities, selectedCityCoords, pointsOfInterest, t, language, zoomLevel]); // Added language to re-render popups
+  }, [cities, selectedCityCoords, pointsOfInterest, t, language, zoomLevel, navigate]); // Added navigate to dependency array
 
   return <div ref={mapRef} className="w-full leaflet-container shadow-lg rounded-lg"></div>;
 };
