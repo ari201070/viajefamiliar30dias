@@ -12,6 +12,7 @@ import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
 import AIChatBox from '../components/AIChatBox.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
+import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -228,6 +229,8 @@ const HomePage: React.FC = () => {
          chatId="homepage_general_ai_query"
        />
       
+      <FamilyPhotoAlbum />
+
       <CurrencyConverter />
     </div>
   );

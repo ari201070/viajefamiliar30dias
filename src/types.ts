@@ -1,3 +1,5 @@
+
+
 export enum Language {
   ES = 'es',
   HE = 'he',
@@ -41,8 +43,17 @@ export interface City {
   pointsOfInterest?: PointOfInterest[]; // Optional array of POIs
 }
 
+export interface Day {
+  id: number;
+  dayNumber: number;
+  cityId: string; // links to a City
+  titleKey: string;
+  descriptionKey: string;
+  image: string;
+}
+
 export interface TranslationSet {
-  [key: string]: string;
+  [key:string]: string;
 }
 
 export interface Translations {
@@ -97,6 +108,15 @@ export interface AIPromptContent {
   userInputPlaceholderKey: string; // Placeholder for the user input textarea
 }
 
+// FIX: Define and export the ChatMessage interface to resolve import errors.
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  originalLang: Language;
+  translations?: Partial<Record<Language, string>>;
+}
+
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {
@@ -115,10 +135,20 @@ export interface AIResponseType {
   sources?: GroundingChunk[];
 }
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  originalLang: Language;
-  translations?: Partial<Record<Language, string>>;
+export interface EditableBudgetItem {
+  id: string; // uuid for stable keys
+  concept: string; // e.g., "Estadía en Buenos Aires" or "Transporte: BUE -> ROS"
+  details: string; // e.g., "4 días" or "Bus"
+  dates: string; // e.g., "27/09 - 30/09"
+  estimatedCost: number; // Stored in ARS for consistency
+  actualCost: number | null; // User-editable
+  notes: string; // User-editable
+}
+
+export interface Photo {
+  id: string; // uuid
+  cityId: string;
+  day: number;
+  uploadDate: string; // YYYY-MM-DD format
+  imageDataUrl: string; // base64 data URL
 }
