@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../App.tsx';
 import CityCard from '../components/CityCard.tsx';
@@ -9,9 +10,8 @@ import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
 import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
-import ReusableAIChat from '../components/ReusableAIChat.tsx'; // Import the new component
+import GeneralAIQuery from '../components/home/GeneralAIQuery.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
-import AIChatFab from '../components/AIChatFab.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -215,16 +215,9 @@ const HomePage: React.FC = () => {
 
       <PackingList />
 
-      {/* Replace GeneralAIQuery with ReusableAIChat */}
-      <ReusableAIChat 
-        titleKey="iaTitulo"
-        iconClass="fa-robot"
-        basePrompt={t('general_ai_prompt_home')} 
-      />
+      <GeneralAIQuery />
       
       <CurrencyConverter />
-
-      <AIChatFab />
     </div>
   );
 };
