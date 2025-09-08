@@ -105,6 +105,13 @@ export interface ChatMessage {
   translations?: Partial<Record<Language, string>>;
 }
 
+export interface PackingItem {
+  id: string;
+  text: string;
+  type: 'essential' | 'optional';
+  originalLang: Language;
+}
+
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {
