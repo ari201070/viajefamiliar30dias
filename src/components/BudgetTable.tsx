@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 import { BudgetItem } from '../types.ts';
 
 interface BudgetTableProps {

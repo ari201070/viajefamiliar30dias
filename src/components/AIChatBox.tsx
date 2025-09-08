@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 import { AIPromptContent, City, ChatMessage, Language } from '../types.ts';
 import { sendMessageInChat, translateText } from '../services/apiService.ts';
 import { v4 as uuidv4 } from 'uuid';

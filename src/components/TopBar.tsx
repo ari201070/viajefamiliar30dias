@@ -1,8 +1,6 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 import { Language, Theme } from '../types.ts';
 import { LANGUAGES, CURRENCIES } from '../constants.ts';
 

@@ -1,5 +1,3 @@
-
-
 export enum Language {
   ES = 'es',
   HE = 'he',
@@ -29,7 +27,6 @@ export interface BudgetItem {
   value: string;      // e.g., '50-120' - The value is stored directly here
   isPerDay: boolean;  // To help with calculations
 }
-
 
 export interface City {
   id: string;
@@ -71,14 +68,6 @@ export interface AppContextType {
   setTheme: (theme: Theme) => void;
 }
 
-export interface PackingItem {
-  id: string;
-  text: string;
-  type: 'essential' | 'optional';
-  originalLang: Language;
-  textKey?: string; 
-}
-
 export interface PolygonRateResponse {
   status?: string;
   request_id?: string;
@@ -108,7 +97,6 @@ export interface AIPromptContent {
   userInputPlaceholderKey: string; // Placeholder for the user input textarea
 }
 
-// FIX: Define and export the ChatMessage interface to resolve import errors.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
@@ -145,10 +133,8 @@ export interface EditableBudgetItem {
   notes: string; // User-editable
 }
 
-export interface Photo {
-  id: string; // uuid
-  cityId: string;
-  day: number;
-  uploadDate: string; // YYYY-MM-DD format
-  imageDataUrl: string; // base64 data URL
+export interface BudgetDetails {
+  total: string;
+  breakdown: Record<string, string>;
+  isCalculating: boolean;
 }

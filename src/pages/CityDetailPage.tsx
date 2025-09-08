@@ -1,8 +1,6 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.ts';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 import BudgetTable from '../components/BudgetTable.tsx';

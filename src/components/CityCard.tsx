@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { City } from '../types.ts';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 import { DEFAULT_CITY_IMAGE } from '../constants.ts';
 
 interface CityCardProps {
