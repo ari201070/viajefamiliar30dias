@@ -4,14 +4,15 @@ import { useAppContext } from '../App.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 import { CITIES } from '../constants.ts';
-import { Currency, BudgetItem } from '../types.ts';
+import { Currency, BudgetItem, AIPromptContent } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
 import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
-import GeneralAIQuery from '../components/home/GeneralAIQuery.tsx';
+import AIChatBox from '../components/AIChatBox.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
+import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -65,6 +66,14 @@ const HomePage: React.FC = () => {
     isCalculating: true,
   });
 
+  const generalAIConfig: AIPromptContent = {
+    titleKey: 'iaTitulo',
+    descriptionKey: 'iaDescription_homepage',
+    buttonKey: 'consultarBtn',
+    promptKeySuffix: '_ai_prompt_general',
+    icon: 'fa-robot',
+    userInputPlaceholderKey: 'iaPlaceholder',
+  };
 
   // --- Transport Price Conversion Logic ---
   const updateTransportRates = useCallback(async () => {
@@ -215,8 +224,13 @@ const HomePage: React.FC = () => {
 
       <PackingList />
 
-      <GeneralAIQuery />
+      <AIChatBox 
+         config={generalAIConfig}
+         chatId="homepage_general_ai_query"
+       />
       
+      <FamilyPhotoAlbum />
+
       <CurrencyConverter />
     </div>
   );

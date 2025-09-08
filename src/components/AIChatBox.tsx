@@ -6,13 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface AIChatBoxProps {
   config: AIPromptContent;
-  city: City;
+  chatId: string;
+  city?: City;
 }
 
-const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
+const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
   const { t, language } = useAppContext();
   const chatHistoryRef = useRef<HTMLDivElement>(null);
-  const storageKey = `chatHistory_${city.id}_${config.promptKeySuffix}`;
+  const storageKey = `chatHistory_${chatId}`;
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
@@ -26,7 +27,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
 
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
 
   useEffect(() => {
@@ -57,12 +58,18 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
     setUserInput('');
     setIsLoading(true);
 
-    const basePromptKey = `${city.id}${config.promptKeySuffix}`;
-    let systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
-    if (systemInstruction === basePromptKey) {
-        const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
-        systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
+    let systemInstruction;
+    if (city) {
+      const basePromptKey = `${city.id}${config.promptKeySuffix}`;
+      systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
+      if (systemInstruction === basePromptKey) {
+          const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
+          systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
+      }
+    } else {
+      systemInstruction = t(config.promptKeySuffix.substring(1));
     }
+
 
     try {
       const responseText = await sendMessageInChat(systemInstruction, messages, trimmedInput, language);
@@ -88,38 +95,56 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
     }
   };
   
-  const handleTranslate = async (messageId: string) => {
-    const messageToTranslate = messages.find(m => m.id === messageId);
-    if (!messageToTranslate) return;
+  const handleTranslateAll = async () => {
+    const messagesToTranslate = messages.filter(m => m.originalLang !== language && !m.translations?.[language]);
+    if (messagesToTranslate.length === 0) return;
 
-    setTranslatingId(messageId);
+    setIsTranslating(true);
     try {
-        const translatedText = await translateText(messageToTranslate.text, language);
-        setMessages(currentMessages =>
-            currentMessages.map(m => {
-                if (m.id === messageId) {
-                    return {
-                        ...m,
-                        translations: {
-                            ...m.translations,
-                            [language]: translatedText,
-                        },
+        const translationPromises = messagesToTranslate.map(m => 
+            translateText(m.text, language).then(translatedText => ({
+                id: m.id,
+                translatedText
+            }))
+        );
+        const results = await Promise.all(translationPromises);
+        
+        const translationsMap = new Map(results.map(r => [r.id, r.translatedText]));
+
+        setMessages(prevMessages => 
+            prevMessages.map(msg => {
+                if (translationsMap.has(msg.id)) {
+                    const translatedText = translationsMap.get(msg.id) || '';
+                    const newTranslations = {
+                        ...msg.translations,
+                        [language]: translatedText,
                     };
+                    return { ...msg, translations: newTranslations };
                 }
-                return m;
+                return msg;
             })
         );
+
     } catch (error) {
-        console.error("Translation failed", error);
-        // Optionally show an error message to the user
+        console.error("Batch translation failed", error);
     } finally {
-        setTranslatingId(null);
+        setIsTranslating(false);
     }
-};
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (e) {
+      console.error("Failed to clear chat history from localStorage", e);
+    }
+  };
 
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg dark:shadow-slate-700/50 hover:shadow-xl dark:hover:shadow-slate-700 transition-shadow duration-300 ease-in-out flex flex-col";
   const sectionTitleClasses = "text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 pb-2 border-b border-indigo-200 dark:border-slate-600 flex items-center";
   const detailTextClasses = "text-gray-700 dark:text-slate-300 leading-relaxed";
+  const hasMessagesToTranslate = messages.some(m => m.originalLang !== language && !m.translations?.[language]);
 
   return (
     <section className={cardClasses} style={{ minHeight: '500px' }}>
@@ -127,19 +152,43 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
         <i className={`fas ${config.icon} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
         {t(config.titleKey)}
       </h2>
-      <p className={`${detailTextClasses} mb-4 flex-shrink-0`}>
-        {t(config.descriptionKey, { cityName: t(city.nameKey) })}
+      <p className={`${detailTextClasses} mb-2 flex-shrink-0`}>
+        {t(config.descriptionKey, { cityName: city ? t(city.nameKey) : '' })}
       </p>
       
+      <div className="flex justify-end items-center gap-2 mb-3 flex-shrink-0 border-b border-gray-200 dark:border-slate-700 pb-3">
+        {messages.length > 0 && (
+          <button 
+            onClick={handleNewChat}
+            className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-700 dark:text-slate-200 font-semibold py-1.5 px-3 text-xs rounded-lg shadow-sm transition-colors flex items-center"
+          >
+            <i className="fas fa-plus-circle mr-2"></i>
+            {t('ai_new_chat')}
+          </button>
+        )}
+        {hasMessagesToTranslate && (
+          <button 
+            onClick={handleTranslateAll}
+            disabled={isTranslating}
+            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:hover:bg-blue-800/50 text-blue-700 dark:text-blue-300 font-semibold py-1.5 px-3 text-xs rounded-lg shadow-sm transition-colors flex items-center disabled:opacity-50 disabled:cursor-wait"
+          >
+            {isTranslating ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-language mr-2"></i>}
+            {t('ai_translate_chat')}
+          </button>
+        )}
+      </div>
+
       <div 
         ref={chatHistoryRef} 
-        className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700"
+        className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700 relative"
       >
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-slate-800/50 flex items-center justify-center z-10 rounded-lg">
+            <i className="fas fa-spinner fa-spin text-3xl text-indigo-500"></i>
+          </div>
+        )}
         {messages.map(msg => {
-          const showTranslateButton = msg.role === 'model' && msg.originalLang !== language && !msg.translations?.[language];
-          const targetLangName = t(`language_name_${language}`);
-          const originalLangName = t(`language_name_${msg.originalLang}`);
-
+          const textToShow = msg.translations?.[language] || msg.text;
           return (
             <div key={msg.id} className={`flex flex-col items-start ${msg.role === 'user' ? 'items-end' : ''}`}>
               <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
@@ -148,32 +197,9 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
                   ? 'bg-indigo-500 text-white rounded-br-lg' 
                   : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-lg'
                 }`}>
-                  {msg.text}
-                  {msg.translations?.[language] && (
-                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
-                      <p className="text-xs font-semibold opacity-75 mb-1">{t('ai_translated_from_label', { lang: originalLangName })}</p>
-                      <p>{msg.translations[language]}</p>
-                    </div>
-                  )}
+                  {textToShow}
                 </div>
               </div>
-              
-              {showTranslateButton && (
-                 <button 
-                    onClick={() => handleTranslate(msg.id)}
-                    disabled={translatingId === msg.id}
-                    className="mt-1.5 ml-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 disabled:cursor-wait"
-                 >
-                    {translatingId === msg.id ? (
-                      <i className="fas fa-spinner fa-spin"></i>
-                    ) : (
-                      <>
-                        <i className="fas fa-language mr-1"></i>
-                        {t('ai_translate_button_text', { lang: targetLangName })}
-                      </>
-                    )}
-                 </button>
-              )}
             </div>
           )
         })}
@@ -200,7 +226,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city }) => {
                   handleSendMessage(e);
               }
           }}
-          placeholder={t('ai_chat_input_placeholder')}
+          placeholder={t(config.userInputPlaceholderKey || 'ai_chat_input_placeholder')}
           rows={1}
           className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none"
           disabled={isLoading}

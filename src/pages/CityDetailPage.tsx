@@ -245,7 +245,12 @@ const CityDetailPage: React.FC = () => {
 
           {/* AI Chat Sections */}
           {AI_PROMPT_CONFIGS.map(config => (
-              <AIChatBox key={config.promptKeySuffix} config={config} city={city} />
+              <AIChatBox 
+                key={config.promptKeySuffix} 
+                config={config} 
+                city={city} 
+                chatId={`${city.id}_${config.promptKeySuffix}`}
+              />
           ))}
 
         </div>
