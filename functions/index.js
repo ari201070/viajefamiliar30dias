@@ -1,32 +1,79 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const {VertexAI} = require("@google-cloud/vertexai");
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+admin.initializeApp();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// Inicializa Vertex AI
+const vertex_ai = new VertexAI({project: process.env.GCLOUD_PROJECT, location: "us-central1"});
+const model = "gemini-1.0-pro-001"; // O el modelo que desees usar
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+const generativeModel = vertex_ai.getGenerativeModel({
+    model: model,
+    generation_config: {
+        "max_output_tokens": 2048,
+        "temperature": 0.5,
+        "top_p": 1,
+    },
+});
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.sendMessageInChat = functions.https.onCall(async (data, context) => {
+    // Asegurarse de que el usuario está autenticado
+    if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { prompt, chatId } = data;
+
+    if (!prompt || !chatId) {
+        throw new functions.https.HttpsError("invalid-argument", "The function must be called with 'prompt' and 'chatId' arguments.");
+    }
+
+    try {
+        const req = {
+            contents: [{role: "user", parts: [{text: prompt}]}],
+        };
+
+        const result = await generativeModel.generateContent(req);
+        const response = result.response;
+        const text = response.candidates[0].content.parts[0].text;
+
+        // Aquí podrías guardar el historial del chat en Firestore si quisieras
+
+        return { response: text };
+
+    } catch (error) {
+        console.error("Error calling generative model:", error);
+        throw new functions.https.HttpsError("internal", "Failed to get response from AI model.");
+    }
+});
+
+exports.translateText = functions.https.onCall(async (data, context) => {
+     if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
+
+    const { text, targetLanguage } = data;
+
+    if (!text || !targetLanguage) {
+        throw new functions.https.HttpsError("invalid-argument", "The function must be called with 'text' and 'targetLanguage' arguments.");
+    }
+
+    const prompt = `Translate the following text to ${targetLanguage}: ${text}`;
+
+    try {
+        const req = {
+            contents: [{role: "user", parts: [{text: prompt}]}],
+        };
+
+        const result = await generativeModel.generateContent(req);
+        const response = result.response;
+        const translatedText = response.candidates[0].content.parts[0].text;
+
+        return { translation: translatedText };
+
+    } catch (error) {
+        console.error("Error calling generative model:", error);
+        throw new functions.https.HttpsError("internal", "Failed to translate text.");
+    }
+});
