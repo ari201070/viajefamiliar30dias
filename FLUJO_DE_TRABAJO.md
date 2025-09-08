@@ -70,6 +70,38 @@ Estos son los comandos que debes ejecutar en la terminal de Cloud Workstation pa
     git push
     ```
 
+### Política de Mensajes de Commit
+
+Para mantener un historial claro, seguro y fácil de auditar, es obligatorio seguir una política estricta para los mensajes de commit.
+
+El mensaje de commit **debe** ser descriptivo y seguir la siguiente estructura:
+
+```
+<tipo>(<ámbito>): <asunto>
+
+<cuerpo>
+
+<pie>
+```
+
+*   **Tipo:** Define la categoría del cambio (`feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`).
+*   **Ámbito (opcional):** El módulo o parte del código afectado (ej. `functions`, `ui`, `deploy`).
+*   **Asunto:** Un resumen conciso del cambio en presente (ej. "Añadir botón de logout").
+*   **Cuerpo (opcional pero recomendado):** Una explicación más detallada del *qué* y el *porqué* del cambio.
+*   **Pie (obligatorio):** Debe incluir el hash completo del commit anterior para facilitar un posible rollback. Se obtiene con `git rev-parse HEAD` **antes** de hacer el commit.
+
+**Ejemplo de un buen mensaje de commit:**
+
+```
+feat(functions): Restaurar Cloud Functions de IA
+
+Se restaura el código de las funciones `sendMessageInChat` y `translateText` que fueron eliminadas accidentalmente durante un despliegue anterior.
+
+Este cambio reintroduce la funcionalidad de chat y traducción en la aplicación.
+
+Commit anterior para rollback: d6aa8e01c64aaf9174a583991ee3a43a18e65cb2
+```
+
 ### Nota Importante sobre `git push --force`
 
 En situaciones excepcionales, como después de haber usado `git reset --hard` para revertir el repositorio a un estado anterior, el comando `git push` normal fallará. Esto ocurre porque la historia del repositorio local ha sido reescrita y ya no es compatible con la historia del repositorio remoto en GitHub.
