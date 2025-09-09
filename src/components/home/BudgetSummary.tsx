@@ -1,8 +1,6 @@
-
-
 import React from 'react';
-import { useAppContext } from '../../App.tsx';
-import { BudgetDetails } from '../../pages/HomePage.tsx';
+import { useAppContext } from '../../context/AppContext.tsx';
+import { BudgetDetails } from '../../types.ts';
 
 interface BudgetSummaryProps {
   budgetDetails: BudgetDetails;

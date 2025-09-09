@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../../App.tsx';
+import { useAppContext } from '../../context/AppContext.tsx';
 import { Currency } from '../../types.ts';
 import { convertCurrency as fetchConvertedCurrency } from '../../services/apiService.ts';
 

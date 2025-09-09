@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../../App.tsx';
+import { useAppContext } from '../../context/AppContext.tsx';
 import { askGemini } from '../../services/apiService.ts';
 
 const GeneralAIQuery: React.FC = () => {

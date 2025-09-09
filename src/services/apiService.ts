@@ -9,6 +9,13 @@ let ai: GoogleGenAI | null = null;
 // Assume this variable is pre-configured, valid, and accessible.
 if (process.env.API_KEY) {
   ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Safely access the API key from process.env to prevent crashes in browser environments
+const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined;
+
+if (apiKey) {
+  ai = new GoogleGenAI({ apiKey: apiKey });
+  4a2e980590cb35e55bb7347c839da3e448a7da5c
 } else {
   console.warn("Gemini API key not found in process.env.API_KEY. AI features will be limited.");
 }

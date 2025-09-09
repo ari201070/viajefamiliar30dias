@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { City, PointOfInterest } from '../types.ts';
-import { useAppContext } from '../App.tsx';
+import { useAppContext } from '../context/AppContext.tsx';
 
 declare var L: any; // Declare L from Leaflet CDN
 

@@ -30,7 +30,6 @@ export interface BudgetItem {
   isPerDay: boolean;  // To help with calculations
 }
 
-
 export interface City {
   id: string;
   nameKey: string; // Translation key for the name
@@ -71,14 +70,6 @@ export interface AppContextType {
   setTheme: (theme: Theme) => void;
 }
 
-export interface PackingItem {
-  id: string;
-  text: string;
-  type: 'essential' | 'optional';
-  originalLang: Language;
-  textKey?: string; 
-}
-
 export interface PolygonRateResponse {
   status?: string;
   request_id?: string;
@@ -108,7 +99,6 @@ export interface AIPromptContent {
   userInputPlaceholderKey: string; // Placeholder for the user input textarea
 }
 
-// FIX: Define and export the ChatMessage interface to resolve import errors.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
@@ -117,6 +107,14 @@ export interface ChatMessage {
   translations?: Partial<Record<Language, string>>;
 }
 
+export interface PackingItem {
+  id: string;
+  text: string;
+  type: 'essential' | 'optional';
+  originalLang: Language;
+}
+
+ 4a2e980590cb35e55bb7347c839da3e448a7da5c
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {
@@ -145,10 +143,17 @@ export interface EditableBudgetItem {
   notes: string; // User-editable
 }
 
+<<<<<<< HEAD
 export interface Photo {
   id: string; // uuid
   cityId: string;
   day: number;
   uploadDate: string; // YYYY-MM-DD format
   imageDataUrl: string; // base64 data URL
+=======
+export interface BudgetDetails {
+  total: string;
+  breakdown: Record<string, string>;
+  isCalculating: boolean;
+>>>>>>> 4a2e980590cb35e55bb7347c839da3e448a7da5c
 }

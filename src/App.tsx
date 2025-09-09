@@ -1,21 +1,12 @@
-import React, { useState, useCallback, createContext, useContext, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { Language, Currency, AppContextType, TranslationSet, Theme } from './types.ts';
+import { Language, Currency, Theme } from './types.ts';
 import { translations } from './constants.ts';
 import HomePage from './pages/HomePage.tsx';
 import CityDetailPage from './pages/CityDetailPage.tsx';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
-};
+import { AppContext, useAppContext } from './context/AppContext.tsx';
 
 // --- Scroll to Top Button Component ---
 const ScrollToTopButton: React.FC = () => {
@@ -91,7 +82,7 @@ const App: React.FC = () => {
   }, [language, theme]);
 
   const t = useCallback((key: string, replacements?: Record<string, string>): string => {
-    const langSet = translations[language] as TranslationSet;
+    const langSet = translations[language] as any;
     let translatedString = langSet[key] || key; // Fallback to key if translation not found
     if (replacements) {
       Object.keys(replacements).forEach(placeholder => {

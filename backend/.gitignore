@@ -1,0 +1,3 @@
+# Ignorar credencial de Google Cloud (no subir nunca a GitHub)
+credencial.json
+.env

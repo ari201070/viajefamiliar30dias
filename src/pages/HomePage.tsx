@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAppContext } from '../App.tsx';
+// FIX: Corrected the import path for useAppContext.
+import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 import { CITIES } from '../constants.ts';

@@ -212,12 +212,20 @@ export const translations: Translations = {
     mapaInteractivoTitulo: "Mapa Interactivo del Viaje",
     mapaInteractivoBienvenida: "Recorre el itinerario familiar por Argentina. Haz clic en cada ciudad para detalles.",
     // Packing List
-    packing_title: "Lista de equipaje",
+    packing_title: "Lista de Equipaje Sugerida",
     packing_add: "Agregar",
     packing_essential: "Esenciales",
-    packing_optional: "Opcionales",
-    packing_placeholder: "¿Qué más llevás?",
-    packing_list_empty: "Esta lista está vacía. ¡Empieza a añadir artículos!",
+    packing_optional: "Tus Agregados",
+    packing_placeholder: "¿Qué más llevas?",
+    packing_list_empty: "¡Tu lista personal está vacía! Añade un artículo para empezar.",
+    packing_item_passport: "Pasaporte y documentos",
+    packing_item_adapter: "Adaptador de enchufe (Tipo I)",
+    packing_item_sunscreen: "Protector solar",
+    packing_item_sunglasses: "Gafas de sol",
+    packing_item_hat: "Sombrero o gorra",
+    packing_item_meds: "Medicamentos personales",
+    packing_item_jacket: "Chaqueta abrigada/impermeable",
+    packing_item_shoes: "Calzado cómodo para caminar",
     // AI Consultation (Homepage)
     iaTitulo: "Consulta a IA General",
     iaDescription_homepage: "Haz una pregunta general sobre tu viaje a Argentina. La IA puede ayudarte con dudas sobre cultura, seguridad, clima y más.",
@@ -303,15 +311,17 @@ export const translations: Translations = {
     ibera_desc_main: "Los Esteros del Iberá son uno de los humedales más importantes del mundo, un paraíso de biodiversidad ideal para el ecoturismo familiar.",
 
     // --- DATES & DURATIONS (from itinerario_detallado.md) ---
-    buenosaires_dates_duration: "- **Estadía**: 27/09 al 30/09 (4 días) y 24/10 al 25/10 (2 días)\n- **Cómo llegar**: Arribo internacional (EZE) y vuelo doméstico desde Corrientes (AEP).",
-    rosario_dates_duration: "- **Estadía**: 01/10 al 02/10 (2 días)\n- **Cómo llegar**: Bus o tren desde Buenos Aires.",
-    bariloche_dates_duration: "- **Estadía**: 03/10 al 05/10 (3 días)\n- **Cómo llegar**: Vuelo desde Rosario (ROS).",
-    mendoza_dates_duration: "- **Estadía**: 06/10 al 10/10 (5 días)\n- **Nota**: Incluye excursión a Malargüe.\n- **Cómo llegar**: Vuelo desde Bariloche (BRC).",
-    jujuy_dates_duration: "- **Estadía**: 11/10 al 14/10 (4 días)\n- **Cómo llegar**: Vuelo desde Mendoza (MDZ).",
-    iguazu_dates_duration: "- **Estadía**: 15/10 al 17/10 (3 días)\n- **Cómo llegar**: Vuelo desde Jujuy (JUJ).",
-    ibera_dates_duration: "- **Estadía**: 18/10 al 19/10 (2 días)\n- **Cómo llegar**: Transfer desde Iguazú (IGR).",
-    corrientes_dates_duration: "- **Estadía**: 20/10 al 23/10 (4 días)\n- **Cómo llegar**: Transfer desde Esteros del Iberá.",
-    malargue_dates_duration: "- **Estadía**: No incluido en el itinerario principal. Visitar como excursión desde Mendoza.",
+
+    buenosaires_dates_duration: "- **Estadía**: 26/09 al 29/09 (4 días)\n- **Llegada a Arg.**: 26/09/2025 (EZE)\n- **Partida de Arg.**: 28/10/2025 (EZE)",
+    rosario_dates_duration: "- **Estadía**: 30/09 al 04/10 (4 días)\n- **Cómo llegar**: Bus desde Buenos Aires.",
+    bariloche_dates_duration: "- **Estadía**: 05/10 al 09/10 (5 días)\n- **Cómo llegar**: Bus nocturno desde Rosario.",
+    mendoza_dates_duration: "- **Estadía**: 10/10 al 14/10 (4 días)\n- **Cómo llegar**: Bus nocturno desde Bariloche.",
+    jujuy_dates_duration: "- **Estadía**: 14/10 al 18/10 (5 días)\n- **Cómo llegar**: Bus desde Mendoza.",
+    iguazu_dates_duration: "- **Estadía**: 18/10 al 21/10 (3 días)\n- **Cómo llegar**: Vuelo desde Jujuy (JUJ).",
+    ibera_dates_duration: "- **Estadía**: 22/10 al 23/10 (2 días)\n- **Cómo llegar**: Transfer desde Iguazú (IGR).",
+    corrientes_dates_duration: "- **Estadía**: 23/10 al 27/10 (4 días)\n- **Cómo llegar**: Transfer desde Esteros del Iberá.",
+    malargue_dates_duration: "- **Nota**: Visitar como excursión desde Mendoza.",
+	4a2e980590cb35e55bb7347c839da3e448a7da5c
 
     // BUENOS AIRES (Detailed content)
     buenosaires_must_see: "- [Obelisco y Avenida 9 de Julio](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [Teatro Colón (visitas guiadas)](https://teatrocolon.org.ar/es)\n- [Caminito y el colorido barrio de La Boca](https://es.wikipedia.org/wiki/Caminito)\n- [Palermo: bosques, Jardín Japonés, museos, cafés y tiendas](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [Planetario Galileo Galilei](https://planetario.buenosaires.gob.ar/)\n- [Puerto Madero y Reserva Ecológica](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [Museo Nacional de Bellas Artes](https://www.bellasartes.gob.ar/)\n- [Recoleta: Cementerio histórico, feria de artesanos y cafés](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [Plaza de Mayo y Casa Rosada](https://es.wikipedia.org/wiki/Plaza_de_Mayo)",
@@ -567,12 +577,20 @@ export const translations: Translations = {
     mapaInteractivoTitulo: "מפה אינטראקטיבית של הטיול",
     mapaInteractivoBienvenida: "סיירו במסלול המשפחתי בארגנטינה. לחצו על כל עיר לפרטים.",
     // Packing List
-    packing_title: "רשימת ציוד",
+    packing_title: "רשימת ציוד מומלצת",
     packing_add: "הוסף",
-    packing_essential: "חיוניים",
-    packing_optional: "אופציונליים",
+    packing_essential: "פריטים חיוניים",
+    packing_optional: "הפריטים שלך",
     packing_placeholder: "מה עוד אתם לוקחים?",
-    packing_list_empty: "הרשימה ריקה. התחילו להוסיף פריטים!",
+    packing_list_empty: "הרשימה האישית שלך ריקה! הוסף פריט כדי להתחיל.",
+    packing_item_passport: "דרכון ומסמכים",
+    packing_item_adapter: "מתאם חשמל (סוג I)",
+    packing_item_sunscreen: "קרם הגנה",
+    packing_item_sunglasses: "משקפי שמש",
+    packing_item_hat: "כובע",
+    packing_item_meds: "תרופות אישיות",
+    packing_item_jacket: "מעיל חם/עמיד למים",
+    packing_item_shoes: "נעלי הליכה נוחות",
     // AI Consultation (Homepage)
     iaTitulo: "ייעוץ בינה מלאכותית כללי",
     iaDescription_homepage: "שאלו שאלה כללית על הטיול שלכם לארגנטינה. הבינה המלאכותית יכולה לעזור עם שאלות על תרבות, בטיחות, מזג אוויר ועוד.",
@@ -658,6 +676,7 @@ export const translations: Translations = {
     ibera_desc_main: "אסטרוס דל איברה הם אחד מבתי הגידול הלחים החשובים בעולם, גן עדן למגוון ביולוגי אידיאלי לתיירות אקולוגית משפחתית.",
 
     // --- DATES & DURATIONS (from itinerario_detallado_he.md) ---
+<<<<<<< HEAD
     buenosaires_dates_duration: "- **שהייה**: 27/09 עד 30/09 (4 ימים) ו-24/10 עד 25/10 (יומיים)\n- **איך מגיעים**: הגעה בינלאומית (EZE) וטיסה פנימית מקוריינטס (AEP).",
     rosario_dates_duration: "- **שהייה**: 01/10 עד 02/10 (יומיים)\n- **איך מגיעים**: אוטובוס או רכבת מבואנוס איירס.",
     bariloche_dates_duration: "- **שהייה**: 03/10 עד 05/10 (3 ימים)\n- **איך מגיעים**: טיסה מרוסאריו (ROS).",
@@ -667,6 +686,17 @@ export const translations: Translations = {
     ibera_dates_duration: "- **שהייה**: 18/10 עד 19/10 (יומיים)\n- **איך מגיעים**: הסעה מאיגואסו (IGR).",
     corrientes_dates_duration: "- **שהייה**: 20/10 עד 23/10 (4 ימים)\n- **איך מגיעים**: הסעה מאסטרוס דל איברה.",
     malargue_dates_duration: "- **שהייה**: לא כלול במסלול הראשי. ניתן לבקר כטיול יום ממנדוסה.",
+=======
+    buenosaires_dates_duration: "- **שהייה**: 26/09 עד 29/09 (4 ימים)\n- **הגעה לארגנטינה**: 26/09/2025 (EZE)\n- **עזיבה מארגנטינה**: 28/10/2025 (EZE)",
+    rosario_dates_duration: "- **שהייה**: 30/09 עד 03/10 (4 ימים)\n- **איך מגיעים**: אוטובוס מבואנוס איירס.",
+    bariloche_dates_duration: "- **שהייה**: 05/10 עד 09/10 (5 ימים)\n- **איך מגיעים**: אוטובוס לילה מרוסאריו.",
+    mendoza_dates_duration: "- **שהייה**: 10/10 עד 13/10 (4 ימים)\n- **איך מגיעים**: טיסה מברילוצ'ה (BRC).",
+    jujuy_dates_duration: "- **שהייה**: 14/10 עד 18/10 (5 ימים)\n- **איך מגיעים**: אוטובוס ממנדוסה.",
+    iguazu_dates_duration: "- **שהייה**: 19/10 עד 22/10 (4 ימים)\n- **איך מגיעים**: טיסה מחוחוי (JUJ).",
+    ibera_dates_duration: "- **שהייה**: 23/10 עד 24/10 (יומיים)\n- **איך מגיעים**: הסעה מאיגואסו (IGR).",
+    corrientes_dates_duration: "- **שהייה**: 25/10 עד 27/10 (3 ימים)\n- **איך מגיעים**: הסעה מאסטרוס דל איברה.",
+    malargue_dates_duration: "- **הערה**: ניתן לבקר כטיול יום ממנדוסה.",
+>>>>>>> 4a2e980590cb35e55bb7347c839da3e448a7da5c
     
     // BUENOS AIRES (Detailed HE content)
     buenosaires_must_see: "- [האובליסק ושדרת 9 ביולי](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [תיאטרון קולון (סיורים מודרכים)](https://teatrocolon.org.ar/es)\n- [קמיניטו ושכונת לה בוקה הצבעונית](https://es.wikipedia.org/wiki/Caminito)\n- [פלרמו: יערות, גן יפני, מוזיאונים, בתי קפה וחנויות](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [פלנטריום גלילאו גליליי](https://planetario.buenosaires.gob.ar/)\n- [פוארטו מאדרו ושמורת טבע אקולוגית](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [המוזיאון הלאומי לאמנויות יפות](https://www.bellasartes.gob.ar/)\n- [רקולטה: בית קברות היסטורי, יריד אומנים ובתי קפה](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [פלאסה דה מאיו וקאסה רוסדה](https://es.wikipedia.org/wiki/Plaza_de_Mayo)",
