@@ -142,17 +142,10 @@ export interface EditableBudgetItem {
   notes: string; // User-editable
 }
 
-<<<<<<< HEAD
-export interface Photo {
-  id: string; // uuid
-  cityId: string;
-  day: number;
-  uploadDate: string; // YYYY-MM-DD format
-  imageDataUrl: string; // base64 data URL
-=======
-export interface BudgetDetails {
-  total: string;
-  breakdown: Record<string, string>;
-  isCalculating: boolean;
->>>>>>> 4a2e980590cb35e55bb7347c839da3e448a7da5c
+
+export interface WebChunk {
+  id: string;
+  title: string;
+  url: string;
+  snippet: string;
 }
