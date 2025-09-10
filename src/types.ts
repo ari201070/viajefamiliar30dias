@@ -114,7 +114,6 @@ export interface PackingItem {
   originalLang: Language;
 }
 
- 4a2e980590cb35e55bb7347c839da3e448a7da5c
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {
