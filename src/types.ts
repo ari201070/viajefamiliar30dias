@@ -1,5 +1,3 @@
-
-
 export enum Language {
   ES = 'es',
   HE = 'he',
@@ -52,7 +50,7 @@ export interface Day {
 }
 
 export interface TranslationSet {
-  [key:string]: string;
+  [key: string]: string;
 }
 
 export interface Translations {
@@ -114,12 +112,11 @@ export interface PackingItem {
   originalLang: Language;
 }
 
-// Types for Grounding / Google Search Tool
 export interface WebChunk {
-  web: {
-    uri: string;
-    title: string;
-  };
+  id: string;
+  title: string;
+  url: string;
+  snippet: string;
 }
 
 export type GroundingChunk = WebChunk; // Can be extended if other chunk types are used
@@ -140,12 +137,4 @@ export interface EditableBudgetItem {
   estimatedCost: number; // Stored in ARS for consistency
   actualCost: number | null; // User-editable
   notes: string; // User-editable
-}
-
-
-export interface WebChunk {
-  id: string;
-  title: string;
-  url: string;
-  snippet: string;
 }
