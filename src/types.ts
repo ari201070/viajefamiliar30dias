@@ -117,6 +117,9 @@ export interface PhotoItem {
   src: string; // base64 data URL
   caption: string;
   originalLang: Language;
+  cityId?: string;
+  tripDay?: number;
+  dateTaken?: string; // YYYY-MM-DD format
 }
 
 // Types for Grounding / Google Search Tool
