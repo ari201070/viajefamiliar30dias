@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
-// DEBUG de variable API KEY:
-console.log('API KEY:', process.env.API_KEY);
+// Debug correcto en Vite:
+console.log('API KEY:', import.meta.env.VITE_API_KEY);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
