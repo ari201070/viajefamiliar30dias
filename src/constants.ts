@@ -1,5 +1,6 @@
 
 
+
 import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent } from './types.ts';
 
 export const LANGUAGES = [
@@ -240,6 +241,21 @@ export const translations: Translations = {
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
     montoPlaceholder: "Monto",
+    // Cloud Sync
+    sync_status_syncing: "Sincronizando...",
+    sync_status_synced: "Actualizado",
+    sync_status_last_sync: "Última sinc.:",
+    sync_status_ready: "Sincronizado con la nube",
+    // Photo Album
+    photo_album_title: "Álbum de Fotos Familiar",
+    photo_album_description: "Nuestros recuerdos del viaje. ¡Sube tus propias fotos para personalizar el álbum!",
+    photo_album_add_button: "Agregar Foto",
+    photo_album_empty: "Tu álbum está vacío. ¡Sube tu primer recuerdo!",
+    photo_album_default_caption: "Nuevo recuerdo...",
+    photo_album_confirm_delete: "¿Seguro que quieres eliminar esta foto?",
+    photo_album_placeholder_caption: "Recuerdo de {cityName}",
+    photo_album_edit_caption_label: "Editar pie de foto",
+    photo_album_delete_photo_label: "Eliminar foto",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -562,6 +578,21 @@ export const translations: Translations = {
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
     montoPlaceholder: "סכום",
+    // Cloud Sync
+    sync_status_syncing: "מסנכרן...",
+    sync_status_synced: "מעודכן",
+    sync_status_last_sync: "סנכרון אחרון:",
+    sync_status_ready: "מסונכרן עם הענן",
+    // Photo Album
+    photo_album_title: "אלבום תמונות משפחתי",
+    photo_album_description: "הזכרונות שלנו מהטיול. העלו תמונות משלכם כדי להתאים אישית את האלבום!",
+    photo_album_add_button: "הוסף תמונה",
+    photo_album_empty: "האלבום שלך ריק! העלה את הזיכרון הראשון שלך!",
+    photo_album_default_caption: "זיכרון חדש...",
+    photo_album_confirm_delete: "בטוח שברצונך למחוק את התמונה?",
+    photo_album_placeholder_caption: "זיכרון מ{cityName}",
+    photo_album_edit_caption_label: "ערוך כיתוב",
+    photo_album_delete_photo_label: "מחק תמונה",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",

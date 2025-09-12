@@ -112,6 +112,13 @@ export interface PackingItem {
   originalLang: Language;
 }
 
+export interface PhotoItem {
+  id: string;
+  src: string; // base64 data URL
+  caption: string;
+  originalLang: Language;
+}
+
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {

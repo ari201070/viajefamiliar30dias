@@ -1,7 +1,7 @@
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
-// FIX: Corrected the import path for useAppContext.
 import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
@@ -14,6 +14,8 @@ import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
 import GeneralAIQuery from '../components/home/GeneralAIQuery.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
+import CloudSyncInfo from '../components/home/CloudSyncInfo.tsx';
+import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -190,6 +192,8 @@ const HomePage: React.FC = () => {
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
 
+      <CloudSyncInfo />
+
       {/* City Cards */}
       <section>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -214,6 +218,8 @@ const HomePage: React.FC = () => {
       <TransportTable getConvertedPrice={getConvertedPrice} />
 
       <ItineraryAnalysis />
+      
+      <FamilyPhotoAlbum />
 
       <PackingList />
 
