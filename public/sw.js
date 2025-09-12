@@ -102,16 +102,14 @@ self.addEventListener('fetch', event => {
             // as well as the cache consuming the response, we need
             // to clone it so we have two streams.
             const responseToCache = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                if (event.request.url.startsWith('http')) {
-  cache.put(event.request, responseToCache);
-}
-
-              });
-
-            return networkResponse;
+caches.open(CACHE_NAME)
+  .then(cache => {
+    const url = event.request.url;
+    if (url.startsWith('http')) {
+      cache.put(event.request, responseToCache);
+    }
+  });
+return networkResponse;
           }
         ).catch(error => {
           console.error('Service Worker: Fetch failed; returning offline page instead.', error);
