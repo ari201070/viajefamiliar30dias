@@ -1,6 +1,3 @@
-
-
-
 import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent } from './types.ts';
 
 export const LANGUAGES = [
@@ -233,10 +230,12 @@ export const translations: Translations = {
     packing_item_shoes: "Calzado cómodo para caminar",
     // AI Consultation (Homepage)
     iaTitulo: "Consulta a IA General",
+    iaDescription: "Chatea con un asistente de IA para resolver cualquier duda general sobre tu viaje a Argentina, desde logística hasta consejos culturales.",
     iaPlaceholder: "Haz tu pregunta sobre el viaje...",
     consultarBtn: "Consultar",
     iaError: "Error al contactar la IA. Intenta de nuevo más tarde.",
     iaProcessing: "Procesando tu consulta...",
+    ai_prompt_general: "Eres un asistente de viajes servicial para una familia que planea un viaje de 30 días a Argentina. Responde sus preguntas sobre logística, cultura, planificación y cualquier otro tema relacionado con el viaje. Sé amigable y proporciona respuestas claras y útiles.",
     // Currency Converter
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
@@ -262,6 +261,7 @@ export const translations: Translations = {
     photo_album_caption: "Descripción",
     photo_album_save_button: "Guardar",
     photo_album_cancel_button: "Cancelar",
+    photo_album_unclassified: "Otras Fotos",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -474,7 +474,7 @@ export const translations: Translations = {
     // IBERA (Detailed content)
     ibera_must_see: "- **Laguna Iberá**: Principal espejo de agua para las excursiones en lancha.\n- **Pasarelas de la Laguna Iberá**: Senderos elevados para observar la fauna.\n- **Centro de Interpretación de los Esteros**: Información sobre el ecosistema y la fauna.\n- **Miradores de aves**: Puntos estratégicos para la observación de aves.\n- **Pueblo de Colonia Carlos Pellegrini**: El punto de acceso turístico, con sus posadas y tranquilidad.\n- **Senderos de interpretación ambiental**: Para caminar y aprender sobre la flora y fauna local.",
     ibera_activities_recommended: "- Safaris en lancha por la Laguna Iberá para avistar yacarés, carpinchos, ciervos de los pantanos y aves.\n- Caminatas guiadas por los senderos para observar la fauna terrestre.\n- Safaris nocturnos (opcional, para ver animales de hábitos nocturnos).\n- Cabalgatas por los alrededores (para edades adecuadas).\n- Paseos en canoa o kayak (en zonas permitidas y con guía).\n- Avistaje de aves.\n- Disfrutar de la tranquilidad y el contacto con la naturaleza.",
-    ibera_gastronomy_highlight: "La gastronomía en Iberá se basa en la cocina casera y regional, con ingredientes frescos de la zona. Las posadas suelen ofrecer pensión completa con platos típicos, a menudo adaptándose a necesidades dietéticas específicas si se avisa con antelación.\n\n### Restaurantes recomendados (Generalmente en Posadas)\n| Restaurante             | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| Posada de la Laguna     | Comida casera / Regional   | check        | check         |\n| Irupé Lodge             | Comida casera / Regional   | check        | check         |\n| Rincón del Carpincho    | Comida casera / Regional   | check        | check         |\n\n### Confiterías y cafés\n| Confitería              | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| (Opciones limitadas)    | Principalmente en posadas  | check        | check         |\n| Minimercados            | Para abastecerse           | check        | check         |",
+    ibera_gastronomy_highlight: "La gastronomía en Iberá se basa en la cocina casera y regional, con ingredientes frescos de la zona. Las posadas suelen ofrecer pensión completa con platos típicos, a menudo adaptándose a necesidades dietéticas específicas si se avisa con anticipación.\n\n### Restaurantes recomendados (Generalmente en Posadas)\n| Restaurante             | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| Posada de la Laguna     | Comida casera / Regional   | check        | check         |\n| Irupé Lodge             | Comida casera / Regional   | check        | check         |\n| Rincón del Carpincho    | Comida casera / Regional   | check        | check         |\n\n### Confiterías y cafés\n| Confitería              | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| (Opciones limitadas)    | Principalmente en posadas  | check        | check         |\n| Minimercados            | Para abastecerse           | check        | check         |",
     ibera_accommodation_examples: "- [Posada Aguapé](https://www.posadaaguape.com/)\n- Posada de la Laguna\n- Irupé Lodge\n- Cabañas y hospedajes rurales en Colonia Carlos Pellegrini\n- Camping (para los más aventureros).",
     ibera_coordinates: "- Colonia Carlos Pellegrini: 28° 32' S 57° 11' O",
     ibera_family_tips: "- **Repelente de insectos es ABSOLUTAMENTE CRUCIAL.** Llevar en gran cantidad.\n- Protector solar, sombrero y ropa de manga larga para protegerse del sol y los insectos.\n- Binoculares para observar aves y fauna.\n- Reserven alojamiento y excursiones con mucha anticipación, la oferta es limitada.\n- La mayoría de las actividades son al aire libre; estén preparados para diferentes condiciones climáticas.\n- Ideal para niños interesados en la naturaleza y los animales.",
@@ -576,10 +576,12 @@ export const translations: Translations = {
     packing_item_shoes: "נעלי הליכה נוחות",
     // AI Consultation (Homepage)
     iaTitulo: "ייעוץ בינה מלאכותית כללי",
+    iaDescription: "שוחחו עם עוזר בינה מלאכותית כדי לפתור כל שאלה כללית על הטיול שלכם לארגנטינה, החל מלוגיסטיקה ועד טיפים תרבותיים.",
     iaPlaceholder: "שאלו את שאלתכם על הטיול...",
     consultarBtn: "התייעץ",
     iaError: "שגיאה בתקשורת עם הבינה המלאכותית. נסו שוב מאוחר יותר.",
     iaProcessing: "מעבד את פנייתך...",
+    ai_prompt_general: "אתה עוזר נסיעות מועיל למשפחה המתכננת טיול של 30 יום בארגנטינה. ענה על שאלותיהם לגבי לוגיסטיקה, תרבות, תכנון וכל נושא אחר הקשור לנסיעות. היה ידידותי וספק תשובות ברורות ומועילות.",
     // Currency Converter
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
@@ -605,6 +607,7 @@ export const translations: Translations = {
     photo_album_caption: "תיאור",
     photo_album_save_button: "שמור",
     photo_album_cancel_button: "ביטול",
+    photo_album_unclassified: "תמונות אחרות",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",
