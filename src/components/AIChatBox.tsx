@@ -1,18 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+// FIX: Changed import path for useAppContext to the correct context file.
 import { useAppContext } from '../context/AppContext.tsx';
 import { AIPromptContent, City, ChatMessage, Language } from '../types.ts';
 import { sendMessageInChat, translateText } from '../services/apiService.ts';
 import { v4 as uuidv4 } from 'uuid';
+import { stripMarkdown } from '../utils/markdownParser.ts';
 
 interface AIChatBoxProps {
   config: AIPromptContent;
-  chatId: string;
+  // FIX: Made city optional and added chatId to support general (non-city-specific) chat instances.
   city?: City;
+  chatId: string;
 }
 
-const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
+// Check for browser support for Web Speech API
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+const isSpeechSupported = SpeechRecognition && window.speechSynthesis;
+
+
+const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
   const { t, language } = useAppContext();
   const chatHistoryRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  // FIX: Used the new chatId prop to create a unique storage key.
   const storageKey = `chatHistory_${chatId}`;
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -27,7 +37,9 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
 
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isTranslating, setIsTranslating] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -41,10 +53,88 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
     }
   }, [messages, storageKey]);
 
+  // --- Speech Recognition (Voice Input) Logic ---
+  const setupRecognition = useCallback(() => {
+    if (!isSpeechSupported) return;
+    
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = language === Language.HE ? 'he-IL' : 'es-AR';
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      setUserInput(finalTranscript + interimTranscript);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+  }, [language]);
+
+  useEffect(() => {
+    setupRecognition();
+  }, [setupRecognition]);
+
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current?.start();
+      setIsRecording(true);
+    }
+  };
+
+
+  // --- Speech Synthesis (Text to Voice) Logic ---
+  const handleSpeak = (message: ChatMessage) => {
+    if (speakingMessageId === message.id) {
+        window.speechSynthesis.cancel();
+        setSpeakingMessageId(null);
+        return;
+    }
+    const rawText = message.translations?.[language] || message.text;
+    const textToSpeak = stripMarkdown(rawText);
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = language === Language.HE ? 'he-IL' : 'es-AR';
+    utterance.onstart = () => setSpeakingMessageId(message.id);
+    utterance.onend = () => setSpeakingMessageId(null);
+    utterance.onerror = () => setSpeakingMessageId(null);
+
+    window.speechSynthesis.cancel(); // Stop any previous speech
+    window.speechSynthesis.speak(utterance);
+  };
+
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedInput = userInput.trim();
     if (trimmedInput === '' || isLoading) return;
+
+    if (isRecording) {
+        recognitionRef.current?.stop();
+        setIsRecording(false);
+    }
+    if (speakingMessageId) {
+        window.speechSynthesis.cancel();
+        setSpeakingMessageId(null);
+    }
 
     const userMessage: ChatMessage = {
       id: uuidv4(),
@@ -58,18 +148,19 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
     setUserInput('');
     setIsLoading(true);
 
-    let systemInstruction;
+    // FIX: Conditionally construct systemInstruction based on whether a city is provided.
+    let systemInstruction: string;
     if (city) {
-      const basePromptKey = `${city.id}${config.promptKeySuffix}`;
-      systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
-      if (systemInstruction === basePromptKey) {
-          const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
-          systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
-      }
+        const basePromptKey = `${city.id}${config.promptKeySuffix}`;
+        systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
+        if (systemInstruction === basePromptKey) {
+            const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
+            systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
+        }
     } else {
-      systemInstruction = t(config.promptKeySuffix.substring(1));
+        const promptKey = config.promptKeySuffix.replace(/^_/, '');
+        systemInstruction = t(promptKey);
     }
-
 
     try {
       const responseText = await sendMessageInChat(systemInstruction, messages, trimmedInput, language);
@@ -95,56 +186,38 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
     }
   };
   
-  const handleTranslateAll = async () => {
-    const messagesToTranslate = messages.filter(m => m.originalLang !== language && !m.translations?.[language]);
-    if (messagesToTranslate.length === 0) return;
+  const handleTranslate = async (messageId: string) => {
+    const messageToTranslate = messages.find(m => m.id === messageId);
+    if (!messageToTranslate) return;
 
-    setIsTranslating(true);
+    setTranslatingId(messageId);
     try {
-        const translationPromises = messagesToTranslate.map(m => 
-            translateText(m.text, language).then(translatedText => ({
-                id: m.id,
-                translatedText
-            }))
-        );
-        const results = await Promise.all(translationPromises);
-        
-        const translationsMap = new Map(results.map(r => [r.id, r.translatedText]));
-
-        setMessages(prevMessages => 
-            prevMessages.map(msg => {
-                if (translationsMap.has(msg.id)) {
-                    const translatedText = translationsMap.get(msg.id) || '';
-                    const newTranslations = {
-                        ...msg.translations,
-                        [language]: translatedText,
+        const translatedText = await translateText(messageToTranslate.text, language);
+        setMessages(currentMessages =>
+            currentMessages.map(m => {
+                if (m.id === messageId) {
+                    return {
+                        ...m,
+                        translations: {
+                            ...m.translations,
+                            [language]: translatedText,
+                        },
                     };
-                    return { ...msg, translations: newTranslations };
                 }
-                return msg;
+                return m;
             })
         );
-
     } catch (error) {
-        console.error("Batch translation failed", error);
+        console.error("Translation failed", error);
+        // Optionally show an error message to the user
     } finally {
-        setIsTranslating(false);
+        setTranslatingId(null);
     }
-  };
-
-  const handleNewChat = () => {
-    setMessages([]);
-    try {
-      localStorage.removeItem(storageKey);
-    } catch (e) {
-      console.error("Failed to clear chat history from localStorage", e);
-    }
-  };
+};
 
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg dark:shadow-slate-700/50 hover:shadow-xl dark:hover:shadow-slate-700 transition-shadow duration-300 ease-in-out flex flex-col";
   const sectionTitleClasses = "text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 pb-2 border-b border-indigo-200 dark:border-slate-600 flex items-center";
   const detailTextClasses = "text-gray-700 dark:text-slate-300 leading-relaxed";
-  const hasMessagesToTranslate = messages.some(m => m.originalLang !== language && !m.translations?.[language]);
 
   return (
     <section className={cardClasses} style={{ minHeight: '500px' }}>
@@ -152,54 +225,63 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
         <i className={`fas ${config.icon} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
         {t(config.titleKey)}
       </h2>
-      <p className={`${detailTextClasses} mb-2 flex-shrink-0`}>
-        {t(config.descriptionKey, { cityName: city ? t(city.nameKey) : '' })}
+      <p className={`${detailTextClasses} mb-4 flex-shrink-0`}>
+        {/* FIX: Conditionally render description text to avoid errors when city is not present. */}
+        {city ? t(config.descriptionKey, { cityName: t(city.nameKey) }) : t(config.descriptionKey)}
       </p>
       
-      <div className="flex justify-end items-center gap-2 mb-3 flex-shrink-0 border-b border-gray-200 dark:border-slate-700 pb-3">
-        {messages.length > 0 && (
-          <button 
-            onClick={handleNewChat}
-            className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-700 dark:text-slate-200 font-semibold py-1.5 px-3 text-xs rounded-lg shadow-sm transition-colors flex items-center"
-          >
-            <i className="fas fa-plus-circle mr-2"></i>
-            {t('ai_new_chat')}
-          </button>
-        )}
-        {hasMessagesToTranslate && (
-          <button 
-            onClick={handleTranslateAll}
-            disabled={isTranslating}
-            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:hover:bg-blue-800/50 text-blue-700 dark:text-blue-300 font-semibold py-1.5 px-3 text-xs rounded-lg shadow-sm transition-colors flex items-center disabled:opacity-50 disabled:cursor-wait"
-          >
-            {isTranslating ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-language mr-2"></i>}
-            {t('ai_translate_chat')}
-          </button>
-        )}
-      </div>
-
       <div 
         ref={chatHistoryRef} 
-        className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700 relative"
+        className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700"
       >
-        {isTranslating && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-slate-800/50 flex items-center justify-center z-10 rounded-lg">
-            <i className="fas fa-spinner fa-spin text-3xl text-indigo-500"></i>
-          </div>
-        )}
         {messages.map(msg => {
-          const textToShow = msg.translations?.[language] || msg.text;
+          const showTranslateButton = msg.role === 'model' && msg.originalLang !== language && !msg.translations?.[language];
+          const targetLangName = t(`language_name_${language}`);
+          const originalLangName = t(`language_name_${msg.originalLang}`);
+
           return (
             <div key={msg.id} className={`flex flex-col items-start ${msg.role === 'user' ? 'items-end' : ''}`}>
-              <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
+              <div className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
+                {msg.role === 'model' && isSpeechSupported && (
+                    <button 
+                        onClick={() => handleSpeak(msg)}
+                        className={`text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mt-2 ${speakingMessageId === msg.id ? 'text-indigo-600' : ''}`}
+                        aria-label={speakingMessageId === msg.id ? 'Stop speaking' : 'Speak message'}
+                    >
+                        <i className={`fas ${speakingMessageId === msg.id ? 'fa-stop-circle' : 'fa-volume-up'}`}></i>
+                    </button>
+                )}
                 <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl shadow-sm whitespace-pre-wrap ${
                   msg.role === 'user' 
                   ? 'bg-indigo-500 text-white rounded-br-lg' 
                   : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-lg'
                 }`}>
-                  {textToShow}
+                  {msg.text}
+                  {msg.translations?.[language] && (
+                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
+                      <p className="text-xs font-semibold opacity-75 mb-1">{t('ai_translated_from_label', { lang: originalLangName })}</p>
+                      <p>{msg.translations[language]}</p>
+                    </div>
+                  )}
                 </div>
               </div>
+              
+              {showTranslateButton && (
+                 <button 
+                    onClick={() => handleTranslate(msg.id)}
+                    disabled={translatingId === msg.id}
+                    className="mt-1.5 ml-8 text-xs text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 disabled:cursor-wait"
+                 >
+                    {translatingId === msg.id ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <>
+                        <i className="fas fa-language mr-1"></i>
+                        {t('ai_translate_button_text', { lang: targetLangName })}
+                      </>
+                    )}
+                 </button>
+              )}
             </div>
           )
         })}
@@ -226,12 +308,26 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, chatId, city }) => {
                   handleSendMessage(e);
               }
           }}
-          placeholder={t(config.userInputPlaceholderKey || 'ai_chat_input_placeholder')}
+          placeholder={t('ai_chat_input_placeholder')}
           rows={1}
           className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none"
           disabled={isLoading}
           style={{ minHeight: '50px' }}
         />
+        {isSpeechSupported && (
+          <button
+            type="button"
+            onClick={handleToggleRecording}
+            className={`transition-colors text-white font-semibold py-3 px-5 rounded-lg shadow-md h-[50px] w-[60px] flex items-center justify-center ${
+              isRecording 
+              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+              : 'bg-sky-500 hover:bg-sky-600'
+            }`}
+            aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+          >
+            <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone-alt'} text-xl`}></i>
+          </button>
+        )}
         <button
           type="submit"
           disabled={isLoading || userInput.trim() === ''}

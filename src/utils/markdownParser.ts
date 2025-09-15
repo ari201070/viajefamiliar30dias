@@ -99,3 +99,51 @@ export const parseMarkdownTable = (
     )
   );
 };
+
+// Strips markdown formatting from a string to get plain text, suitable for speech synthesis.
+export const stripMarkdown = (markdown: string): string => {
+  if (!markdown) return '';
+
+  let text = markdown;
+  
+  // Remove headers
+  text = text.replace(/^#{1,6}\s+/gm, '');
+
+  // Remove horizontal rules
+  text = text.replace(/^(---|\*\*\*|___)\s*$/gm, '');
+
+  // Remove blockquotes
+  text = text.replace(/^\s*>\s?/gm, '');
+
+  // Remove images, keeping alt text
+  text = text.replace(/!\[(.*?)\]\(.*?\)/g, '$1');
+  
+  // Remove links, keeping link text
+  text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1');
+
+  // Remove bold, italic, strikethrough (order is important)
+  text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+  text = text.replace(/__(.*?)__/g, '$1');
+  text = text.replace(/\*(.*?)\*/g, '$1');
+  text = text.replace(/_(.*?)_/g, '$1');
+  text = text.replace(/~~(.*?)~~/g, '$1');
+  
+  // Remove inline code
+  text = text.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+
+  // Remove list items markers
+  text = text.replace(/^\s*[-*+]\s+/gm, '');
+  text = text.replace(/^\s*\d+\.\s+/gm, '');
+
+  // A simple way to handle tables for speech: remove pipes and separator lines
+  text = text.replace(/\|/g, ' ');
+  text = text.replace(/^[-|\s]+$/gm, '');
+
+  // Remove extra newlines and trim
+  text = text.replace(/\n{2,}/g, '\n').trim();
+
+  return text;
+};
