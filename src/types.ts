@@ -105,6 +105,23 @@ export interface ChatMessage {
   translations?: Partial<Record<Language, string>>;
 }
 
+export interface PackingItem {
+  id: string;
+  text: string;
+  type: 'essential' | 'optional';
+  originalLang: Language;
+}
+
+export interface PhotoItem {
+  id: string;
+  src: string; // base64 data URL
+  caption: string;
+  originalLang: Language;
+  cityId?: string;
+  tripDay?: number;
+  dateTaken?: string; // YYYY-MM-DD format
+}
+
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
   web: {
