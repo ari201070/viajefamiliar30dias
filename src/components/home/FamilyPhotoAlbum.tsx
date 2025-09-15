@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,10 +9,9 @@ const FamilyPhotoAlbum: React.FC = () => {
   const { t, language } = useAppContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [photos, setPhotos] = useState<PhotoItem[] | null>(null);
+  const [photos, setPhotos] = useState<PhotoItem[] | null>(null); // null indicates loading
   const [isLoading, setIsLoading] = useState(true);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-
+  
   const getInitialPhotos = useCallback(() => {
     return CITIES.slice(0, 5).map((city, index) => ({
       id: `placeholder-${city.id}`,
@@ -51,55 +50,6 @@ const FamilyPhotoAlbum: React.FC = () => {
   useEffect(() => {
     loadPhotos();
   }, [loadPhotos]);
-
-  const groupedPhotos = useMemo(() => {
-    if (!photos) return {};
-    const groups: Record<string, PhotoItem[]> = {};
-    photos.forEach(photo => {
-      const cityId = photo.cityId || 'unclassified';
-      if (!groups[cityId]) {
-        groups[cityId] = [];
-      }
-      groups[cityId].push(photo);
-    });
-
-    // Sort cities based on CITIES array order, with 'unclassified' at the end
-    const cityOrder = CITIES.map(c => c.id);
-    const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
-        if (a === 'unclassified') return 1;
-        if (b === 'unclassified') return -1;
-        const indexA = cityOrder.indexOf(a);
-        const indexB = cityOrder.indexOf(b);
-        if (indexA === -1) return 1;
-        if (indexB === -1) return -1;
-        return indexA - indexB;
-    });
-
-    const sortedGroups: Record<string, PhotoItem[]> = {};
-    sortedGroupKeys.forEach(key => {
-        sortedGroups[key] = groups[key];
-    });
-
-    return sortedGroups;
-  }, [photos]);
-
-  useEffect(() => {
-    setOpenSections(prevOpenSections => {
-        const newOpenState = { ...prevOpenSections };
-        let stateChanged = false;
-        Object.keys(groupedPhotos).forEach(cityId => {
-            if (newOpenState[cityId] === undefined) {
-              newOpenState[cityId] = false; // Default new sections to closed
-              stateChanged = true;
-            }
-        });
-        return stateChanged ? newOpenState : prevOpenSections;
-    });
-  }, [groupedPhotos]);
-
-  const toggleSection = (cityId: string) => {
-    setOpenSections(prev => ({ ...prev, [cityId]: !prev[cityId] }));
-  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPhoto, setCurrentPhoto] = useState<Partial<PhotoItem> | null>(null);
@@ -141,6 +91,7 @@ const FamilyPhotoAlbum: React.FC = () => {
         await loadPhotos(); // Reload photos from DB to update UI
     } catch(error) {
         console.error("Failed to save photo", error);
+        // Optionally show an error message to the user
     }
   };
 
@@ -193,46 +144,24 @@ const FamilyPhotoAlbum: React.FC = () => {
           <p>{t('photo_album_empty')}</p>
         </div>
       ) : (
-        <div className="mt-6 space-y-8">
-          {Object.entries(groupedPhotos).map(([cityId, cityPhotos]) => {
-            const city = CITIES.find(c => c.id === cityId);
-            const sectionTitle = city ? t(city.nameKey) : t('photo_album_unclassified');
-            const sectionIsOpen = openSections[cityId] ?? false;
-            
-            return (
-              <div key={cityId}>
-                <button
-                  onClick={() => toggleSection(cityId)}
-                  className="w-full flex justify-between items-center text-left p-3 bg-gray-100 dark:bg-slate-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                  aria-expanded={sectionIsOpen}
-                >
-                  <h3 className="text-xl font-semibold text-indigo-700 dark:text-indigo-400">{sectionTitle} ({cityPhotos.length})</h3>
-                  <i className={`fas fa-chevron-down text-indigo-500 transform transition-transform duration-300 ${sectionIsOpen ? 'rotate-180' : ''}`}></i>
-                </button>
-                
-                {sectionIsOpen && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                    {cityPhotos.map(photo => (
-                      <div key={photo.id} className="aspect-square relative group overflow-hidden rounded-lg shadow-md bg-gray-200 dark:bg-slate-700">
-                        <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white">
-                          <div className="text-xs flex items-center gap-3">
-                              {photo.tripDay && <span>{t('photo_album_trip_day')} {photo.tripDay}</span>}
-                              {photo.dateTaken && <span>{new Date(photo.dateTaken).toLocaleDateString(language)}</span>}
-                          </div>
-                          <p className="text-sm mt-1">{photo.caption}</p>
-                        </div>
-                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <button onClick={() => handleEditPhoto(photo)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-blue-600 hover:bg-white" aria-label={t('photo_album_edit_caption_label')}><i className="fas fa-pencil-alt"></i></button>
-                          <button onClick={() => handleRemovePhoto(photo.id)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-red-600 hover:bg-white" aria-label={t('photo_album_delete_photo_label')}><i className="fas fa-trash"></i></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+          {photos.map(photo => (
+            <div key={photo.id} className="break-inside-avoid relative group overflow-hidden rounded-lg shadow-md bg-gray-200 dark:bg-slate-700">
+              <img src={photo.src} alt={photo.caption} className="w-full h-auto object-cover" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3 text-white">
+                <h4 className="font-bold text-base">{photo.cityId ? t(CITIES.find(c=>c.id === photo.cityId)?.nameKey || '') : ''}</h4>
+                <div className="text-xs flex items-center gap-3">
+                    {photo.tripDay && <span>{t('photo_album_trip_day')} {photo.tripDay}</span>}
+                    {photo.dateTaken && <span>{new Date(photo.dateTaken).toLocaleDateString(language)}</span>}
+                </div>
+                <p className="text-sm mt-1">{photo.caption}</p>
               </div>
-            );
-          })}
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => handleEditPhoto(photo)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-blue-600 hover:bg-white" aria-label={t('photo_album_edit_caption_label')}><i className="fas fa-pencil-alt"></i></button>
+                <button onClick={() => handleRemovePhoto(photo.id)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-red-600 hover:bg-white" aria-label={t('photo_album_delete_photo_label')}><i className="fas fa-trash"></i></button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       
