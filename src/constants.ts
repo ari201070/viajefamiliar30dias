@@ -1,4 +1,5 @@
-import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent } from './types.ts';
+
+import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent, BudgetItem } from './types.ts';
 
 export const LANGUAGES = [
   { code: Language.ES, name: 'Español' },
@@ -24,6 +25,9 @@ const buenosAiresPois: PointOfInterest[] = [
   { id: 'ba_poi_plazamayo', nameKey: 'buenosaires_poi_plazamayo_name', coords: [-34.6083, -58.3722], descriptionKey: 'buenosaires_poi_plazamayo_desc' },
 ];
 
+export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
+  { conceptKey: 'budget_concept_international_flights', value: '7000-9000', isPerDay: false },
+];
 
 export const CITIES: City[] = [
   { 
@@ -35,11 +39,10 @@ export const CITIES: City[] = [
     activitiesKey: 'buenosaires_activities_recommended', 
     accommodationKey: 'buenosaires_accommodation_examples', 
     budgetItems: [
-      { conceptKey: 'budget_concept_international_flights', value: '7000-9000', isPerDay: false },
       { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
-      { conceptKey: 'budget_concept_transport', value: '3-5', isPerDay: true },
-      { conceptKey: 'budget_concept_activities', value: '20-50', isPerDay: true },
+      { conceptKey: 'budget_concept_transport', value: '15-40', isPerDay: true },
+      { conceptKey: 'budget_concept_activities', value: '50-120', isPerDay: true },
       { conceptKey: 'budget_concept_museums', value: '0-15', isPerDay: true },
     ],
     pointsOfInterest: buenosAiresPois,
@@ -214,54 +217,22 @@ export const translations: Translations = {
     mapaInteractivoTitulo: "Mapa Interactivo del Viaje",
     mapaInteractivoBienvenida: "Recorre el itinerario familiar por Argentina. Haz clic en cada ciudad para detalles.",
     // Packing List
-    packing_title: "Lista de Equipaje Sugerida",
+    packing_title: "Lista de equipaje",
     packing_add: "Agregar",
     packing_essential: "Esenciales",
-    packing_optional: "Tus Agregados",
-    packing_placeholder: "¿Qué más llevas?",
-    packing_list_empty: "¡Tu lista personal está vacía! Añade un artículo para empezar.",
-    packing_item_passport: "Pasaporte y documentos",
-    packing_item_adapter: "Adaptador de enchufe (Tipo I)",
-    packing_item_sunscreen: "Protector solar",
-    packing_item_sunglasses: "Gafas de sol",
-    packing_item_hat: "Sombrero o gorra",
-    packing_item_meds: "Medicamentos personales",
-    packing_item_jacket: "Chaqueta abrigada/impermeable",
-    packing_item_shoes: "Calzado cómodo para caminar",
+    packing_optional: "Opcionales",
+    packing_placeholder: "¿Qué más llevás?",
+    packing_list_empty: "Esta lista está vacía. ¡Empieza a añadir artículos!",
     // AI Consultation (Homepage)
     iaTitulo: "Consulta a IA General",
-    iaDescription: "Chatea con un asistente de IA para resolver cualquier duda general sobre tu viaje a Argentina, desde logística hasta consejos culturales.",
     iaPlaceholder: "Haz tu pregunta sobre el viaje...",
     consultarBtn: "Consultar",
     iaError: "Error al contactar la IA. Intenta de nuevo más tarde.",
     iaProcessing: "Procesando tu consulta...",
-    ai_prompt_general: "Eres un asistente de viajes servicial para una familia que planea un viaje de 30 días a Argentina. Responde sus preguntas sobre logística, cultura, planificación y cualquier otro tema relacionado con el viaje. Sé amigable y proporciona respuestas claras y útiles.",
     // Currency Converter
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
     montoPlaceholder: "Monto",
-    // Cloud Sync
-    sync_status_syncing: "Sincronizando...",
-    sync_status_synced: "Actualizado",
-    sync_status_last_sync: "Última sinc.:",
-    sync_status_ready: "Sincronizado con la nube",
-    // Photo Album
-    photo_album_title: "Álbum de Fotos Familiar",
-    photo_album_description: "Nuestros recuerdos del viaje. ¡Sube tus propias fotos para personalizar el álbum!",
-    photo_album_add_button: "Agregar Foto",
-    photo_album_empty: "Tu álbum está vacío. ¡Sube tu primer recuerdo!",
-    photo_album_confirm_delete: "¿Seguro que quieres eliminar esta foto?",
-    photo_album_placeholder_caption: "Recuerdo de {cityName}",
-    photo_album_edit_caption_label: "Editar pie de foto",
-    photo_album_delete_photo_label: "Eliminar foto",
-    photo_album_add_details_title: "Agregar Detalles de la Foto",
-    photo_album_city: "Ciudad",
-    photo_album_trip_day: "Día del Viaje",
-    photo_album_date_taken: "Fecha de la Foto",
-    photo_album_caption: "Descripción",
-    photo_album_save_button: "Guardar",
-    photo_album_cancel_button: "Cancelar",
-    photo_album_unclassified: "Otras Fotos",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -318,7 +289,7 @@ export const translations: Translations = {
     ibera_desc_main: "Los Esteros del Iberá son uno de los humedales más importantes del mundo, un paraíso de biodiversidad ideal para el ecoturismo familiar.",
 
     // --- DATES & DURATIONS (from itinerario_detallado.md) ---
-    buenosaires_dates_duration: "- **Estadía**: 26/09 al 29/09 (4 días)\n- **Llegada a Arg.**: 26/09/2025 (EZE)\n- **Partida de Arg.**: 28/10/2025 (EZE)",
+    buenosaires_dates_duration: "- **Estadía**: 26/09 al 29/09 (4 días)\n- **Llegada a Arg.**: 26/09/2025 de noche (EZE)\n- **Partida de Arg.**: 28/10/2025 (EZE)",
     rosario_dates_duration: "- **Estadía**: 30/09 al 03/10 (4 días)\n- **Cómo llegar**: Bus desde Buenos Aires.",
     bariloche_dates_duration: "- **Estadía**: 05/10 al 09/10 (5 días)\n- **Cómo llegar**: Bus nocturno desde Rosario.",
     mendoza_dates_duration: "- **Estadía**: 10/10 al 13/10 (4 días)\n- **Cómo llegar**: Vuelo desde Bariloche (BRC).",
@@ -329,7 +300,7 @@ export const translations: Translations = {
     malargue_dates_duration: "- **Nota**: Visitar como excursión desde Mendoza.",
 
     // BUENOS AIRES (Detailed content)
-    buenosaires_must_see: "- [Obelisco y Avenida 9 de Julio](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [Teatro Colón (visitas guiadas)](https://teatrocolon.org.ar/es)\n- [Caminito y el colorido barrio de La Boca](https://es.wikipedia.org/wiki/Caminito)\n- [Palermo: bosques, Jardín Japonés, museos, cafés y tiendas](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [Planetario Galileo Galilei](https://planetario.buenosaires.gob.ar/)\n- [Puerto Madero y Reserva Ecológica](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [Museo Nacional de Bellas Artes](https://www.bellasartes.gob.ar/)\n- [Recoleta: Cementerio histórico, feria de artesanos y cafés](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [Plaza de Mayo y Casa Rosada](https://es.wikipedia.org/wiki/Plaza_de_Mayo)",
+    buenosaires_must_see: "- [Obelisco y Avenida 9 de Julio](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [Teatro Colón (visitas guiadas)](https://teatrocolon.org.ar/es)\n- [Caminito y el colorido barrio de La Boca](https://es.wikipedia.org/wiki/Caminito)\n- [Palermo: bosques, Jardín Japonés, Planetario, museos, cafés y tiendas](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [Puerto Madero y Reserva Ecológica](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [Museo Nacional de Bellas Artes](https://www.bellasartes.gob.ar/)\n- [Recoleta: Cementerio histórico, feria de artesanos y cafés](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [Plaza de Mayo y Casa Rosada](https://es.wikipedia.org/wiki/Plaza_de_Mayo)\n- **Excursión de día:** [Paseo por el Delta del Tigre](https://www.vivitigre.gob.ar/)\n- **Excursión de día:** [Campanópolis, la aldea medieval](https://www.campanopolis.com.ar/)",
     buenosaires_activities_recommended: "- Tango y espectáculos típicos (San Telmo o La Boca)\n- Tours guiados a pie o en bicicleta\n- Picnic en los bosques de Palermo\n- Visita a museos y ferias artesanales\n- Paseo en barco por el Río de la Plata (Puerto Madero)",
     buenosaires_gastronomy_highlight: "La ciudad ofrece desde parrillas tradicionales hasta restaurantes gourmet, opciones vegetarianas/veganas y cafeterías históricas.\n\n### Restaurantes recomendados\n| Restaurante | Tipo | Sin Gluten | Sin Azúcar |\n|---|---|---|---|\n| [Don Julio](https://www.parrilladonjulio.com/) | Parrilla clásica | check | cross |\n| [Sacro](https://www.sacro.restaurant/) | Vegano gourmet | check | check |\n| [Bio Restaurante](https://www.biorestaurante.com/) | Orgánico | check | check |\n| [Paru Inkas Sushi & Grill](https://parurestaurant.com/) | Fusión Peruano-Japonesa | check | cross |\n\n### Confiterías y cafés\n| Confitería | Tipo | Sin Gluten | Sin Azúcar |\n|---|---|---|---|\n| [Café Tortoni](https://www.cafetortoni.com.ar/) | Histórico / Clásico | cross | cross |\n| [Havanna](https://www.havanna.com.ar/) | Alfajores / Café | check | check |\n| [Confitería Ideal](https://www.confiteriaideal.com/) | Repostería Tradicional | cross | cross |",
     buenosaires_accommodation_examples: "- [Loi Suites Esmeralda](https://www.loisuites.com.ar/es/hotel-esmeralda-buenos-aires)\n- Alvear Palace\n- Madero\n- Ibis\n- Airbnb Palermo",
@@ -474,7 +445,7 @@ export const translations: Translations = {
     // IBERA (Detailed content)
     ibera_must_see: "- **Laguna Iberá**: Principal espejo de agua para las excursiones en lancha.\n- **Pasarelas de la Laguna Iberá**: Senderos elevados para observar la fauna.\n- **Centro de Interpretación de los Esteros**: Información sobre el ecosistema y la fauna.\n- **Miradores de aves**: Puntos estratégicos para la observación de aves.\n- **Pueblo de Colonia Carlos Pellegrini**: El punto de acceso turístico, con sus posadas y tranquilidad.\n- **Senderos de interpretación ambiental**: Para caminar y aprender sobre la flora y fauna local.",
     ibera_activities_recommended: "- Safaris en lancha por la Laguna Iberá para avistar yacarés, carpinchos, ciervos de los pantanos y aves.\n- Caminatas guiadas por los senderos para observar la fauna terrestre.\n- Safaris nocturnos (opcional, para ver animales de hábitos nocturnos).\n- Cabalgatas por los alrededores (para edades adecuadas).\n- Paseos en canoa o kayak (en zonas permitidas y con guía).\n- Avistaje de aves.\n- Disfrutar de la tranquilidad y el contacto con la naturaleza.",
-    ibera_gastronomy_highlight: "La gastronomía en Iberá se basa en la cocina casera y regional, con ingredientes frescos de la zona. Las posadas suelen ofrecer pensión completa con platos típicos, a menudo adaptándose a necesidades dietéticas específicas si se avisa con anticipación.\n\n### Restaurantes recomendados (Generalmente en Posadas)\n| Restaurante             | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| Posada de la Laguna     | Comida casera / Regional   | check        | check         |\n| Irupé Lodge             | Comida casera / Regional   | check        | check         |\n| Rincón del Carpincho    | Comida casera / Regional   | check        | check         |\n\n### Confiterías y cafés\n| Confitería              | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| (Opciones limitadas)    | Principalmente en posadas  | check        | check         |\n| Minimercados            | Para abastecerse           | check        | check         |",
+    ibera_gastronomy_highlight: "La gastronomía en Iberá se basa en la cocina casera y regional, con ingredientes frescos de la zona. Las posadas suelen ofrecer pensión completa con platos típicos, a menudo adaptándose a necesidades dietéticas específicas si se avisa con antelación.\n\n### Restaurantes recomendados (Generalmente en Posadas)\n| Restaurante             | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| Posada de la Laguna     | Comida casera / Regional   | check        | check         |\n| Irupé Lodge             | Comida casera / Regional   | check        | check         |\n| Rincón del Carpincho    | Comida casera / Regional   | check        | check         |\n\n### Confiterías y cafés\n| Confitería              | Tipo                       | Sin Gluten | Sin Azúcar |\n|-------------------------|:--------------------------:|:----------:|:----------:|\n| (Opciones limitadas)    | Principalmente en posadas  | check        | check         |\n| Minimercados            | Para abastecerse           | check        | check         |",
     ibera_accommodation_examples: "- [Posada Aguapé](https://www.posadaaguape.com/)\n- Posada de la Laguna\n- Irupé Lodge\n- Cabañas y hospedajes rurales en Colonia Carlos Pellegrini\n- Camping (para los más aventureros).",
     ibera_coordinates: "- Colonia Carlos Pellegrini: 28° 32' S 57° 11' O",
     ibera_family_tips: "- **Repelente de insectos es ABSOLUTAMENTE CRUCIAL.** Llevar en gran cantidad.\n- Protector solar, sombrero y ropa de manga larga para protegerse del sol y los insectos.\n- Binoculares para observar aves y fauna.\n- Reserven alojamiento y excursiones con mucha anticipación, la oferta es limitada.\n- La mayoría de las actividades son al aire libre; estén preparados para diferentes condiciones climáticas.\n- Ideal para niños interesados en la naturaleza y los animales.",
@@ -560,54 +531,22 @@ export const translations: Translations = {
     mapaInteractivoTitulo: "מפה אינטראקטיבית של הטיול",
     mapaInteractivoBienvenida: "סיירו במסלול המשפחתי בארגנטינה. לחצו על כל עיר לפרטים.",
     // Packing List
-    packing_title: "רשימת ציוד מומלצת",
+    packing_title: "רשימת ציוד",
     packing_add: "הוסף",
-    packing_essential: "פריטים חיוניים",
-    packing_optional: "הפריטים שלך",
+    packing_essential: "חיוניים",
+    packing_optional: "אופציונליים",
     packing_placeholder: "מה עוד אתם לוקחים?",
-    packing_list_empty: "הרשימה האישית שלך ריקה! הוסף פריט כדי להתחיל.",
-    packing_item_passport: "דרכון ומסמכים",
-    packing_item_adapter: "מתאם חשמל (סוג I)",
-    packing_item_sunscreen: "קרם הגנה",
-    packing_item_sunglasses: "משקפי שמש",
-    packing_item_hat: "כובע",
-    packing_item_meds: "תרופות אישיות",
-    packing_item_jacket: "מעיל חם/עמיד למים",
-    packing_item_shoes: "נעלי הליכה נוחות",
+    packing_list_empty: "הרשימה ריקה. התחילו להוסיף פריטים!",
     // AI Consultation (Homepage)
     iaTitulo: "ייעוץ בינה מלאכותית כללי",
-    iaDescription: "שוחחו עם עוזר בינה מלאכותית כדי לפתור כל שאלה כללית על הטיול שלכם לארגנטינה, החל מלוגיסטיקה ועד טיפים תרבותיים.",
     iaPlaceholder: "שאלו את שאלתכם על הטיול...",
     consultarBtn: "התייעץ",
     iaError: "שגיאה בתקשורת עם הבינה המלאכותית. נסו שוב מאוחר יותר.",
     iaProcessing: "מעבד את פנייתך...",
-    ai_prompt_general: "אתה עוזר נסיעות מועיל למשפחה המתכננת טיול של 30 יום בארגנטינה. ענה על שאלותיהם לגבי לוגיסטיקה, תרבות, תכנון וכל נושא אחר הקשור לנסיעות. היה ידידותי וספק תשובות ברורות ומועילות.",
     // Currency Converter
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
     montoPlaceholder: "סכום",
-    // Cloud Sync
-    sync_status_syncing: "מסנכרן...",
-    sync_status_synced: "מעודכן",
-    sync_status_last_sync: "סנכרון אחרון:",
-    sync_status_ready: "מסונכרן עם הענן",
-    // Photo Album
-    photo_album_title: "אלבום תמונות משפחתי",
-    photo_album_description: "הזכרונות שלנו מהטיול. העלו תמונות משלכם כדי להתאים אישית את האלבום!",
-    photo_album_add_button: "הוסף תמונה",
-    photo_album_empty: "האלבום שלך ריק! העלה את הזיכרון הראשון שלך!",
-    photo_album_confirm_delete: "בטוח שברצונך למחוק את התמונה?",
-    photo_album_placeholder_caption: "זיכרון מ{cityName}",
-    photo_album_edit_caption_label: "ערוך כיתוב",
-    photo_album_delete_photo_label: "מחק תמונה",
-    photo_album_add_details_title: "הוסף פרטי תמונה",
-    photo_album_city: "עיר",
-    photo_album_trip_day: "יום הטיול",
-    photo_album_date_taken: "תאריך צילום",
-    photo_album_caption: "תיאור",
-    photo_album_save_button: "שמור",
-    photo_album_cancel_button: "ביטול",
-    photo_album_unclassified: "תמונות אחרות",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",
@@ -675,7 +614,7 @@ export const translations: Translations = {
     malargue_dates_duration: "- **הערה**: ניתן לבקר כטיול יום ממנדוסה.",
     
     // BUENOS AIRES (Detailed HE content)
-    buenosaires_must_see: "- [האובליסק ושדרת 9 ביולי](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [תיאטרון קולון (סיורים מודרכים)](https://teatrocolon.org.ar/es)\n- [קמיניטו ושכונת לה בוקה הצבעונית](https://es.wikipedia.org/wiki/Caminito)\n- [פלרמו: יערות, גן יפני, מוזיאונים, בתי קפה וחנויות](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [פלנטריום גלילאו גליליי](https://planetario.buenosaires.gob.ar/)\n- [פוארטו מאדרו ושמורת טבע אקולוגית](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [המוזיאון הלאומי לאמנויות יפות](https://www.bellasartes.gob.ar/)\n- [רקולטה: בית קברות היסטורי, יריד אומנים ובתי קפה](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [פלאסה דה מאיו וקאסה רוסדה](https://es.wikipedia.org/wiki/Plaza_de_Mayo)",
+    buenosaires_must_see: "- [האובליסק ושדרת 9 ביולי](https://es.wikipedia.org/wiki/Obelisco_de_Buenos_Aires)\n- [תיאטרון קולון (סיורים מודרכים)](https://teatrocolon.org.ar/es)\n- [קמיניטו ושכונת לה בוקה הצבעונית](https://es.wikipedia.org/wiki/Caminito)\n- [פלרמו: יערות, גן יפני, פלנטריום, מוזיאונים, בתי קפה וחנויות](https://es.wikipedia.org/wiki/Palermo_(Buenos_Aires))\n- [פוארטו מאדרו ושמורת טבע אקולוגית](https://es.wikipedia.org/wiki/Puerto_Madero)\n- [המוזיאון הלאומי לאמנויות יפות](https://www.bellasartes.gob.ar/)\n- [רקולטה: בית קברות היסטורי, יריד אומנים ובתי קפה](https://turismo.buenosaires.gob.ar/es/otros-lugares/cementerio-de-la-recoleta)\n- [פלאסה דה מאיו וקאסה רוסדה](https://es.wikipedia.org/wiki/Plaza_de_Mayo)\n- **טיול יום:** [טיול לדלתא של טיגרה](https://www.vivitigre.gob.ar/)\n- **טיול יום:** [קמפנופוליס, הכפר מימי הביניים](https://www.campanopolis.com.ar/)",
     buenosaires_activities_recommended: "- טנגו ומופעים טיפוסיים (סן טלמו או לה בוקה)\n- סיורים מודרכים ברגל או באופניים\n- פיקניק ביערות פלרמו\n- ביקור במוזיאונים וירידי אומנות\n- שייט בנהר ריו דה לה פלטה (פוארטו מאדרו)",
     buenosaires_gastronomy_highlight: "העיר מציעה ממסעדות גריל מסורתיות ועד מסעדות גורמה, אפשרויות צמחוניות/טבעוניות ובתי קפה היסטוריים.\n\n### מסעדות מומלצות\n| מסעדה | סוג | ללא גלוטן | ללא סוכר |\n|---|---|---|---|\n| [דון חוליו](https://www.parrilladonjulio.com/) | גריל קלאסי | check | cross |\n| [סאקרו](https://www.sacro.restaurant/) | טבעוני גורמה | check | check |\n| [ביו רסטורנטה](https://www.biorestaurante.com/) | אורגני | check | check |\n| [פארו אינקאס סושי וגריל](https://parurestaurant.com/) | פיוז'ן פרואני-יפני | check | cross |\n\n### קונדיטוריות ובתי קפה\n| קונדיטוריה | סוג | ללא גלוטן | ללא סוכר |\n|---|---|---|---|\n| [קפה טורטוני](https://www.cafetortoni.com.ar/) | היסטורי / קלאסי | cross | cross |\n| [הוואנה](https://www.havanna.com.ar/) | אלפחורס / קפה | check | check |\n| [קונפיטריה אידיאל](https://www.confiteriaideal.com/) | קונדיטוריה מסורתית | cross | cross |",
     buenosaires_accommodation_examples: "- [לוי סוויטס אמרלדה](https://www.loisuites.com.ar/es/hotel-esmeralda-buenos-aires)\n- מלון אלביאר פאלאס\n- מלון מאדרו\n- מלון איביס\n- Airbnb בפלרמו",

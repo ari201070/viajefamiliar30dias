@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
-import { CITIES } from '../constants.ts';
+import { CITIES, TRIP_WIDE_BUDGET_ITEMS } from '../constants.ts';
 import { Currency, BudgetItem, AIPromptContent } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
@@ -113,6 +113,17 @@ const HomePage: React.FC = () => {
     const totalsByCategory: Record<string, { min: number, max: number }> = {};
     const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
     const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
+
+    // FIX: Add trip-wide one-time costs first (e.g., international flights)
+    TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
+        if (!totalsByCategory[item.conceptKey]) {
+            totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
+        }
+        const [min, max] = parseRange(item.value);
+        totalsByCategory[item.conceptKey].min += min;
+        totalsByCategory[item.conceptKey].max += max;
+        oneTimeCostsAdded.add(item.conceptKey);
+    });
 
     for (const city of CITIES) {
         const durationStr = t(`${city.id}_dates_duration`);
