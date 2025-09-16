@@ -1,4 +1,5 @@
 
+
 import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent, BudgetItem } from './types.ts';
 
 export const LANGUAGES = [
@@ -229,10 +230,50 @@ export const translations: Translations = {
     consultarBtn: "Consultar",
     iaError: "Error al contactar la IA. Intenta de nuevo más tarde.",
     iaProcessing: "Procesando tu consulta...",
+    iaDescription: "Utiliza este asistente para hacer preguntas generales sobre Argentina, el clima, costumbres, o cualquier otra duda que tengas sobre el viaje.",
+    ai_prompt_general: "Eres un asistente de viajes experto en Argentina. Responde a las preguntas del usuario sobre el país, su cultura, clima, consejos de viaje y cualquier otra duda general. Proporciona respuestas útiles, concisas y amigables para una familia que está planificando un viaje.",
     // Currency Converter
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
     montoPlaceholder: "Monto",
+    // Cloud Sync
+    sync_status_ready: "Listo para sincronizar",
+    sync_status_syncing: "Sincronizando cambios...",
+    sync_status_synced: "¡Sincronizado!",
+    sync_status_last_sync: "Última sinc.:",
+    // Photo Album
+    photo_album_title: "Álbum de Fotos Familiar",
+    photo_album_description: "Un lugar para guardar los recuerdos de nuestro viaje. Haz clic en el botón '+' para añadir una nueva foto.",
+    photo_album_add_button: "Añadir Foto",
+    photo_album_placeholder_caption: "Recuerdo de {cityName}",
+    photo_album_empty: "El álbum está vacío. ¡Añade la primera foto de la aventura!",
+    photo_album_unclassified: "Sin clasificar",
+    photo_album_trip_day: "Día",
+    photo_album_edit_caption_label: "Editar leyenda",
+    photo_album_delete_photo_label: "Eliminar foto",
+    photo_album_confirm_delete: "¿Estás seguro de que quieres eliminar esta foto?",
+    photo_album_add_details_title: "Añadir Detalles de la Foto",
+    photo_album_city: "Ciudad",
+    photo_album_date_taken: "Fecha de captura",
+    photo_album_caption: "Leyenda",
+    photo_album_cancel_button: "Cancelar",
+    photo_album_save_button: "Guardar",
+    // Flight Tickets
+    flight_tickets_title: "Pasajes Aéreos Internacionales",
+    flight_tickets_reservation: "Reserva",
+    flight_tickets_airline_ref: "Ref. Aerolínea",
+    flight_tickets_status: "Estado",
+    flight_tickets_approved: "Aprobado",
+    flight_tickets_passengers: "Pasajeros",
+    flight_tickets_flights: "Detalles de Vuelos",
+    flight_tickets_leg: "Tramo",
+    flight_tickets_departure: "Salida",
+    flight_tickets_arrival: "Llegada",
+    flight_tickets_duration: "Duración",
+    flight_tickets_connection_time: "Tiempo de Conexión",
+    flight_tickets_baggage_allowance: "Equipaje Permitido (por pasajero)",
+    flight_tickets_carry_on: "1 equipaje de mano (hasta 7kg)",
+    flight_tickets_checked_bags: "2 maletas documentadas (hasta 23kg cada una)",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -260,7 +301,7 @@ export const translations: Translations = {
     ai_event_finder_error: "No se pudieron buscar eventos. Intenta de nuevo.",
 
     // Footer
-    footerText: "© 2025 Viaje Familiar Argentina. Todos los derechos reservados.",
+    footerText: "Viaje Familiar Argentina. Todos los derechos reservados.",
     // City Detail Page (generic titles, specific content comes from city_id + key)
     activities: "Actividades Sugeridas", 
     accommodation: "Opciones de Alojamiento",
@@ -543,10 +584,50 @@ export const translations: Translations = {
     consultarBtn: "התייעץ",
     iaError: "שגיאה בתקשורת עם הבינה המלאכותית. נסו שוב מאוחר יותר.",
     iaProcessing: "מעבד את פנייתך...",
+    iaDescription: "השתמש בעוזר זה כדי לשאול שאלות כלליות על ארגנטינה, מזג האוויר, מנהגים, או כל שאלה אחרת שיש לך לגבי הטיול.",
+    ai_prompt_general: "אתה עוזר נסיעות מומחה לארגנטינה. ענה על שאלות המשתמש על המדינה, תרבותה, מזג האוויר, טיפים לטיול וכל שאלה כללית אחרת. ספק תשובות מועילות, תמציתיות וידידותיות למשפחה המתכננת טיול.",
     // Currency Converter
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
     montoPlaceholder: "סכום",
+    // Cloud Sync
+    sync_status_ready: "מוכן לסנכרון",
+    sync_status_syncing: "מסנכרן שינויים...",
+    sync_status_synced: "סונכרן!",
+    sync_status_last_sync: "סנכרון אחרון:",
+    // Photo Album
+    photo_album_title: "אלבום תמונות משפחתי",
+    photo_album_description: "מקום לשמור את הזיכרונות מהטיול שלנו. לחץ על כפתור '+' כדי להוסיף תמונה חדשה.",
+    photo_album_add_button: "הוסף תמונה",
+    photo_album_placeholder_caption: "זיכרון מ-{cityName}",
+    photo_album_empty: "האלבום ריק. הוסף את התמונה הראשונה של ההרפתקה!",
+    photo_album_unclassified: "ללא סיווג",
+    photo_album_trip_day: "יום",
+    photo_album_edit_caption_label: "ערוך כיתוב",
+    photo_album_delete_photo_label: "מחק תמונה",
+    photo_album_confirm_delete: "האם אתה בטוח שברצונך למחוק תמונה זו?",
+    photo_album_add_details_title: "הוסף פרטי תמונה",
+    photo_album_city: "עיר",
+    photo_album_date_taken: "תאריך צילום",
+    photo_album_caption: "כיתוב",
+    photo_album_cancel_button: "ביטול",
+    photo_album_save_button: "שמור",
+    // Flight Tickets
+    flight_tickets_title: "כרטיסי טיסה בינלאומיים",
+    flight_tickets_reservation: "הזמנה",
+    flight_tickets_airline_ref: "מספר חברת תעופה",
+    flight_tickets_status: "מצב",
+    flight_tickets_approved: "מאושר",
+    flight_tickets_passengers: "נוסעים",
+    flight_tickets_flights: "פרטי טיסות",
+    flight_tickets_leg: "קטע",
+    flight_tickets_departure: "המראה",
+    flight_tickets_arrival: "נחיתה",
+    flight_tickets_duration: "משך",
+    flight_tickets_connection_time: "זמן חיבור",
+    flight_tickets_baggage_allowance: "כבודה מותרת (לנוסע)",
+    flight_tickets_carry_on: "תיק יד 1 (עד 7 ק\"ג)",
+    flight_tickets_checked_bags: "2 מזוודות לבטן המטוס (עד 23 ק\"ג כל אחת)",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",
@@ -574,7 +655,7 @@ export const translations: Translations = {
     ai_event_finder_error: "לא ניתן היה לחפש אירועים. נסה שוב.",
 
     // Footer
-    footerText: "© 2025 טיול משפחתי בארגנטינה. כל הזכויות שמורות.",
+    footerText: "טיול משפחתי בארגנטינה. כל הזכויות שמורות.",
     // City Detail Page (generic titles)
     activities: "פעילויות מומלצות",
     accommodation: "אפשרויות לינה",

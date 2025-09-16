@@ -13,6 +13,7 @@ import AIChatBox from '../components/AIChatBox.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
 import CloudSyncInfo from '../components/home/CloudSyncInfo.tsx';
 import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
+import FlightTickets from '../components/home/FlightTickets.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -209,6 +210,8 @@ const HomePage: React.FC = () => {
       </section>
 
       <CloudSyncInfo />
+
+      <FlightTickets />
 
       {/* City Cards */}
       <section>
