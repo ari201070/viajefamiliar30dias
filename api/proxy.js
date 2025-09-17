@@ -1,9 +1,9 @@
 const { GoogleGenAI } = require("@google/genai");
 const fetch = require('node-fetch');
 
-const GEMINI_API_KEY = process.env.VITE_API_KEY;
-const POLYGON_API_KEY = process.env.VITE_POLYGON_API_KEY;
-const OPENWEATHER_API_KEY = process.env.VITE_OPENWEATHER_API_KEY; // New key
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const POLYGON_API_KEY = process.env.POLYGON_API_KEY;
+const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 
 // Helper to send JSON response
 const sendJSON = (res, status, data) => res.status(status).json(data);
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
 
 const getAiInstance = () => {
     if (!GEMINI_API_KEY) {
-        throw new Error("VITE_API_KEY is not configured on the server.");
+        throw new Error("GEMINI_API_KEY is not configured on the server.");
     }
     return new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 };

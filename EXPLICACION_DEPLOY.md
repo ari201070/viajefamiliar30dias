@@ -1,43 +1,62 @@
-# Explicación sobre el Despliegue y Variables de Entorno (.env)
+# Guía de Despliegue y Variables de Entorno (Actualizado)
 
-Hola, este archivo contiene la explicación detallada sobre por qué tu archivo `.env` no se sube a GitHub y cómo configurar correctamente tu proyecto en Vercel para que funcione sin problemas.
+Hola, este archivo explica cómo configurar las claves de API (variables de entorno) para que tu aplicación funcione tanto en tu computadora como en Vercel.
 
-## ¿Por Qué "Desaparece" tu Archivo `.env`?
+## El Problema: Local vs. Producción
 
-En realidad, `git` no está borrando tu archivo. El problema es una combinación de cómo funciona Git y cómo las plataformas de despliegue como Vercel manejan las "variables de entorno" (tus claves de API).
+El problema que experimentaste, donde la app funciona localmente pero no en Vercel, es muy común. Se debe a cómo se manejan las "variables de entorno" (tus claves de API secretas).
 
-1.  **Seguridad primero:** El archivo `.env` contiene secretos (como tu `API_KEY`). **Nunca** debe subirse a un repositorio de GitHub, ni público ni privado. Para asegurar esto, se usa un archivo especial llamado `.gitignore`, que le dice a Git "ignora este archivo, no le des seguimiento". Esto es una práctica de seguridad fundamental.
+-   **Localmente:** Usas un archivo `.env` que contiene tus claves. Tu entorno de desarrollo lo lee y todo funciona.
+-   **En Vercel:** Vercel no tiene acceso a tu archivo `.env` (¡y no debería, por seguridad!). Necesita que le proporciones las claves de otra manera.
 
-2.  **Desarrollo Local vs. Producción (Vercel):**
-    *   **En tu computadora (Local):** El archivo `.env` funciona perfectamente. Tu entorno de desarrollo lo lee y tu app se conecta a la API.
-    *   **En Vercel (Producción):** Cuando Vercel despliega tu proyecto, clona tu repositorio de GitHub. Como el `.env` no está en el repositorio (¡y no debe estarlo!), Vercel no lo encuentra. Por eso la app desplegada no puede conectarse.
+## La Solución: Separar Variables de Backend y Frontend
 
-La solución no es forzar a Git a subir el archivo `.env`, sino darle a Vercel las claves de API de una manera segura.
+Para solucionar esto de forma robusta, hemos separado las variables del backend (servidor) de las del frontend (navegador).
 
-## La Solución Profesional (Paso a Paso)
+-   Las variables del **backend** (nuestra función `api/proxy.js`) ahora usarán nombres directos, sin prefijos. Son las que necesita el servidor para funcionar.
+-   Las variables del **frontend** (si las hubiera) usarían el prefijo `VITE_` para ser accesibles en el navegador. En nuestro caso, no tenemos ninguna, ya que todas las llamadas a las APIs se hacen de forma segura a través del proxy.
 
-Para solucionar esto de raíz y seguir las mejores prácticas, se realizaron los siguientes cambios en tu proyecto:
+Este cambio hace el proyecto más seguro, claro y compatible con la forma en que Vercel trabaja.
 
-1.  **Creación de `.gitignore`:** Se añadió un archivo `.gitignore` con la línea `.env` para asegurar que nunca más subas tus secretos a GitHub por accidente.
-2.  **Creación de `.env.example`:** Este es un archivo de ejemplo. Sirve como una "plantilla" para que cualquiera (incluido tú en el futuro) sepa qué variables necesita el proyecto para funcionar. No contiene las claves reales.
+---
 
-### Tu Siguiente Paso: Configurar Vercel (¡El más importante!)
+## **Acción Requerida: Tu Configuración (Local y Vercel)**
 
-Ahora solo necesitas decirle a Vercel cuáles son tus claves de API de forma segura a través de su interfaz.
+### 1. Actualiza tu Archivo `.env` Local
+
+Para que la aplicación siga funcionando en tu computadora, abre tu archivo `.env` y **cambia los nombres de las variables** así:
+
+```env
+# Cambia esto:
+VITE_API_KEY=tu_clave_de_gemini
+VITE_POLYGON_API_KEY=tu_clave_de_polygon
+VITE_OPENWEATHER_API_KEY=tu_clave_de_openweathermap
+
+# A esto (sin el prefijo VITE_ y con el nuevo nombre para Gemini):
+GEMINI_API_KEY=tu_clave_de_gemini
+POLYGON_API_KEY=tu_clave_de_polygon
+OPENWEATHER_API_KEY=tu_clave_de_openweathermap
+```
+
+### 2. Configura las Nuevas Variables en Vercel (Paso Clave)
+
+Ahora, haz lo mismo en Vercel para que tu app desplegada funcione:
 
 1.  Ve a tu panel de control de Vercel y selecciona tu proyecto `viajefamiliar30dias`.
 2.  Navega a la pestaña **Settings** y luego a la sección **Environment Variables**.
-3.  Crea tres nuevas variables:
+3.  **Elimina las variables antiguas** (`VITE_API_KEY`, `VITE_POLYGON_API_KEY`, `VITE_OPENWEATHER_API_KEY`) si existen.
+4.  Crea **tres nuevas variables** con los nombres corregidos:
     *   **Variable 1 (Gemini):**
-        *   **Name:** `VITE_API_KEY`
+        *   **Name:** `GEMINI_API_KEY`
         *   **Value:** `[Pega aquí tu clave de API de Gemini]`
     *   **Variable 2 (Polygon):**
-        *   **Name:** `VITE_POLYGON_API_KEY`
+        *   **Name:** `POLYGON_API_KEY`
         *   **Value:** `[Pega aquí tu clave de API de Polygon.io]`
     *   **Variable 3 (OpenWeather):**
-        *   **Name:** `VITE_OPENWEATHER_API_KEY`
-        *   **Value:** `[Pega aquí tu clave de API de OpenWeatherMap (opcional, para clima real)]`
-4.  Guarda los cambios.
-5.  Finalmente, ve a la pestaña **Deployments**, busca el último despliegue y haz clic en el menú de los tres puntos (...) y selecciona **Redeploy** para que los cambios surtan efecto.
+        *   **Name:** `OPENWEATHER_API_KEY`
+        *   **Value:** `[Pega aquí tu clave de API de OpenWeatherMap]`
 
-¡Y listo! Con esto, tu aplicación funcionará perfectamente tanto en tu máquina como en Vercel, y tus claves de API estarán siempre seguras.
+5.  Guarda los cambios.
+6.  Finalmente, ve a la pestaña **Deployments**, busca el último despliegue y haz clic en el menú de los tres puntos (...) y selecciona **Redeploy** para que los cambios surtan efecto.
+
+¡Y listo! Con esta configuración, tu aplicación funcionará perfectamente en ambos entornos y tus claves estarán seguras.
