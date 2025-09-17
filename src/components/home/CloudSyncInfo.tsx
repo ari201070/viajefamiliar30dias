@@ -59,22 +59,25 @@ const CloudSyncInfo: React.FC = () => {
   const { icon, text, color, showButton } = getStatusInfo();
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 mb-8 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-inner">
-      <div className="flex items-center gap-3">
-        <i className={`fas ${icon} ${color} text-xl`}></i>
-        <span className={`${color} font-semibold`}>{text}</span>
+    <section className="p-4 mb-8 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-inner">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <i className={`fas ${icon} ${color} text-xl`}></i>
+          <span className={`${color} font-semibold`}>{text}</span>
+        </div>
+        {showButton && (
+          <button
+            onClick={handleSync}
+            disabled={syncStatus === 'syncing'}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            <i className="fas fa-sync-alt mr-2"></i>
+            {t('sync_button_now')}
+          </button>
+        )}
       </div>
-      {showButton && (
-        <button
-          onClick={handleSync}
-          disabled={syncStatus === 'syncing'}
-          className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
-          <i className="fas fa-sync-alt mr-2"></i>
-          {t('sync_button_now')}
-        </button>
-      )}
-    </div>
+      <p className="text-xs text-center sm:text-left text-gray-500 dark:text-slate-500 mt-3">{t('sync_explanation_text')}</p>
+    </section>
   );
 };
 

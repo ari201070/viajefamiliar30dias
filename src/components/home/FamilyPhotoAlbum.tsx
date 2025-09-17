@@ -3,7 +3,7 @@ import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { CITIES } from '../../constants.ts';
-import { dbService } from '../../services/dbService.ts';
+import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
 
 const FamilyPhotoAlbum: React.FC = () => {
   const { t, language } = useAppContext();
@@ -28,20 +28,20 @@ const FamilyPhotoAlbum: React.FC = () => {
   const loadPhotos = useCallback(async () => {
     setIsLoading(true);
     try {
-      const photosFromDB = await dbService.getPhotos();
+      const photosFromDB = await firebaseSyncService.getPhotos();
       
       const hasSeeded = localStorage.getItem('photosSeeded') === 'true';
 
       if (photosFromDB.length === 0 && !hasSeeded) {
           const initialPhotos = getInitialPhotos();
-          await dbService.addPhotosBatch(initialPhotos);
+          await firebaseSyncService.addPhotosBatch(initialPhotos);
           setPhotos(initialPhotos);
           localStorage.setItem('photosSeeded', 'true');
       } else {
         setPhotos(photosFromDB);
       }
     } catch (error) {
-        console.error("Failed to load photos from IndexedDB", error);
+        console.error("Failed to load photos from sync service", error);
         setPhotos([]); // Set to empty array on error
     } finally {
         setIsLoading(false);
@@ -134,8 +134,7 @@ const FamilyPhotoAlbum: React.FC = () => {
     if (!currentPhoto || !currentPhoto.id) return;
     
     try {
-        await dbService.savePhoto(currentPhoto as PhotoItem);
-        window.dispatchEvent(new Event('storage')); // Trigger cloud sync indicator
+        await firebaseSyncService.savePhoto(currentPhoto as PhotoItem);
         setIsModalOpen(false);
         setCurrentPhoto(null);
         await loadPhotos(); // Reload photos from DB to update UI
@@ -147,8 +146,7 @@ const FamilyPhotoAlbum: React.FC = () => {
   const handleRemovePhoto = async (id: string) => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
         try {
-            await dbService.deletePhoto(id);
-            window.dispatchEvent(new Event('storage'));
+            await firebaseSyncService.deletePhoto(id);
             await loadPhotos(); // Reload photos from DB
         } catch(error) {
             console.error("Failed to delete photo", error);

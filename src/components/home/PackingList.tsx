@@ -1,31 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PackingItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
+import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
 
 const PackingList: React.FC = () => {
   const { t, language } = useAppContext();
-  const [packingItems, setPackingItems] = useState<PackingItem[]>(() => {
-    try {
-      const savedItems = localStorage.getItem('packingList');
-      return savedItems ? JSON.parse(savedItems) : [];
-    } catch (e) {
-      console.error("Failed to load packing list from localStorage", e);
-      return [];
-    }
-  });
+  const [packingItems, setPackingItems] = useState<PackingItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newItemText, setNewItemText] = useState('');
   const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
-  useEffect(() => {
+  const loadPackingList = useCallback(async () => {
+    setIsLoading(true);
     try {
-      localStorage.setItem('packingList', JSON.stringify(packingItems));
-    } catch (e) {
-        console.error("Failed to save packing list to localStorage", e);
+        const items = await firebaseSyncService.getPackingList();
+        setPackingItems(items);
+    } catch (error) {
+        console.error("Failed to load packing list from sync service", error);
+    } finally {
+        setIsLoading(false);
     }
-  }, [packingItems]);
+  }, []);
 
-  const handleAddPackingItem = () => {
+  useEffect(() => {
+    loadPackingList();
+  }, [loadPackingList]);
+
+  const handleAddPackingItem = async () => {
     if (newItemText.trim() === '') return;
     const newItem: PackingItem = {
       id: uuidv4(),
@@ -33,18 +35,45 @@ const PackingList: React.FC = () => {
       type: newItemType,
       originalLang: language,
     };
-    setPackingItems(prev => [...prev, newItem]);
+    
+    const updatedItems = [...packingItems, newItem];
+    setPackingItems(updatedItems); // Optimistic update
     setNewItemText('');
+
+    try {
+        await firebaseSyncService.savePackingList(updatedItems);
+    } catch (error) {
+        console.error("Failed to save new packing item", error);
+        // On failure, revert to the original state
+        setPackingItems(packingItems.filter(item => item.id !== newItem.id));
+    }
   };
 
-  const handleRemovePackingItem = (id: string) => {
-    setPackingItems(prev => prev.filter(item => item.id !== id));
+  const handleRemovePackingItem = async (id: string) => {
+    const originalItems = [...packingItems];
+    const updatedItems = packingItems.filter(item => item.id !== id);
+    setPackingItems(updatedItems); // Optimistic update
+
+    try {
+        await firebaseSyncService.savePackingList(updatedItems);
+    } catch (error) {
+        console.error("Failed to remove packing item", error);
+        setPackingItems(originalItems); // Revert on failure
+    }
   };
   
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
   
   const renderList = (type: 'essential' | 'optional') => {
+    if (isLoading) {
+        return (
+            <div className="text-center py-10 text-gray-500 dark:text-slate-400">
+                <i className="fas fa-spinner fa-spin text-2xl"></i>
+            </div>
+        );
+    }
+    
     const items = packingItems.filter(item => item.type === type);
     if (items.length === 0) {
       return (
