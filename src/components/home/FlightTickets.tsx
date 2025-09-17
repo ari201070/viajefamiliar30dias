@@ -21,9 +21,9 @@ const returnFlight = {
   title: 'Buenos Aires (EZE) → Tel Aviv (TLV)',
   legs: [
     { airline: 'Ethiopian Airlines', number: 'ET507', from: 'Buenos Aires (EZE)', to: 'Addis Ababa (ADD)', departure: '28/10/2025, 21:30', arrival: '29/10/2025, 19:30', duration: '16h 00m' },
-    { airline: 'Ethiopian Airlines', number: 'ET404', from: 'Addis Ababa (ADD)', to: 'Tel Aviv (TLV)', departure: '29/10/2025, 22:00', arrival: '30/10/2025, 01:05', duration: '4h 05m' },
+    { airline: 'Ethiopian Airlines', number: 'ET404', from: 'Addis Ababa (ADD)', to: 'Tel Aviv (TLV)', departure: '29/10/2025, 23:50', arrival: '30/10/2025, 03:00', duration: '4h 10m' },
   ],
-  connection: '2h 30m',
+  connection: '4h 20m',
 };
 
 
