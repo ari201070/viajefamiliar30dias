@@ -155,3 +155,25 @@ export interface BudgetDetails {
   breakdown: Record<string, string>;
   isCalculating: boolean;
 }
+
+// --- Weather Types ---
+export interface CurrentWeather {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+    description: string;
+    icon: string;
+}
+
+export interface DailyForecast {
+    dayOfWeek: string;
+    temp_min: number;
+    temp_max: number;
+    description: string;
+    icon: string;
+}
+
+export interface WeatherData {
+    current: CurrentWeather;
+    forecast: DailyForecast[];
+}

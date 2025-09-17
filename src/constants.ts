@@ -35,7 +35,7 @@ export const CITIES: City[] = [
     id: 'buenosaires', 
     nameKey: 'buenosaires_title', 
     coords: [-34.6118, -58.3960], 
-    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'buenosaires_desc_main',
     activitiesKey: 'buenosaires_activities_recommended', 
     accommodationKey: 'buenosaires_accommodation_examples', 
@@ -274,6 +274,13 @@ export const translations: Translations = {
     flight_tickets_baggage_allowance: "Equipaje Permitido (por pasajero)",
     flight_tickets_carry_on: "1 equipaje de mano (hasta 7kg)",
     flight_tickets_checked_bags: "2 maletas documentadas (hasta 23kg cada una)",
+    // Weather Forecast
+    weather_title: "Pronóstico del Clima",
+    weather_select_city_label: "Seleccionar ciudad para ver el clima",
+    weather_feels_like: "Sensación térmica",
+    weather_humidity: "Humedad",
+    weather_error_fetching: "No se pudo obtener el pronóstico. Inténtelo de nuevo más tarde.",
+    weather_error_city_not_found: "Ciudad no encontrada.",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -628,6 +635,13 @@ export const translations: Translations = {
     flight_tickets_baggage_allowance: "כבודה מותרת (לנוסע)",
     flight_tickets_carry_on: "תיק יד 1 (עד 7 ק\"ג)",
     flight_tickets_checked_bags: "2 מזוודות לבטן המטוס (עד 23 ק\"ג כל אחת)",
+    // Weather Forecast
+    weather_title: "תחזית מזג האוויר",
+    weather_select_city_label: "בחר עיר לצפייה במזג האוויר",
+    weather_feels_like: "מרגיש כמו",
+    weather_humidity: "לחות",
+    weather_error_fetching: "לא ניתן היה לקבל את התחזית. אנא נסה שוב מאוחר יותר.",
+    weather_error_city_not_found: "עיר לא נמצאה.",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",

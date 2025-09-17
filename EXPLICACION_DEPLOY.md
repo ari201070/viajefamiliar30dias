@@ -27,13 +27,16 @@ Ahora solo necesitas decirle a Vercel cuáles son tus claves de API de forma seg
 
 1.  Ve a tu panel de control de Vercel y selecciona tu proyecto `viajefamiliar30dias`.
 2.  Navega a la pestaña **Settings** y luego a la sección **Environment Variables**.
-3.  Crea dos nuevas variables:
-    *   **Variable 1:**
+3.  Crea tres nuevas variables:
+    *   **Variable 1 (Gemini):**
         *   **Name:** `VITE_API_KEY`
         *   **Value:** `[Pega aquí tu clave de API de Gemini]`
-    *   **Variable 2:**
+    *   **Variable 2 (Polygon):**
         *   **Name:** `VITE_POLYGON_API_KEY`
         *   **Value:** `[Pega aquí tu clave de API de Polygon.io]`
+    *   **Variable 3 (OpenWeather):**
+        *   **Name:** `VITE_OPENWEATHER_API_KEY`
+        *   **Value:** `[Pega aquí tu clave de API de OpenWeatherMap (opcional, para clima real)]`
 4.  Guarda los cambios.
 5.  Finalmente, ve a la pestaña **Deployments**, busca el último despliegue y haz clic en el menú de los tres puntos (...) y selecciona **Redeploy** para que los cambios surtan efecto.
 

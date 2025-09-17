@@ -1,4 +1,4 @@
-import { Language, GroundingChunk, ChatMessage, Currency } from '../types.ts';
+import { Language, GroundingChunk, ChatMessage, Currency, WeatherData } from '../types.ts';
 import { translations } from '../constants.ts';
 
 // --- API Proxy Service ---
@@ -119,4 +119,16 @@ export const getCachedExchangeRate = async (from: string, to: string): Promise<n
     exchangeRateCache.set(cacheKey, { rate: convertedOneUnit, timestamp: Date.now() });
   }
   return convertedOneUnit;
+};
+
+// --- Weather Forecast Service (via Proxy) ---
+
+export const getWeatherForecast = async (coords: [number, number], lang: Language): Promise<WeatherData> => {
+  try {
+    const data = await fetchFromProxy('weather_forecast', { lat: coords[0], lon: coords[1], lang });
+    return data;
+  } catch (error) {
+    console.error("Error calling proxy for getWeatherForecast:", error);
+    throw error;
+  }
 };

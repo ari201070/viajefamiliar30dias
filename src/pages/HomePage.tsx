@@ -14,6 +14,7 @@ import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
 import CloudSyncInfo from '../components/home/CloudSyncInfo.tsx';
 import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 import FlightTickets from '../components/home/FlightTickets.tsx';
+import WeatherForecast from '../components/home/WeatherForecast.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -223,6 +224,8 @@ const HomePage: React.FC = () => {
       </section>
       
       <BudgetSummary budgetDetails={budgetDetails} />
+
+      <WeatherForecast />
 
       {/* Interactive Map */}
       <section className={cardClasses}>
