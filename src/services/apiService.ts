@@ -1,36 +1,39 @@
-import { GoogleGenAI, GenerateContentResponse, Chat, Content } from "@google/genai";
-import { PolygonRateResponse, Language, GroundingChunk, ChatMessage } from '../types.ts';
-import { POLYGON_API_KEY, translations } from '../constants.ts';
+import { Language, GroundingChunk, ChatMessage, Currency } from '../types.ts';
+import { translations } from '../constants.ts';
 
-// --- Gemini AI Service ---
-let ai: GoogleGenAI | null = null;
+// --- API Proxy Service ---
 
-// Access the API key using the frontend-bundler pattern (e.g., Vite) to solve deployment issues.
-const apiKey = (import.meta as any).env?.VITE_API_KEY;
+// Generic fetch handler for our proxy
+const fetchFromProxy = async (action: string, payload: object) => {
+  const response = await fetch('/api/proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, payload }),
+  });
 
-if (apiKey) {
-  ai = new GoogleGenAI({ apiKey: apiKey });
-} else {
-  console.warn("Gemini API key not found in import.meta.env.VITE_API_KEY. AI features will be limited.");
-}
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred.' }));
+    throw new Error(errorData.message || `API call failed with status: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+// --- Gemini AI Service (via Proxy) ---
+
+const getApiErrorMessage = (lang: Language) => 
+  lang === Language.HE 
+    ? "אירעה שגיאה בתקשורת עם שרת ה-AI." 
+    : "An error occurred while contacting the AI server.";
+
 
 export const askGemini = async (userPrompt: string, currentLanguage: Language): Promise<string> => {
-  if (!ai) {
-    const apiKeyMissingMessage = "El servicio de IA no está disponible. Por favor, asegúrese de que la clave API esté configurada correctamente.";
-    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין. אנא ודא שמפתח ה-API מוגדר כהלכה.` : apiKeyMissingMessage;
-  }
   try {
-    const languageInstruction = currentLanguage === Language.HE ? "Respond in Hebrew." : "Respond in Spanish.";
-    const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
-    
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: fullPrompt,
-    });
-    return response.text;
+    const data = await fetchFromProxy('gemini_ask', { userPrompt, language: currentLanguage });
+    return data.text;
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    return currentLanguage === Language.HE ? "אירעה שגיאה בתקשורת עם הבינה המלאכותית." : "An error occurred while contacting the AI.";
+    console.error("Error calling proxy for askGemini:", error);
+    return getApiErrorMessage(currentLanguage);
   }
 };
 
@@ -40,88 +43,44 @@ export const sendMessageInChat = async (
   newMessage: string,
   currentLanguage: Language
 ): Promise<string> => {
-  if (!ai) {
-    const apiKeyMissingMessage = "El servicio de IA no está disponible. Por favor, asegúrese de que la clave API esté configurada correctamente.";
-    return currentLanguage === Language.HE ? `שירות הבינה המלאכותית אינו זמין. אנא ודא שמפתח ה-API מוגדר כהלכה.` : apiKeyMissingMessage;
-  }
   try {
-    // The language instruction is now part of the system instruction, but we add a final reinforcement.
-    const languageInstruction = currentLanguage === Language.HE ? "\n\nPlease respond exclusively in Hebrew." : "\n\nPlease respond exclusively in Spanish.";
-    
-    const formattedHistory: Content[] = history.map(msg => ({
-      role: msg.role,
-      parts: [{ text: msg.text }]
-    }));
-
-    const chat: Chat = ai.chats.create({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: systemInstruction + languageInstruction,
-      },
-      history: formattedHistory,
+    const data = await fetchFromProxy('gemini_chat', { 
+        systemInstruction, 
+        history, 
+        newMessage, 
+        language: currentLanguage 
     });
-
-    const response = await chat.sendMessage({ message: newMessage });
-
-    return response.text;
+    return data.text;
   } catch (error) {
-    console.error("Error in chat session with Gemini API:", error);
-    return currentLanguage === Language.HE ? "אירעה שגיאה בצ'אט עם הבינה המלאכותית." : "An error occurred during the chat with the AI.";
+    console.error("Error calling proxy for sendMessageInChat:", error);
+    return getApiErrorMessage(currentLanguage);
   }
 };
 
 export const translateText = async (text: string, targetLanguage: Language): Promise<string> => {
-  if (!ai) {
-    return "AI service unavailable.";
-  }
   try {
     const targetLanguageName = translations[targetLanguage][`language_name_${targetLanguage}`] || (targetLanguage === 'he' ? 'Hebrew' : 'Spanish');
-    const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apologies, or preambles like "Translated from...". Just the translation. The target language is ${targetLanguageName}.`;
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: text,
-      config: {
-        systemInstruction,
-      }
+    const data = await fetchFromProxy('gemini_translate', { 
+        text, 
+        targetLanguage,
+        targetLanguageName 
     });
-
-    return response.text.trim();
+    return data.text;
   } catch (error) {
-    console.error(`Error translating text to ${targetLanguage}:`, error);
+    console.error(`Error calling proxy for translateText to ${targetLanguage}:`, error);
     return targetLanguage === Language.HE ? "שגיאת תרגום" : "Translation error";
   }
 };
-
 
 export const findEventsWithGoogleSearch = async (
   prompt: string,
   currentLanguage: Language
 ): Promise<{ text: string; sources: GroundingChunk[] }> => {
-  if (!ai) {
-    const apiKeyMissingMessage = "El servicio de IA no está disponible. Por favor, asegúrese de que la clave API esté configurada correctamente.";
-    const text = currentLanguage === Language.HE 
-      ? `שירות הבינה המלאכותית אינו זמין. אנא ודא שמפתח ה-API מוגדר כהלכה.` 
-      : apiKeyMissingMessage;
-    return { text, sources: [] };
-  }
   try {
-    const languageInstruction = currentLanguage === Language.HE ? "Respond in Hebrew." : "Respond in Spanish.";
-    const fullPrompt = `${prompt}\n\n${languageInstruction}`;
-
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: fullPrompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
-    });
-
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
-    
-    return { text: response.text, sources };
+    const data = await fetchFromProxy('gemini_search_events', { prompt, language: currentLanguage });
+    return { text: data.text, sources: data.sources || [] };
   } catch (error) {
-    console.error("Error calling Gemini API with Google Search:", error);
+    console.error("Error calling proxy for findEventsWithGoogleSearch:", error);
     const text = currentLanguage === Language.HE 
       ? "אירעה שגיאה בחיפוש אירועים." 
       : "An error occurred while searching for events.";
@@ -130,69 +89,17 @@ export const findEventsWithGoogleSearch = async (
 };
 
 
-// --- Currency Conversion Service (Polygon.io) ---
-const getPolygonExchangeRate = async (fromCurrency: string, toCurrency: string): Promise<number | null> => {
-  if (fromCurrency === toCurrency) return 1;
-
-  if (!POLYGON_API_KEY) {
-    console.warn("Polygon.io API key not found (VITE_POLYGON_API_KEY). Using approximate fallback conversion rates.");
-    // Fallback for missing Polygon key
-    const usdToArs = 900;
-    const usdToEur = 0.93;
-    const usdToIls = 3.72;
-
-    const rates: { [key: string]: number } = {
-      'USD_ARS': usdToArs, 'ARS_USD': 1 / usdToArs,
-      'USD_EUR': usdToEur, 'EUR_USD': 1 / usdToEur,
-      'USD_ILS': usdToIls, 'ILS_USD': 1 / usdToIls,
-      // Cross rates via USD
-      'ARS_EUR': (1 / usdToArs) * usdToEur, 'EUR_ARS': usdToArs * (1 / usdToEur),
-      'ARS_ILS': (1 / usdToArs) * usdToIls, 'ILS_ARS': usdToArs * (1 / usdToIls),
-      'EUR_ILS': (1 / usdToEur) * usdToIls, 'ILS_EUR': usdToEur * (1 / usdToIls),
-    };
-    const key = `${fromCurrency}_${toCurrency}`;
-    return rates[key] || null;
-  }
-
-  const url = `https://api.polygon.io/v2/aggs/ticker/C:${fromCurrency}${toCurrency}/prev?adjusted=true&apiKey=${POLYGON_API_KEY}`;
-  try {
-    const response = await fetch(url);
-    const data: PolygonRateResponse = await response.json();
-
-    if (!response.ok || data.status === "ERROR" || !data.results || data.results.length === 0) {
-      console.error(`Error fetching rate for ${fromCurrency}/${toCurrency} from Polygon.io: ${data.error || response.statusText}`);
-      return null;
-    }
-    return data.results[0].c; 
-  } catch (error) {
-    console.error(`Network error fetching rate for ${fromCurrency}/${toCurrency}:`, error);
-    return null;
-  }
-};
+// --- Currency Conversion Service (via Proxy) ---
 
 export const convertCurrency = async (amount: number, fromCurrency: string, toCurrency: string): Promise<number | null> => {
   if (fromCurrency === toCurrency) return amount;
-
-  let rate = await getPolygonExchangeRate(fromCurrency, toCurrency);
-
-  if (rate !== null) {
-    return amount * rate;
-  } else {
-    // Try bridge conversion via USD if direct rate failed (this is a secondary fallback)
-    if (fromCurrency !== 'USD' && toCurrency !== 'USD') {
-      console.log(`Direct rate ${fromCurrency}->${toCurrency} not found. Trying bridge conversion via USD.`);
-      const rateFromToUSD = await getPolygonExchangeRate(fromCurrency, 'USD');
-      const rateUSDToTo = await getPolygonExchangeRate('USD', toCurrency);
-
-      if (rateFromToUSD !== null && rateUSDToTo !== null) {
-        const finalAmount = amount * rateFromToUSD * rateUSDToTo;
-        return finalAmount;
-      }
-    }
+  try {
+    const data = await fetchFromProxy('polygon_convert', { amount, fromCurrency, toCurrency });
+    return data.convertedAmount;
+  } catch (error) {
+    console.error(`Error calling proxy for convertCurrency from ${fromCurrency} to ${toCurrency}:`, error);
+    return null;
   }
-  
-  console.error(`Could not convert ${fromCurrency} to ${toCurrency}, even with USD bridge.`);
-  return null; 
 };
 
 const exchangeRateCache = new Map<string, { rate: number, timestamp: number }>();
@@ -207,9 +114,9 @@ export const getCachedExchangeRate = async (from: string, to: string): Promise<n
     return cached.rate;
   }
 
-  const rate = await getPolygonExchangeRate(from, to);
-  if (rate !== null) {
-    exchangeRateCache.set(cacheKey, { rate, timestamp: Date.now() });
+  const convertedOneUnit = await convertCurrency(1, from, to);
+  if (convertedOneUnit !== null) {
+    exchangeRateCache.set(cacheKey, { rate: convertedOneUnit, timestamp: Date.now() });
   }
-  return rate;
+  return convertedOneUnit;
 };

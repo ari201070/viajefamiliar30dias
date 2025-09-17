@@ -965,5 +965,3 @@ if (!translations.he['transport_price_ars_generic']) {
 
 // For placeholder images if real ones are missing
 export const DEFAULT_CITY_IMAGE = 'https://picsum.photos/seed/argentina/600/400';
-
-export const POLYGON_API_KEY = (import.meta as any).env?.VITE_POLYGON_API_KEY || "";
