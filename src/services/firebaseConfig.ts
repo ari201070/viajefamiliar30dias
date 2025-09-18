@@ -1,10 +1,7 @@
-// FIX: Corrected firebase/app import path to @firebase/app.
-import { initializeApp, FirebaseApp } from '@firebase/app';
-// FIX: Corrected firebase/firestore import path to @firebase/firestore.
-import { getFirestore, Firestore } from '@firebase/firestore';
-import { getStorage, FirebaseStorage } from '@firebase/storage';
-// FIX: Corrected firebase/auth import path to @firebase/auth.
-import { getAuth, Auth } from '@firebase/auth';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getAuth, Auth } from 'firebase/auth';
 
 // Priority order:
 // 1. Vite environment variable (for Vercel/builds)

@@ -1,12 +1,11 @@
 import { auth } from './firebaseConfig.ts';
-// FIX: Corrected firebase/auth import path to @firebase/auth.
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
   onAuthStateChanged, 
   User 
-} from '@firebase/auth';
+} from 'firebase/auth';
 
 const provider = new GoogleAuthProvider();
 

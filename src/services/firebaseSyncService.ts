@@ -1,6 +1,5 @@
 import { PhotoItem, PackingItem } from '../types.ts';
 import { db, storage } from './firebaseConfig.ts';
-// FIX: Corrected firebase/firestore import path to @firebase/firestore.
 import {
   collection,
   doc,
@@ -11,14 +10,13 @@ import {
   getDoc,
   orderBy,
   query,
-} from '@firebase/firestore';
-// FIX: Changed import path from 'firebase/storage' to '@firebase/storage' to resolve potential module resolution issues.
+} from 'firebase/firestore';
 import {
   ref,
   uploadString,
   getDownloadURL,
   deleteObject,
-} from '@firebase/storage';
+} from 'firebase/storage';
 
 // --- SERVICE FOR FIREBASE REAL-TIME SYNC ---
 // This service centralizes data management for synced features.

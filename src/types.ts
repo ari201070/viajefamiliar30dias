@@ -1,5 +1,4 @@
-// FIX: Corrected firebase/auth import path to @firebase/auth.
-import type { User } from '@firebase/auth';
+import type { User } from 'firebase/auth';
 
 export enum Language {
   ES = 'es',

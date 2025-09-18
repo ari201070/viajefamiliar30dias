@@ -5,8 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CITIES } from '../../constants.ts';
 import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
 import { db } from '../../services/firebaseConfig.ts';
-// FIX: Corrected firebase/firestore import path to @firebase/firestore.
-import { collection, onSnapshot, query, orderBy } from '@firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 const FamilyPhotoAlbum: React.FC = () => {
   const { t, language } = useAppContext();

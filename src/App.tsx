@@ -1,9 +1,6 @@
-
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-// FIX: Corrected firebase/auth import path to @firebase/auth.
-import type { User } from '@firebase/auth';
+import type { User } from 'firebase/auth';
 import { Language, Currency, Theme } from './types.ts';
 import { translations } from './constants.ts';
 import HomePage from './pages/HomePage.tsx';
