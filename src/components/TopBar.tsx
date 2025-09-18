@@ -3,15 +3,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.tsx';
 import { Language, Theme } from '../types.ts';
 import { LANGUAGES, CURRENCIES } from '../constants.ts';
+import { authService } from '../services/authService.ts';
 
 const TopBar: React.FC = () => {
-  const { language, setLanguage, currency, setCurrency, t, theme, setTheme } = useAppContext();
+  const { language, setLanguage, currency, setCurrency, t, theme, setTheme, currentUser } = useAppContext();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
   // State and refs for popovers
   const [isSharePopoverOpen, setIsSharePopoverOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [copyStatusMessage, setCopyStatusMessage] = useState('');
 
   const shareButtonRef = useRef<HTMLButtonElement>(null);
@@ -21,6 +23,9 @@ const TopBar: React.FC = () => {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuPopoverRef = useRef<HTMLDivElement>(null);
 
+  const userMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuPopoverRef = useRef<HTMLDivElement>(null);
+
   const handleThemeToggle = () => {
     setTheme(theme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT);
   };
@@ -28,7 +33,6 @@ const TopBar: React.FC = () => {
   const handleCopy = async () => {
     if (!shareInputRef.current) return;
     shareInputRef.current.select();
-    // FIX: Corrected a typo from `shareInput` to `shareInputRef`.
     shareInputRef.current.setSelectionRange(0, 99999); // For mobile browsers
 
     try {
@@ -50,41 +54,30 @@ const TopBar: React.FC = () => {
     }
   };
 
-  // Effect for share popover
-  useEffect(() => {
-    if (isSharePopoverOpen && shareInputRef.current) {
-      shareInputRef.current.select();
-      shareInputRef.current.setSelectionRange(0, 99999);
-      setCopyStatusMessage('');
-    }
-  }, [isSharePopoverOpen]);
+  const handleLogout = async () => {
+    await authService.signOutUser();
+    setIsUserMenuOpen(false);
+    // onAuthStateChanged listener in App.tsx will handle the rest.
+  };
 
   // Effect for closing popovers on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Close Share Popover
-      if (
-        sharePopoverRef.current && 
-        !sharePopoverRef.current.contains(event.target as Node) &&
-        shareButtonRef.current &&
-        !shareButtonRef.current.contains(event.target as Node)
-      ) {
+      if (sharePopoverRef.current && !sharePopoverRef.current.contains(event.target as Node) && shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node)) {
         setIsSharePopoverOpen(false);
       }
       // Close Mobile Menu
-      if (
-        menuPopoverRef.current && 
-        !menuPopoverRef.current.contains(event.target as Node) &&
-        menuButtonRef.current &&
-        !menuButtonRef.current.contains(event.target as Node)
-      ) {
+      if (menuPopoverRef.current && !menuPopoverRef.current.contains(event.target as Node) && menuButtonRef.current && !menuButtonRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
+      }
+      // Close User Menu
+      if (userMenuPopoverRef.current && !userMenuPopoverRef.current.contains(event.target as Node) && userMenuButtonRef.current && !userMenuButtonRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const commonButtonClasses = "px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800";
@@ -207,18 +200,50 @@ const TopBar: React.FC = () => {
             {renderControls(false)}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              ref={menuButtonRef}
-              onClick={() => setIsMenuOpen(prev => !prev)}
-              className="flex items-center justify-center w-10 h-10 rounded-full text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Open menu"
-              aria-haspopup="true"
-              aria-expanded={isMenuOpen}
-            >
-              <i className="fas fa-bars text-xl"></i>
-            </button>
+          {/* User & Mobile Menu */}
+          <div className="flex items-center gap-2">
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                ref={userMenuButtonRef}
+                onClick={() => setIsUserMenuOpen(prev => !prev)}
+                className="w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-indigo-500"
+              >
+                <img src={currentUser?.photoURL || ''} alt="User" className="w-full h-full rounded-full object-cover" />
+              </button>
+              {isUserMenuOpen && (
+                <div 
+                  ref={userMenuPopoverRef}
+                  className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl z-20"
+                >
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-600">
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{currentUser?.displayName}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{currentUser?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center gap-2"
+                  >
+                    <i className="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button
+                ref={menuButtonRef}
+                onClick={() => setIsMenuOpen(prev => !prev)}
+                className="flex items-center justify-center w-10 h-10 rounded-full text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                aria-label="Open menu"
+                aria-haspopup="true"
+                aria-expanded={isMenuOpen}
+              >
+                <i className="fas fa-bars text-xl"></i>
+              </button>
+            </div>
           </div>
         </div>
 

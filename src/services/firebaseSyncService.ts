@@ -1,5 +1,6 @@
 import { PhotoItem, PackingItem } from '../types.ts';
 import { db, storage } from './firebaseConfig.ts';
+// FIX: Corrected firebase/firestore import path to @firebase/firestore.
 import {
   collection,
   doc,
@@ -10,7 +11,7 @@ import {
   getDoc,
   orderBy,
   query,
-} from 'firebase/firestore';
+} from '@firebase/firestore';
 // FIX: Changed import path from 'firebase/storage' to '@firebase/storage' to resolve potential module resolution issues.
 import {
   ref,

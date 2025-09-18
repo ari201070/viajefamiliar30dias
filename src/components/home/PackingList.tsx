@@ -4,7 +4,8 @@ import { PackingItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
 import { db } from '../../services/firebaseConfig.ts';
-import { doc, onSnapshot } from 'firebase/firestore';
+// FIX: Corrected firebase/firestore import path to @firebase/firestore.
+import { doc, onSnapshot } from '@firebase/firestore';
 
 const PackingList: React.FC = () => {
   const { t, language } = useAppContext();

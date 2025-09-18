@@ -1,3 +1,6 @@
+// FIX: Corrected firebase/auth import path to @firebase/auth.
+import type { User } from '@firebase/auth';
+
 export enum Language {
   ES = 'es',
   HE = 'he',
@@ -66,6 +69,7 @@ export interface AppContextType {
   t: (key: string, replacements?: Record<string, string>) => string;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  currentUser: User | null;
 }
 
 export interface PolygonRateResponse {
@@ -114,7 +118,7 @@ export interface PackingItem {
 
 export interface PhotoItem {
   id: string;
-  src: string; // base64 data URL
+  src: string; // base64 data URL or public URL
   caption: string;
   originalLang: Language;
   cityId?: string;

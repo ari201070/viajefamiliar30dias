@@ -1,4 +1,6 @@
 import { createContext, useContext } from 'react';
+// FIX: Corrected firebase/auth import path to @firebase/auth.
+import type { User } from '@firebase/auth';
 import { AppContextType } from '../types.ts';
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);

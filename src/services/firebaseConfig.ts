@@ -1,6 +1,10 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+// FIX: Corrected firebase/app import path to @firebase/app.
+import { initializeApp, FirebaseApp } from '@firebase/app';
+// FIX: Corrected firebase/firestore import path to @firebase/firestore.
+import { getFirestore, Firestore } from '@firebase/firestore';
 import { getStorage, FirebaseStorage } from '@firebase/storage';
+// FIX: Corrected firebase/auth import path to @firebase/auth.
+import { getAuth, Auth } from '@firebase/auth';
 
 // Priority order:
 // 1. Vite environment variable (for Vercel/builds)
@@ -14,6 +18,7 @@ const firebaseConfigString = firebaseConfigFromEnv || firebaseConfigFromLocalSto
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
+let auth: Auth | null = null;
 
 // Export a status flag that can be checked by the UI
 export let isFirebaseConfigured = false;
@@ -26,6 +31,7 @@ if (firebaseConfigString) {
       app = initializeApp(firebaseConfig);
       db = getFirestore(app);
       storage = getStorage(app);
+      auth = getAuth(app);
       isFirebaseConfigured = true;
       console.log("Firebase initialized successfully.");
     } else {
@@ -44,4 +50,4 @@ if (!isFirebaseConfigured) {
     console.warn("Firebase config not found in environment variables or localStorage. Real-time sync features will be disabled.");
 }
 
-export { app, db, storage };
+export { app, db, storage, auth };

@@ -1,6 +1,9 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+// FIX: Corrected firebase/auth import path to @firebase/auth.
+import type { User } from '@firebase/auth';
 import { Language, Currency, Theme } from './types.ts';
 import { translations } from './constants.ts';
 import HomePage from './pages/HomePage.tsx';
@@ -10,6 +13,8 @@ import Footer from './components/Footer.tsx';
 import { AppContext, useAppContext } from './context/AppContext.tsx';
 import { isFirebaseConfigured } from './services/firebaseConfig.ts';
 import FirebaseSetup from './components/FirebaseSetup.tsx';
+import { authService } from './services/authService.ts';
+import Login from './components/Login.tsx';
 
 
 // --- Scroll to Top Button Component ---
@@ -55,6 +60,7 @@ const ScrollToTopButton: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // App-wide state
   const [language, setLanguage] = useState<Language>(Language.ES);
   const [currency, setCurrency] = useState<Currency>(Currency.ARS);
   const [theme, setTheme] = useState<Theme>(() => {
@@ -69,6 +75,23 @@ const App: React.FC = () => {
     }
     return Theme.LIGHT;
   });
+
+  // Auth state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [needsFirebaseSetup, setNeedsFirebaseSetup] = useState(!isFirebaseConfigured);
+
+  useEffect(() => {
+    if (isFirebaseConfigured) {
+      const unsubscribe = authService.onAuthChange(user => {
+        setCurrentUser(user);
+        setIsAuthLoading(false);
+      });
+      return () => unsubscribe(); // Cleanup subscription on unmount
+    } else {
+      setIsAuthLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -95,26 +118,49 @@ const App: React.FC = () => {
     }
     return translatedString;
   }, [language]);
+  
+  const appContextValue = {
+    language, setLanguage,
+    currency, setCurrency,
+    t,
+    theme, setTheme,
+    currentUser
+  };
+
+  const renderContent = () => {
+    if (needsFirebaseSetup) {
+      return <FirebaseSetup />;
+    }
+    if (isAuthLoading) {
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-100 dark:bg-slate-900">
+          <i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
+        </div>
+      );
+    }
+    if (!currentUser) {
+      return <Login />;
+    }
+    return (
+      <HashRouter>
+        <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
+          <TopBar />
+          <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/city/:cityId" element={<CityDetailPage />} />
+            </Routes>
+          </main>
+          <Footer />
+          <ScrollToTopButton />
+        </div>
+      </HashRouter>
+    );
+  };
 
   return (
-    <AppContext.Provider value={{ language, setLanguage, currency, setCurrency, t, theme, setTheme }}>
-      {isFirebaseConfigured ? (
-        <HashRouter>
-          <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
-            <TopBar />
-            <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/city/:cityId" element={<CityDetailPage />} />
-              </Routes>
-            </main>
-            <Footer />
-            <ScrollToTopButton />
-          </div>
-        </HashRouter>
-      ) : (
-        <FirebaseSetup />
-      )}
+    <AppContext.Provider value={appContextValue}>
+      {renderContent()}
     </AppContext.Provider>
   );
 };
