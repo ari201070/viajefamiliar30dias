@@ -1,41 +1,35 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
 
 const FirebaseSetup: React.FC = () => {
-    const { t } = useAppContext();
     const [configInput, setConfigInput] = useState('');
     const [error, setError] = useState('');
 
     const handleSave = () => {
         setError('');
-        let configString = configInput.trim();
+        const trimmedInput = configInput.trim();
 
-        // If user pastes the full `const firebaseConfig = { ... };`, extract the object.
-        if (configString.includes('const firebaseConfig =')) {
-            const match = configString.match(/=\s*({[\s\S]*?});?/);
-            if (match && match[1]) {
-                configString = match[1];
-            } else {
-                 setError('Formato de configuración no válido. Asegúrate de copiar el objeto completo.');
-                 return;
-            }
+        if (!trimmedInput) {
+            setError('El campo de configuración no puede estar vacío.');
+            return;
         }
-        
-        try {
-            // This is a more robust way to parse a JavaScript object literal string.
-            // It's safer than eval and more flexible than JSON.parse for user-pasted code.
-            const configObj = new Function(`return ${configString}`)();
 
+        try {
+            // Usamos JSON.parse para una validación estricta y fiable.
+            const configObj = JSON.parse(trimmedInput);
+
+            // Verificamos que las claves esenciales existan.
             if (!configObj.apiKey || !configObj.projectId) {
-                setError('El objeto de configuración no es válido. Faltan "apiKey" o "projectId".');
+                setError('El JSON no es una configuración de Firebase válida. Faltan "apiKey" o "projectId".');
                 return;
             }
             
+            // Si todo es correcto, guardamos y recargamos.
             localStorage.setItem('firebaseConfig', JSON.stringify(configObj));
             window.location.reload();
+
         } catch (e) {
-            setError('El texto pegado no es válido. Por favor, copia el objeto de configuración de Firebase exactamente como aparece en la consola.');
-            console.error("Error parsing Firebase config:", e);
+            setError('El texto pegado no es un JSON válido. Asegúrate de copiar solo desde el `{` de apertura hasta el `}` de cierre.');
+            console.error("Error parsing Firebase config as JSON:", e);
         }
     };
 
@@ -65,11 +59,11 @@ const FirebaseSetup: React.FC = () => {
                             rows={10}
                             value={configInput}
                             onChange={(e) => setConfigInput(e.target.value)}
-                            placeholder={`Pega aquí el objeto de configuración completo. Se verá así:\n\nconst firebaseConfig = {\n  apiKey: "AIza...",\n  authDomain: "tu-proyecto.firebaseapp.com",\n  ...\n};`}
+                            placeholder={`Pega aquí **solamente el objeto de configuración**, desde el { de apertura hasta el } de cierre.\n\n{\n  "apiKey": "AIza...",\n  "authDomain": "tu-proyecto.firebaseapp.com",\n  "projectId": "tu-proyecto",\n  ...\n}`}
                             className="w-full p-3 font-mono text-xs border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-slate-900 placeholder:text-gray-400 dark:placeholder:text-slate-500"
                         />
                     </div>
-                    {error && <p className="text-sm text-red-500 dark:text-red-400 font-semibold">{error}</p>}
+                    {error && <p className="text-sm text-red-500 dark:text-red-400 font-semibold bg-red-100 dark:bg-red-900/50 p-3 rounded-md">{error}</p>}
                     <div>
                         <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">
                             2. Haz clic para guardar. La configuración se almacenará localmente en tu navegador y la página se recargará.
