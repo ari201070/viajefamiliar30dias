@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const FirebaseSetup: React.FC = () => {
@@ -6,30 +7,45 @@ const FirebaseSetup: React.FC = () => {
 
     const handleSave = () => {
         setError('');
-        const trimmedInput = configInput.trim();
+        let input = configInput.trim();
 
-        if (!trimmedInput) {
+        if (!input) {
             setError('El campo de configuración no puede estar vacío.');
             return;
         }
 
-        try {
-            // Usamos JSON.parse para una validación estricta y fiable.
-            const configObj = JSON.parse(trimmedInput);
+        // Intenta extraer el objeto si el usuario pegó el bloque completo "const firebaseConfig = {...}"
+        const match = input.match(/=\s*({[\s\S]*?});?$/);
+        if (match && match[1]) {
+            input = match[1];
+        }
 
-            // Verificamos que las claves esenciales existan.
+        try {
+            // Intento 1: Parsear como JSON estricto (puede que el usuario pegue desde Vercel)
+            const configObj = JSON.parse(input);
             if (!configObj.apiKey || !configObj.projectId) {
-                setError('El JSON no es una configuración de Firebase válida. Faltan "apiKey" o "projectId".');
-                return;
+                throw new Error('Faltan claves esenciales de Firebase.');
             }
-            
-            // Si todo es correcto, guardamos y recargamos.
             localStorage.setItem('firebaseConfig', JSON.stringify(configObj));
             window.location.reload();
-
         } catch (e) {
-            setError('El texto pegado no es un JSON válido. Asegúrate de copiar solo desde el `{` de apertura hasta el `}` de cierre.');
-            console.error("Error parsing Firebase config as JSON:", e);
+            // Intento 2: Si falla el JSON.parse, es probable que sea un objeto JS sin comillas en las claves.
+            // Lo solucionamos con una expresión regular para añadir las comillas.
+            try {
+                // Regex: busca una clave (letras, números, _) sin comillas antes de los dos puntos.
+                const jsonString = input.replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
+                const configObj = JSON.parse(jsonString);
+
+                if (!configObj.apiKey || !configObj.projectId) {
+                    throw new Error('Faltan claves esenciales de Firebase.');
+                }
+                localStorage.setItem('firebaseConfig', JSON.stringify(configObj));
+                window.location.reload();
+
+            } catch (finalError) {
+                setError('El formato no es válido. Asegúrate de copiar el objeto de configuración de Firebase correctamente.');
+                console.error("Error final al parsear la configuración de Firebase:", finalError);
+            }
         }
     };
 
@@ -59,7 +75,7 @@ const FirebaseSetup: React.FC = () => {
                             rows={10}
                             value={configInput}
                             onChange={(e) => setConfigInput(e.target.value)}
-                            placeholder={`Pega aquí **solamente el objeto de configuración**, desde el { de apertura hasta el } de cierre.\n\n{\n  "apiKey": "AIza...",\n  "authDomain": "tu-proyecto.firebaseapp.com",\n  "projectId": "tu-proyecto",\n  ...\n}`}
+                            placeholder={`Pega aquí el objeto de configuración. Puedes pegar el bloque completo (const firebaseConfig = {...}) o solo el contenido {...}. Ambos funcionan.\n\nconst firebaseConfig = {\n  apiKey: "AIza...",\n  authDomain: "tu-proyecto.firebaseapp.com",\n  ...\n};`}
                             className="w-full p-3 font-mono text-xs border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-slate-900 placeholder:text-gray-400 dark:placeholder:text-slate-500"
                         />
                     </div>
