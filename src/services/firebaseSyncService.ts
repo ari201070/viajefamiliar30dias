@@ -11,12 +11,13 @@ import {
   orderBy,
   query,
 } from 'firebase/firestore';
+// FIX: Changed import path from 'firebase/storage' to '@firebase/storage' to resolve potential module resolution issues.
 import {
   ref,
   uploadString,
   getDownloadURL,
   deleteObject,
-} from 'firebase/storage';
+} from '@firebase/storage';
 
 // --- SERVICE FOR FIREBASE REAL-TIME SYNC ---
 // This service centralizes data management for synced features.

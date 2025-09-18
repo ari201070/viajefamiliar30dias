@@ -1,6 +1,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
+// FIX: Changed import path from 'firebase/storage' to '@firebase/storage' to resolve potential module resolution issues.
+import { getStorage, FirebaseStorage } from '@firebase/storage';
 
 // This VITE_FIREBASE_CONFIG variable must be set in your .env file
 // and in your Vercel project settings. It should be a JSON string.
