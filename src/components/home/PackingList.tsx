@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PackingItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
+import { db } from '../../services/firebaseConfig.ts';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const PackingList: React.FC = () => {
   const { t, language } = useAppContext();
@@ -11,21 +13,31 @@ const PackingList: React.FC = () => {
   const [newItemText, setNewItemText] = useState('');
   const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
-  const loadPackingList = useCallback(async () => {
-    setIsLoading(true);
-    try {
-        const items = await firebaseSyncService.getPackingList();
-        setPackingItems(items);
-    } catch (error) {
-        console.error("Failed to load packing list from sync service", error);
-    } finally {
+  useEffect(() => {
+    if (!db) {
         setIsLoading(false);
+        console.error("Firebase not initialized, cannot fetch packing list.");
+        return;
     }
+    
+    setIsLoading(true);
+    const packingListDocRef = doc(db, 'packing/list');
+    const unsubscribe = onSnapshot(packingListDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            setPackingItems(docSnap.data().items || []);
+        } else {
+            // Document doesn't exist yet, start with an empty list
+            setPackingItems([]); 
+        }
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error listening to packing list updates:", error);
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
   }, []);
 
-  useEffect(() => {
-    loadPackingList();
-  }, [loadPackingList]);
 
   const handleAddPackingItem = async () => {
     if (newItemText.trim() === '') return;
@@ -37,28 +49,23 @@ const PackingList: React.FC = () => {
     };
     
     const updatedItems = [...packingItems, newItem];
-    setPackingItems(updatedItems); // Optimistic update
     setNewItemText('');
 
     try {
         await firebaseSyncService.savePackingList(updatedItems);
     } catch (error) {
         console.error("Failed to save new packing item", error);
-        // On failure, revert to the original state
-        setPackingItems(packingItems.filter(item => item.id !== newItem.id));
+        // UI will not have changed, so no rollback needed. Consider showing an error message.
     }
   };
 
   const handleRemovePackingItem = async (id: string) => {
-    const originalItems = [...packingItems];
     const updatedItems = packingItems.filter(item => item.id !== id);
-    setPackingItems(updatedItems); // Optimistic update
-
     try {
         await firebaseSyncService.savePackingList(updatedItems);
     } catch (error) {
         console.error("Failed to remove packing item", error);
-        setPackingItems(originalItems); // Revert on failure
+        // UI will not have changed, so no rollback needed. Consider showing an error message.
     }
   };
   

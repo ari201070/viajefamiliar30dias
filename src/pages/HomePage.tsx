@@ -11,7 +11,6 @@ import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
 import PackingList from '../components/home/PackingList.tsx';
 import AIChatBox from '../components/AIChatBox.tsx';
 import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
-import CloudSyncInfo from '../components/home/CloudSyncInfo.tsx';
 import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 import FlightTickets from '../components/home/FlightTickets.tsx';
 import WeatherForecast from '../components/home/WeatherForecast.tsx';
@@ -201,7 +200,7 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [calculateTripBudget]);
 
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover-shadow-slate-700 transition-shadow duration-300";
 
   return (
     <div className="space-y-12">
@@ -209,8 +208,6 @@ const HomePage: React.FC = () => {
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">{t('tituloPrincipal')}</h1>
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
-
-      <CloudSyncInfo />
 
       <FlightTickets />
 

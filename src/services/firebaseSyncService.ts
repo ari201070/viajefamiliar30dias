@@ -1,125 +1,131 @@
 import { PhotoItem, PackingItem } from '../types.ts';
+import { db, storage } from './firebaseConfig.ts';
+import {
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  writeBatch,
+  getDoc,
+  orderBy,
+  query,
+} from 'firebase/firestore';
+import {
+  ref,
+  uploadString,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 
-// --- SERVICE SIMULATING FIREBASE REAL-TIME SYNC ---
-// This service centralizes data management for features that need to be synced.
-// It currently uses IndexedDB (for photos) and localStorage (for packing list)
-// to persist data locally, but it's structured to be easily replaced with
-// a real Firebase implementation. It simulates async behavior.
+// --- SERVICE FOR FIREBASE REAL-TIME SYNC ---
+// This service centralizes data management for synced features.
+// It uses Firestore for metadata and Cloud Storage for files.
 
-const DB_NAME = 'familyTripDB';
-const DB_VERSION = 1; // Keep version consistent with old dbService
-const PHOTO_STORE_NAME = 'photos';
-const PACKING_LIST_KEY = 'packingList';
-
-let db: IDBDatabase | null = null;
-
-// --- IndexedDB Helper for Photos ---
-const openPhotoDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    if (db) return resolve(db);
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = () => reject('IndexedDB error');
-    request.onsuccess = (event) => {
-      db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
-    };
-    request.onupgradeneeded = (event) => {
-      const tempDb = (event.target as IDBOpenDBRequest).result;
-      if (!tempDb.objectStoreNames.contains(PHOTO_STORE_NAME)) {
-        tempDb.createObjectStore(PHOTO_STORE_NAME, { keyPath: 'id' });
-      }
-    };
-  });
+const handleFirebaseError = (error: any, context: string) => {
+    console.error(`Firebase error in ${context}:`, error);
+    // Here you could add more robust error handling, e.g., reporting to a service
+    throw error; // Re-throw the error to be handled by the calling component
 };
 
-const simulateDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
+// This check prevents the app from crashing if Firebase config is missing.
+// Components will handle the null `db` or `storage` and show an error or disabled state.
+if (!db || !storage) {
+  console.warn("Firebase is not initialized. Sync features will be disabled.");
+}
 
-const notifyDataChange = () => {
-    // This event notifies other components (like CloudSyncInfo) that a change has occurred.
-    window.dispatchEvent(new Event('storage'));
-};
+// Collections references
+const photosCollection = db ? collection(db, 'photos') : null;
+const packingListDoc = db ? doc(db, 'packing/list') : null;
 
 export const firebaseSyncService = {
   // --- Photo Album Methods ---
   async getPhotos(): Promise<PhotoItem[]> {
-    await simulateDelay(300); // Simulate network latency
-    const db = await openPhotoDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readonly');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.getAll();
-      request.onerror = () => reject('Error fetching photos');
-      request.onsuccess = () => {
-        const sortedPhotos = request.result.sort((a, b) => new Date(b.dateTaken || 0).getTime() - new Date(a.dateTaken || 0).getTime());
-        resolve(sortedPhotos);
-      };
-    });
+    if (!photosCollection) return [];
+    try {
+        const q = query(photosCollection, orderBy('dateTaken', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.data() as PhotoItem);
+    } catch(e) {
+        handleFirebaseError(e, "getPhotos");
+        return [];
+    }
   },
 
   async savePhoto(photo: PhotoItem): Promise<void> {
-    await simulateDelay(500);
-    const db = await openPhotoDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.put(photo);
-      request.onerror = () => reject('Error saving photo');
-      request.onsuccess = () => {
-        notifyDataChange();
-        resolve();
-      };
-    });
+    if (!photosCollection || !storage) return;
+    try {
+        const photoRef = doc(photosCollection, photo.id);
+        let photoData = { ...photo };
+
+        // If src is a base64 string, upload it to Storage
+        if (photoData.src.startsWith('data:image')) {
+            const storageRef = ref(storage, `photos/${photo.id}`);
+            const snapshot = await uploadString(storageRef, photoData.src, 'data_url');
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            photoData.src = downloadURL; // Update src to be the public URL
+        }
+
+        await setDoc(photoRef, photoData, { merge: true });
+    } catch(e) {
+        handleFirebaseError(e, "savePhoto");
+    }
   },
 
   async deletePhoto(id: string): Promise<void> {
-    await simulateDelay(500);
-    const db = await openPhotoDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.delete(id);
-      request.onerror = () => reject('Error deleting photo');
-      request.onsuccess = () => {
-        notifyDataChange();
-        resolve();
-      };
-    });
+    if (!photosCollection || !storage) return;
+    try {
+        const photoRef = doc(photosCollection, id);
+        await deleteDoc(photoRef);
+
+        const storageRef = ref(storage, `photos/${id}`);
+        // Attempt to delete from storage, but don't fail if it doesn't exist (e.g., placeholder images)
+        await deleteObject(storageRef).catch(error => {
+            if (error.code !== 'storage/object-not-found') {
+                console.error("Error deleting photo from storage:", error);
+            }
+        });
+    } catch (e) {
+        handleFirebaseError(e, "deletePhoto");
+    }
   },
 
   async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
-    const db = await openPhotoDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      photos.forEach(photo => store.add(photo));
-      transaction.oncomplete = () => {
-        // Don't notify for initial seeding
-        resolve();
-      };
-      transaction.onerror = () => reject('Error adding batch of photos');
-    });
+    if (!db || !photosCollection) return;
+    try {
+        const batch = writeBatch(db);
+        photos.forEach(photo => {
+            const docRef = doc(photosCollection, photo.id);
+            batch.set(docRef, photo);
+        });
+        await batch.commit();
+    } catch(e) {
+        handleFirebaseError(e, "addPhotosBatch");
+    }
   },
 
   // --- Packing List Methods ---
   async getPackingList(): Promise<PackingItem[]> {
-      await simulateDelay(200);
+      if (!packingListDoc) return [];
       try {
-        const savedItems = localStorage.getItem(PACKING_LIST_KEY);
-        return savedItems ? JSON.parse(savedItems) : [];
-      } catch (e) {
-        console.error("Failed to load packing list", e);
+        const docSnap = await getDoc(packingListDoc);
+        if (docSnap.exists()) {
+            return docSnap.data().items || [];
+        }
+        return [];
+      } catch(e) {
+        handleFirebaseError(e, "getPackingList");
         return [];
       }
   },
 
   async savePackingList(items: PackingItem[]): Promise<void> {
-      await simulateDelay(400);
+      if (!packingListDoc) return;
       try {
-          localStorage.setItem(PACKING_LIST_KEY, JSON.stringify(items));
-          notifyDataChange();
-      } catch (e) {
-          console.error("Failed to save packing list", e);
-          throw e; // Re-throw to be handled by the component
+          // We store the entire list in a single document under the 'items' field
+          await setDoc(packingListDoc, { items });
+      } catch(e) {
+        handleFirebaseError(e, "savePackingList");
       }
   }
 };

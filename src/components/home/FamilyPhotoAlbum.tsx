@@ -4,6 +4,8 @@ import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { CITIES } from '../../constants.ts';
 import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
+import { db } from '../../services/firebaseConfig.ts';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 const FamilyPhotoAlbum: React.FC = () => {
   const { t, language } = useAppContext();
@@ -25,32 +27,42 @@ const FamilyPhotoAlbum: React.FC = () => {
     }));
   }, [t, language]);
   
-  const loadPhotos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const photosFromDB = await firebaseSyncService.getPhotos();
-      
-      const hasSeeded = localStorage.getItem('photosSeeded') === 'true';
-
-      if (photosFromDB.length === 0 && !hasSeeded) {
-          const initialPhotos = getInitialPhotos();
-          await firebaseSyncService.addPhotosBatch(initialPhotos);
-          setPhotos(initialPhotos);
-          localStorage.setItem('photosSeeded', 'true');
-      } else {
-        setPhotos(photosFromDB);
-      }
-    } catch (error) {
-        console.error("Failed to load photos from sync service", error);
-        setPhotos([]); // Set to empty array on error
-    } finally {
-        setIsLoading(false);
-    }
-  }, [getInitialPhotos]);
-
   useEffect(() => {
-    loadPhotos();
-  }, [loadPhotos]);
+    if (!db) {
+        setIsLoading(false);
+        console.error("Firebase not initialized, cannot fetch photos.");
+        setPhotos([]);
+        return;
+    }
+    
+    setIsLoading(true);
+    const photosQuery = query(collection(db, 'photos'), orderBy('dateTaken', 'desc'));
+
+    const unsubscribe = onSnapshot(photosQuery, async (snapshot) => {
+        const photosFromDB = snapshot.docs.map(doc => doc.data() as PhotoItem);
+        
+        // Seed initial photos only once if the database is empty
+        const hasSeeded = localStorage.getItem('photosSeededFirebase') === 'true';
+        if (photosFromDB.length === 0 && !hasSeeded) {
+            console.log("Database is empty, seeding initial photos...");
+            const initialPhotos = getInitialPhotos();
+            // We use placeholder images which don't need uploading, so we can batch write directly
+            await firebaseSyncService.addPhotosBatch(initialPhotos);
+            // The listener will pick up the new data automatically.
+            localStorage.setItem('photosSeededFirebase', 'true');
+        } else {
+            setPhotos(photosFromDB);
+        }
+        
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error listening to photo updates:", error);
+        setIsLoading(false);
+        setPhotos([]);
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, [getInitialPhotos]);
 
   const groupedPhotos = useMemo(() => {
     if (!photos) return {};
@@ -111,7 +123,7 @@ const FamilyPhotoAlbum: React.FC = () => {
       reader.onload = (event) => {
         setCurrentPhoto({
           id: uuidv4(),
-          src: event.target?.result as string,
+          src: event.target?.result as string, // This will be a base64 string
           caption: '',
           originalLang: language,
           dateTaken: new Date().toISOString().split('T')[0], // Default to today
@@ -137,7 +149,7 @@ const FamilyPhotoAlbum: React.FC = () => {
         await firebaseSyncService.savePhoto(currentPhoto as PhotoItem);
         setIsModalOpen(false);
         setCurrentPhoto(null);
-        await loadPhotos(); // Reload photos from DB to update UI
+        // No need to reload, onSnapshot will update the UI
     } catch(error) {
         console.error("Failed to save photo", error);
     }
@@ -147,7 +159,7 @@ const FamilyPhotoAlbum: React.FC = () => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
         try {
             await firebaseSyncService.deletePhoto(id);
-            await loadPhotos(); // Reload photos from DB
+            // No need to reload, onSnapshot will update the UI
         } catch(error) {
             console.error("Failed to delete photo", error);
         }

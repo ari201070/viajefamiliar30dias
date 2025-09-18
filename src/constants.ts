@@ -234,14 +234,6 @@ export const translations: Translations = {
     conversorTitulo: "Conversor de moneda",
     convertirBtn: "Convertir",
     montoPlaceholder: "Monto",
-    // Cloud Sync
-    sync_status_ready: "Datos listos para sincronizar",
-    sync_status_pending: "Cambios locales detectados",
-    sync_status_syncing: "Sincronizando con la nube...",
-    sync_status_synced: "¡Sincronización completa!",
-    sync_status_last_sync: "Última sinc.:",
-    sync_button_now: "Sincronizar ahora",
-    sync_explanation_text: "Este panel simula la sincronización en la nube. Cambios en el Álbum de Fotos o Lista de Equipaje activarán el botón para sincronizar.",
     // Photo Album
     photo_album_title: "Álbum de Fotos Familiar",
     photo_album_description: "Un lugar para guardar los recuerdos de nuestro viaje. Haz clic en el botón '+' para añadir una nueva foto.",
@@ -598,14 +590,6 @@ export const translations: Translations = {
     conversorTitulo: "ממיר מטבעות",
     convertirBtn: "המר",
     montoPlaceholder: "סכום",
-    // Cloud Sync
-    sync_status_ready: "מוכן לסנכרון",
-    sync_status_pending: "זוהו שינויים מקומיים",
-    sync_status_syncing: "מסנכרן עם הענן...",
-    sync_status_synced: "הסנכרון הושלם!",
-    sync_status_last_sync: "סנכרון אחרון:",
-    sync_button_now: "סנכרן עכשיו",
-    sync_explanation_text: "פאנל זה מדמה סנכרון ענן. שינויים באלבום התמונות או ברשימת הציוד יפעילו את כפתור הסנכרון.",
     // Photo Album
     photo_album_title: "אלבום תמונות משפחתי",
     photo_album_description: "מקום לשמור את הזיכרונות מהטיול שלנו. לחץ על כפתור '+' כדי להוסיף תמונה חדשה.",
