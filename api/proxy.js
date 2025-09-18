@@ -69,20 +69,29 @@ const handleGeminiChat = async (payload, res) => {
     const ai = getAiInstance();
     const { systemInstruction, history, newMessage, language } = payload;
 
-    const languageInstruction = language === 'he' ? "\n\nPlease respond exclusively in Hebrew." : "\n\nPlease respond exclusively in Spanish.";
-    
+    const languageInstruction = language === 'he' 
+        ? "\n\nPlease respond exclusively in Hebrew." 
+        : "\n\nPlease respond exclusively in Spanish.";
+
+    // Format the existing history for the Gemini API
     const formattedHistory = history.map(msg => ({
-        role: msg.role,
+        role: msg.role === 'model' ? 'model' : 'user', // Ensure role is either 'user' or 'model'
         parts: [{ text: msg.text }]
     }));
 
-    const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
+    // Combine history with the new message to form the full conversation context
+    const contents = [
+        ...formattedHistory,
+        { role: 'user', parts: [{ text: newMessage }] }
+    ];
+
+    // Use generateContent with the full conversation history for a more robust, stateless interaction
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: contents,
         config: { systemInstruction: systemInstruction + languageInstruction },
-        history: formattedHistory,
     });
 
-    const response = await chat.sendMessage({ message: newMessage });
     sendJSON(res, 200, { text: response.text });
 };
 

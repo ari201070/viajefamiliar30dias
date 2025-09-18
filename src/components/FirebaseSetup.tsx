@@ -21,30 +21,21 @@ const FirebaseSetup: React.FC = () => {
             }
         }
         
-        // Also handle if they just paste the object without the outer braces if it's on multi-lines
-        if (!configString.startsWith('{')) {
-            configString = `{${configString}}`;
-        }
-        
         try {
-            // A more robust way to parse potentially malformed JSON-like objects from copy-paste
-            // This is a bit of a hack, but handles common copy-paste errors like trailing commas or unquoted keys.
-            const cleanedString = configString
-                .replace(/(\w+):/g, '"$1":') // Quote keys
-                .replace(/,\s*([}\]])/g, '$1'); // Remove trailing commas
-                
-            const configObj = JSON.parse(cleanedString);
+            // This is a more robust way to parse a JavaScript object literal string.
+            // It's safer than eval and more flexible than JSON.parse for user-pasted code.
+            const configObj = new Function(`return ${configString}`)();
 
             if (!configObj.apiKey || !configObj.projectId) {
                 setError('El objeto de configuración no es válido. Faltan "apiKey" o "projectId".');
                 return;
             }
-            // Store the valid, cleaned JSON string
+            
             localStorage.setItem('firebaseConfig', JSON.stringify(configObj));
             window.location.reload();
         } catch (e) {
             setError('El texto pegado no es válido. Por favor, copia el objeto de configuración de Firebase exactamente como aparece en la consola.');
-            console.error(e);
+            console.error("Error parsing Firebase config:", e);
         }
     };
 
@@ -63,6 +54,12 @@ const FirebaseSetup: React.FC = () => {
                         <label htmlFor="firebaseConfig" className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                             1. Copia tu objeto `firebaseConfig` desde la consola de Firebase.
                         </label>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
+                            Ve a la Configuración de tu proyecto → General → Tus apps → Config. 
+                            <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline ml-1">
+                                Abrir consola de Firebase <i className="fas fa-external-link-alt fa-xs"></i>
+                            </a>
+                        </p>
                         <textarea
                             id="firebaseConfig"
                             rows={10}
