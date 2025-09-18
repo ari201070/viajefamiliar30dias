@@ -6,8 +6,9 @@ import { getStorage, FirebaseStorage } from '@firebase/storage';
 // This VITE_FIREBASE_CONFIG variable must be set in your .env file
 // and in your Vercel project settings. It should be a JSON string.
 // Example: VITE_FIREBASE_CONFIG='{"apiKey":"...","authDomain":"...","projectId":"..."}'
-// FIX: Cast `import.meta` to `any` to resolve TypeScript error about missing `env` property.
-const firebaseConfigString = (import.meta as any).env.VITE_FIREBASE_CONFIG;
+// FIX: Safely access env to prevent runtime error if import.meta.env is undefined.
+const env = (import.meta as any).env;
+const firebaseConfigString = env ? env.VITE_FIREBASE_CONFIG : undefined;
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
