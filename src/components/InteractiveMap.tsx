@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { City, PointOfInterest } from '../types.ts';
@@ -88,7 +89,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ cities, selectedCityCoo
     }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cities, selectedCityCoords, pointsOfInterest, t, language, zoomLevel, navigate]); // Added navigate to dependency array
+  }, [cities, selectedCityCoords, pointsOfInterest, t, language, zoomLevel, navigate]);
 
   return <div ref={mapRef} className="w-full leaflet-container shadow-lg rounded-lg"></div>;
 };

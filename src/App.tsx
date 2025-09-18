@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Language, Currency, Theme } from './types.ts';
@@ -7,6 +8,9 @@ import CityDetailPage from './pages/CityDetailPage.tsx';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import { AppContext, useAppContext } from './context/AppContext.tsx';
+import { isFirebaseConfigured } from './services/firebaseConfig.ts';
+import FirebaseSetup from './components/FirebaseSetup.tsx';
+
 
 // --- Scroll to Top Button Component ---
 const ScrollToTopButton: React.FC = () => {
@@ -94,19 +98,23 @@ const App: React.FC = () => {
 
   return (
     <AppContext.Provider value={{ language, setLanguage, currency, setCurrency, t, theme, setTheme }}>
-      <HashRouter>
-        <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
-          <TopBar />
-          <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/city/:cityId" element={<CityDetailPage />} />
-            </Routes>
-          </main>
-          <Footer />
-          <ScrollToTopButton />
-        </div>
-      </HashRouter>
+      {isFirebaseConfigured ? (
+        <HashRouter>
+          <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
+            <TopBar />
+            <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/city/:cityId" element={<CityDetailPage />} />
+              </Routes>
+            </main>
+            <Footer />
+            <ScrollToTopButton />
+          </div>
+        </HashRouter>
+      ) : (
+        <FirebaseSetup />
+      )}
     </AppContext.Provider>
   );
 };

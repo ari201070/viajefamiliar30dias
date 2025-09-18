@@ -1,31 +1,47 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
-// FIX: Changed import path from 'firebase/storage' to '@firebase/storage' to resolve potential module resolution issues.
 import { getStorage, FirebaseStorage } from '@firebase/storage';
 
-// This VITE_FIREBASE_CONFIG variable must be set in your .env file
-// and in your Vercel project settings. It should be a JSON string.
-// Example: VITE_FIREBASE_CONFIG='{"apiKey":"...","authDomain":"...","projectId":"..."}'
-// FIX: Safely access env to prevent runtime error if import.meta.env is undefined.
+// Priority order:
+// 1. Vite environment variable (for Vercel/builds)
+// 2. LocalStorage (for easy local setup via UI)
 const env = (import.meta as any).env;
-const firebaseConfigString = env ? env.VITE_FIREBASE_CONFIG : undefined;
+const firebaseConfigFromEnv = env ? env.VITE_FIREBASE_CONFIG : undefined;
+const firebaseConfigFromLocalStorage = localStorage.getItem('firebaseConfig');
+
+const firebaseConfigString = firebaseConfigFromEnv || firebaseConfigFromLocalStorage;
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 
-if (!firebaseConfigString) {
-  console.error("Firebase config (VITE_FIREBASE_CONFIG) not found in environment variables. Real-time sync will NOT work.");
-} else {
+// Export a status flag that can be checked by the UI
+export let isFirebaseConfigured = false;
+
+if (firebaseConfigString) {
   try {
     const firebaseConfig = JSON.parse(firebaseConfigString);
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    storage = getStorage(app);
-    console.log("Firebase initialized successfully.");
+    // Basic validation to ensure the object is not empty or malformed
+    if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      storage = getStorage(app);
+      isFirebaseConfigured = true;
+      console.log("Firebase initialized successfully.");
+    } else {
+       throw new Error("Firebase config object is missing 'apiKey' or 'projectId'.");
+    }
   } catch (error) {
-    console.error("Failed to parse or initialize Firebase config. Please check the VITE_FIREBASE_CONFIG variable:", error);
+    console.error("Failed to parse or initialize Firebase config:", error);
+    // Clear potentially corrupt data from localStorage to allow the user to try again
+    if (firebaseConfigFromLocalStorage) {
+      localStorage.removeItem('firebaseConfig');
+    }
   }
+}
+
+if (!isFirebaseConfigured) {
+    console.warn("Firebase config not found in environment variables or localStorage. Real-time sync features will be disabled.");
 }
 
 export { app, db, storage };
