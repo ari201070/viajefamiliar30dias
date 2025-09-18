@@ -8,8 +8,7 @@ import CityDetailPage from './pages/CityDetailPage.tsx';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import { AppContext, useAppContext } from './context/AppContext.tsx';
-import { isFirebaseConfigured } from './services/firebaseConfig.ts';
-import FirebaseSetup from './components/FirebaseSetup.tsx';
+import { isFirebaseConfigured, firebaseConfigError } from './services/firebaseConfig.ts';
 import { authService } from './services/authService.ts';
 import Login from './components/Login.tsx';
 
@@ -76,7 +75,8 @@ const App: React.FC = () => {
   // Auth state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [needsFirebaseSetup, setNeedsFirebaseSetup] = useState(!isFirebaseConfigured);
+  const [needsFirebaseSetup] = useState(!isFirebaseConfigured);
+  const [firebaseErrorDetails] = useState(firebaseConfigError);
 
   useEffect(() => {
     if (isFirebaseConfigured) {
@@ -126,7 +126,25 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (needsFirebaseSetup) {
-      return <FirebaseSetup />;
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/80 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl p-8 max-w-2xl w-full text-center">
+            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+              <i className="fas fa-exclamation-triangle mr-3"></i>
+              Error de Configuración de Firebase
+            </h2>
+            <p className="text-gray-700 dark:text-slate-300">
+              La aplicación no pudo inicializar Firebase. Por favor, asegúrate de que la variable de entorno `VITE_FIREBASE_CONFIG` esté correctamente configurada en tu archivo `.env` o en la configuración de despliegue.
+            </p>
+            {firebaseErrorDetails && (
+              <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 rounded-md text-left">
+                <p className="font-semibold text-red-800 dark:text-red-200">Detalles del Error:</p>
+                <code className="text-sm text-red-700 dark:text-red-300 whitespace-pre-wrap break-all">{firebaseErrorDetails}</code>
+              </div>
+            )}
+          </div>
+        </div>
+      );
     }
     if (isAuthLoading) {
       return (

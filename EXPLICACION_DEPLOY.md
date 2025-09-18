@@ -1,62 +1,50 @@
-# Guía de Despliegue y Variables de Entorno (Actualizado)
+# Guía Definitiva de Configuración de Claves (Local y Vercel)
 
-Hola, este archivo explica cómo configurar las claves de API (variables de entorno) para que tu aplicación funcione tanto en tu computadora como en Vercel.
+Hola, este archivo explica el método final y correcto para configurar las claves de la aplicación. **Hemos eliminado por completo la pantalla de configuración manual de la aplicación.**
 
-## El Problema: Local vs. Producción
+## El Nuevo Método: Variables de Entorno
 
-El problema que experimentaste, donde la app funciona localmente pero no en Vercel, es muy común. Se debe a cómo se manejan las "variables de entorno" (tus claves de API secretas).
+A partir de ahora, toda la configuración se maneja a través de "variables de entorno", que es la práctica estándar y más segura en el desarrollo de software.
 
--   **Localmente:** Usas un archivo `.env` que contiene tus claves. Tu entorno de desarrollo lo lee y todo funciona.
--   **En Vercel:** Vercel no tiene acceso a tu archivo `.env` (¡y no debería, por seguridad!). Necesita que le proporciones las claves de otra manera.
-
-## La Solución: Separar Variables de Backend y Frontend
-
-Para solucionar esto de forma robusta, hemos separado las variables del backend (servidor) de las del frontend (navegador).
-
--   Las variables del **backend** (nuestra función `api/proxy.js`) ahora usarán nombres directos, sin prefijos. Son las que necesita el servidor para funcionar.
--   Las variables del **frontend** (si las hubiera) usarían el prefijo `VITE_` para ser accesibles en el navegador. En nuestro caso, no tenemos ninguna, ya que todas las llamadas a las APIs se hacen de forma segura a través del proxy.
-
-Este cambio hace el proyecto más seguro, claro y compatible con la forma en que Vercel trabaja.
+-   **Localmente (tu computadora):** Se usa un archivo llamado `.env` en la raíz del proyecto.
+-   **En Producción (Vercel):** Se configuran las mismas variables en el panel de control de Vercel.
 
 ---
 
-## **Acción Requerida: Tu Configuración (Local y Vercel)**
+## **Acción Requerida: Configuración Única**
 
-### 1. Actualiza tu Archivo `.env` Local
+### 1. Configuración Local (Tu Computadora)
 
-Para que la aplicación siga funcionando en tu computadora, abre tu archivo `.env` y **cambia los nombres de las variables** así:
+Crea un archivo llamado `.env` en la carpeta principal del proyecto (al mismo nivel que `package.json`).
+
+Dentro de ese archivo, pega **una sola línea** con el siguiente formato, reemplazando con tus valores reales de Firebase:
 
 ```env
-# Cambia esto:
-VITE_API_KEY=tu_clave_de_gemini
-VITE_POLYGON_API_KEY=tu_clave_de_polygon
-VITE_OPENWEATHER_API_KEY=tu_clave_de_openweathermap
-
-# A esto (sin el prefijo VITE_ y con el nuevo nombre para Gemini):
-GEMINI_API_KEY=tu_clave_de_gemini
-POLYGON_API_KEY=tu_clave_de_polygon
-OPENWEATHER_API_KEY=tu_clave_de_openweathermap
+VITE_FIREBASE_CONFIG={"apiKey":"TU_API_KEY","authDomain":"TU_AUTH_DOMAIN","projectId":"TU_PROJECT_ID","storageBucket":"TU_STORAGE_BUCKET","messagingSenderId":"TU_MESSAGING_SENDER_ID","appId":"TU_APP_ID"}
 ```
 
-### 2. Configura las Nuevas Variables en Vercel (Paso Clave)
+**Instrucciones importantes:**
 
-Ahora, haz lo mismo en Vercel para que tu app desplegada funcione:
+1.  Copia tu objeto `firebaseConfig` que te da la consola de Firebase.
+2.  Asegúrate de que esté en **una sola línea** y sin espacios extra.
+3.  El `VITE_FIREBASE_CONFIG=` debe estar al principio.
+
+Una vez guardado, reinicia el servidor de desarrollo local (`npm run dev`) si estaba corriendo. La aplicación debería funcionar directamente llevándote al login de Google.
+
+### 2. Configuración en Vercel (Para la App Desplegada)
+
+Este es el paso más importante para que la versión online funcione.
 
 1.  Ve a tu panel de control de Vercel y selecciona tu proyecto `viajefamiliar30dias`.
 2.  Navega a la pestaña **Settings** y luego a la sección **Environment Variables**.
-3.  **Elimina las variables antiguas** (`VITE_API_KEY`, `VITE_POLYGON_API_KEY`, `VITE_OPENWEATHER_API_KEY`) si existen.
-4.  Crea **tres nuevas variables** con los nombres corregidos:
-    *   **Variable 1 (Gemini):**
-        *   **Name:** `GEMINI_API_KEY`
-        *   **Value:** `[Pega aquí tu clave de API de Gemini]`
-    *   **Variable 2 (Polygon):**
-        *   **Name:** `POLYGON_API_KEY`
-        *   **Value:** `[Pega aquí tu clave de API de Polygon.io]`
-    *   **Variable 3 (OpenWeather):**
-        *   **Name:** `OPENWEATHER_API_KEY`
-        *   **Value:** `[Pega aquí tu clave de API de OpenWeatherMap]`
+3.  Crea **una única variable de entorno**:
+    -   **Name:** `VITE_FIREBASE_CONFIG`
+    -   **Value:** Pega aquí el mismo objeto JSON de una sola línea que usaste en tu archivo `.env`. Debe empezar con `{` y terminar con `}`.
+      ```json
+      {"apiKey":"TU_API_KEY","authDomain":"TU_AUTH_DOMAIN","projectId":"TU_PROJECT_ID","storageBucket":"TU_STORAGE_BUCKET","messagingSenderId":"TU_MESSAGING_SENDER_ID","appId":"TU_APP_ID"}
+      ```
 
-5.  Guarda los cambios.
-6.  Finalmente, ve a la pestaña **Deployments**, busca el último despliegue y haz clic en el menú de los tres puntos (...) y selecciona **Redeploy** para que los cambios surtan efecto.
+4.  Guarda los cambios.
+5.  Finalmente, ve a la pestaña **Deployments**, busca el último despliegue, haz clic en el menú de los tres puntos (...) y selecciona **Redeploy**. Esto aplicará la nueva variable de entorno.
 
-¡Y listo! Con esta configuración, tu aplicación funcionará perfectamente en ambos entornos y tus claves estarán seguras.
+Con esta configuración, la aplicación funcionará de forma robusta y segura tanto en tu máquina como en Vercel, sin más pasos manuales.

@@ -1,50 +1,44 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { getAuth, Auth } from 'firebase/auth';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// Priority order:
-// 1. Vite environment variable (for Vercel/builds)
-// 2. LocalStorage (for easy local setup via UI)
-const env = (import.meta as any).env;
-const firebaseConfigFromEnv = env ? env.VITE_FIREBASE_CONFIG : undefined;
-const firebaseConfigFromLocalStorage = localStorage.getItem('firebaseConfig');
-
-const firebaseConfigString = firebaseConfigFromEnv || firebaseConfigFromLocalStorage;
+// --- Vite Standard Environment Variable Handling ---
+const firebaseConfigJSON = import.meta.env?.VITE_FIREBASE_CONFIG;
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 let auth: Auth | null = null;
-
-// Export a status flag that can be checked by the UI
 export let isFirebaseConfigured = false;
+export let firebaseConfigError: string | null = null; // Export error details
 
-if (firebaseConfigString) {
+// Attempt to parse the JSON string and initialize Firebase.
+if (firebaseConfigJSON) {
   try {
-    const firebaseConfig = JSON.parse(firebaseConfigString);
-    // Basic validation to ensure the object is not empty or malformed
-    if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      storage = getStorage(app);
-      auth = getAuth(app);
-      isFirebaseConfigured = true;
-      console.log("Firebase initialized successfully.");
+    const firebaseConfigObject = JSON.parse(firebaseConfigJSON);
+    
+    // Basic validation of the parsed object to ensure it has required keys.
+    if (firebaseConfigObject && firebaseConfigObject.apiKey && firebaseConfigObject.projectId) {
+        app = initializeApp(firebaseConfigObject);
+        db = getFirestore(app);
+        storage = getStorage(app);
+        auth = getAuth(app);
+        isFirebaseConfigured = true;
+        console.log("Firebase initialized successfully from VITE_FIREBASE_CONFIG environment variable.");
     } else {
-       throw new Error("Firebase config object is missing 'apiKey' or 'projectId'.");
+        firebaseConfigError = "CRITICAL: Parsed Firebase configuration is invalid or missing essential keys (apiKey, projectId).";
     }
-  } catch (error) {
-    console.error("Failed to parse or initialize Firebase config:", error);
-    // Clear potentially corrupt data from localStorage to allow the user to try again
-    if (firebaseConfigFromLocalStorage) {
-      localStorage.removeItem('firebaseConfig');
-    }
+  } catch (error: any) {
+    firebaseConfigError = `CRITICAL: Failed to parse VITE_FIREBASE_CONFIG. Ensure it's valid JSON. Details: ${error.message}`;
   }
+} else {
+    firebaseConfigError = "CRITICAL: VITE_FIREBASE_CONFIG environment variable was not found. Please create a .env file and add the variable.";
 }
 
+// If configuration failed, log the specific error to the console.
 if (!isFirebaseConfigured) {
-    console.warn("Firebase config not found in environment variables or localStorage. Real-time sync features will be disabled.");
+  console.error(firebaseConfigError);
 }
 
 export { app, db, storage, auth };
