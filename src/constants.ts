@@ -26,6 +26,7 @@ const buenosAiresPois: PointOfInterest[] = [
 
 export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
   { conceptKey: 'budget_concept_international_flights', value: '7000-9000', isPerDay: false },
+  { conceptKey: 'budget_concept_airport_transfer', value: '37', isPerDay: false },
 ];
 
 export const CITIES: City[] = [
@@ -38,7 +39,7 @@ export const CITIES: City[] = [
     activitiesKey: 'buenosaires_activities_recommended', 
     accommodationKey: 'buenosaires_accommodation_examples', 
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '15-40', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '50-120', isPerDay: true },
@@ -55,7 +56,7 @@ export const CITIES: City[] = [
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '3-5', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '20-50', isPerDay: true },
@@ -103,7 +104,7 @@ export const CITIES: City[] = [
     activitiesKey: 'malargue_activities_recommended',
     accommodationKey: 'malargue_accommodation_examples',
     budgetItems: [ 
-      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '50-130', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '35-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '10-25', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '30-80', isPerDay: true },
@@ -540,6 +541,7 @@ export const translations: Translations = {
     budget_concept_transport_local: "Transporte local (pueblo)",
     budget_concept_activities_included: "Actividades (incluidas en tarifa)",
     budget_concept_international_flights: "Vuelos Internacionales (familia)",
+    budget_concept_airport_transfer: "Transfer Aeropuerto EZE (ida)",
     
   },
   [Language.HE]: {
@@ -896,13 +898,14 @@ export const translations: Translations = {
     budget_concept_transport_local: "תחבורה מקומית (בכפר)",
     budget_concept_activities_included: "פעילויות (כלולות במחיר)",
     budget_concept_international_flights: "טיסות בינלאומיות (משפחה)",
+    budget_concept_airport_transfer: "הסעה משדה התעופה EZE (הלוך)",
   },
 };
 
 
 const userProvidedTransportData: (string | number | (string | number)[])[] = [
-    ["Buenos Aires", "Rosario", "Bus", "4 h", 20000, "<a href=\"https://www.flechabus.com.ar/\" target=\"_blank\">Flecha Bus</a>"],
-    ["Rosario", "Bariloche", "Bus Nocturno", "20 h", 40000, "<a href=\"https://www.viabariloche.com.ar/\" target=\"_blank\">Via Bariloche</a>"],
+    ["Buenos Aires", "Rosario", "Bus", "4 h", 24000, "<a href=\"https://www.flechabus.com.ar/\" target=\"_blank\">Flecha Bus</a>"],
+    ["Rosario", "Bariloche", "Bus Nocturno", "20 h", 347200, "<a href=\"https://www.viabariloche.com.ar/\" target=\"_blank\">Via Bariloche</a>"],
     ["Bariloche", "Mendoza", "Vuelo", "1.5 h", 75000, "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\">Aerolíneas Argentinas</a>"],
     ["Mendoza", "Jujuy", "Bus", "20 h", 45000, "<a href=\"https://www.andesmar.com/\" target=\"_blank\">Andesmar</a>"],
     ["Jujuy", "Iguazú", "Vuelo", "2 h", 95000, "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\">Aerolíneas Argentinas</a>"],

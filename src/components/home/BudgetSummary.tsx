@@ -10,6 +10,7 @@ const getIconForConcept = (key: string): string => {
     if (key.includes('accommodation')) return 'fa-bed';
     if (key.includes('food')) return 'fa-utensils';
     if (key.includes('transport')) return 'fa-bus-alt';
+    if (key.includes('transfer')) return 'fa-taxi';
     if (key.includes('activities')) return 'fa-hiking';
     if (key.includes('museums')) return 'fa-landmark';
     if (key.includes('flights')) return 'fa-plane-departure';
