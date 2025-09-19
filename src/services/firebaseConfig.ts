@@ -2,42 +2,30 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
-
-// --- Vite Standard Environment Variable Handling ---
-const firebaseConfigJSON = import.meta.env?.VITE_FIREBASE_CONFIG;
+import { firebaseCredentials } from '../firebaseCredentials.ts';
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 let auth: Auth | null = null;
 export let isFirebaseConfigured = false;
-export let firebaseConfigError: string | null = null; // Export error details
+export let firebaseConfigError: string | null = null;
 
-// Attempt to parse the JSON string and initialize Firebase.
-if (firebaseConfigJSON) {
+// Check if the credentials have been replaced from the placeholder values.
+if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
   try {
-    const firebaseConfigObject = JSON.parse(firebaseConfigJSON);
-    
-    // Basic validation of the parsed object to ensure it has required keys.
-    if (firebaseConfigObject && firebaseConfigObject.apiKey && firebaseConfigObject.projectId) {
-        app = initializeApp(firebaseConfigObject);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        auth = getAuth(app);
-        isFirebaseConfigured = true;
-        console.log("Firebase initialized successfully from VITE_FIREBASE_CONFIG environment variable.");
-    } else {
-        firebaseConfigError = "CRITICAL: Parsed Firebase configuration is invalid or missing essential keys (apiKey, projectId).";
-    }
+    app = initializeApp(firebaseCredentials);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    auth = getAuth(app);
+    isFirebaseConfigured = true;
+    console.log("Firebase initialized successfully from firebaseCredentials.ts.");
   } catch (error: any) {
-    firebaseConfigError = `CRITICAL: Failed to parse VITE_FIREBASE_CONFIG. Ensure it's valid JSON. Details: ${error.message}`;
+    firebaseConfigError = `CRITICAL: Firebase initialization failed. Check the configuration object in src/firebaseCredentials.ts. Details: ${error.message}`;
+    console.error(firebaseConfigError);
   }
 } else {
-    firebaseConfigError = "CRITICAL: VITE_FIREBASE_CONFIG environment variable was not found. Please create a .env file and add the variable.";
-}
-
-// If configuration failed, log the specific error to the console.
-if (!isFirebaseConfigured) {
+  firebaseConfigError = "CRITICAL: La configuración de Firebase está incompleta. Por favor, edita el archivo 'src/firebaseCredentials.ts' y reemplaza los valores de ejemplo con la configuración real de tu proyecto de Firebase.";
   console.error(firebaseConfigError);
 }
 

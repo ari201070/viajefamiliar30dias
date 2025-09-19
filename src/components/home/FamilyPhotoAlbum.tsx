@@ -1,71 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { CITIES } from '../../constants.ts';
-import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
-import { db } from '../../services/firebaseConfig.ts';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+
+const STORAGE_KEY = 'familyPhotos';
 
 const FamilyPhotoAlbum: React.FC = () => {
   const { t, language } = useAppContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [photos, setPhotos] = useState<PhotoItem[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
+    try {
+      const savedPhotos = localStorage.getItem(STORAGE_KEY);
+      return savedPhotos ? JSON.parse(savedPhotos) : [];
+    } catch (error) {
+      console.error("Failed to load photos from localStorage", error);
+      return [];
+    }
+  });
 
-  const getInitialPhotos = useCallback(() => {
-    return CITIES.slice(0, 5).map((city, index) => ({
-      id: `placeholder-${city.id}`,
-      src: city.image,
-      caption: t('photo_album_placeholder_caption', { cityName: t(city.nameKey) }),
-      originalLang: language,
-      cityId: city.id,
-      tripDay: index * 5 + 1, // Approximate trip day
-      dateTaken: new Date(2025, 8, 26 + index * 5).toISOString().split('T')[0] // Approximate date
-    }));
-  }, [t, language]);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   
   useEffect(() => {
-    if (!db) {
-        setIsLoading(false);
-        console.error("Firebase not initialized, cannot fetch photos.");
-        setPhotos([]);
-        return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(photos));
+    } catch (error) {
+      console.error("Failed to save photos to localStorage", error);
     }
-    
-    setIsLoading(true);
-    const photosQuery = query(collection(db, 'photos'), orderBy('dateTaken', 'desc'));
-
-    const unsubscribe = onSnapshot(photosQuery, async (snapshot) => {
-        const photosFromDB = snapshot.docs.map(doc => doc.data() as PhotoItem);
-        
-        // Seed initial photos only once if the database is empty
-        const hasSeeded = localStorage.getItem('photosSeededFirebase') === 'true';
-        if (photosFromDB.length === 0 && !hasSeeded) {
-            console.log("Database is empty, seeding initial photos...");
-            const initialPhotos = getInitialPhotos();
-            // We use placeholder images which don't need uploading, so we can batch write directly
-            await firebaseSyncService.addPhotosBatch(initialPhotos);
-            // The listener will pick up the new data automatically.
-            localStorage.setItem('photosSeededFirebase', 'true');
-        } else {
-            setPhotos(photosFromDB);
-        }
-        
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error listening to photo updates:", error);
-        setIsLoading(false);
-        setPhotos([]);
-    });
-
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [getInitialPhotos]);
+  }, [photos]);
 
   const groupedPhotos = useMemo(() => {
-    if (!photos) return {};
     const groups: Record<string, PhotoItem[]> = {};
     photos.forEach(photo => {
       const cityId = photo.cityId || 'unclassified';
@@ -75,7 +40,6 @@ const FamilyPhotoAlbum: React.FC = () => {
       groups[cityId].push(photo);
     });
 
-    // Sort cities based on CITIES array order, with 'unclassified' at the end
     const cityOrder = CITIES.map(c => c.id);
     const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
         if (a === 'unclassified') return 1;
@@ -89,7 +53,7 @@ const FamilyPhotoAlbum: React.FC = () => {
 
     const sortedGroups: Record<string, PhotoItem[]> = {};
     sortedGroupKeys.forEach(key => {
-        sortedGroups[key] = groups[key];
+        sortedGroups[key] = groups[key].sort((a,b) => new Date(b.dateTaken || 0).getTime() - new Date(a.dateTaken || 0).getTime());
     });
 
     return sortedGroups;
@@ -101,7 +65,7 @@ const FamilyPhotoAlbum: React.FC = () => {
         let stateChanged = false;
         Object.keys(groupedPhotos).forEach(cityId => {
             if (newOpenState[cityId] === undefined) {
-              newOpenState[cityId] = false; // Default new sections to closed
+              newOpenState[cityId] = false;
               stateChanged = true;
             }
         });
@@ -123,17 +87,17 @@ const FamilyPhotoAlbum: React.FC = () => {
       reader.onload = (event) => {
         setCurrentPhoto({
           id: uuidv4(),
-          src: event.target?.result as string, // This will be a base64 string
+          src: event.target?.result as string,
           caption: '',
           originalLang: language,
-          dateTaken: new Date().toISOString().split('T')[0], // Default to today
+          dateTaken: new Date().toISOString().split('T')[0],
           tripDay: 1,
           cityId: CITIES[0].id
         });
         setIsModalOpen(true);
       };
       reader.readAsDataURL(file);
-       e.target.value = ''; // Reset input to allow same file upload again
+       e.target.value = '';
     }
   };
 
@@ -142,27 +106,27 @@ const FamilyPhotoAlbum: React.FC = () => {
     setIsModalOpen(true);
   };
   
-  const handleSavePhoto = async () => {
+  const handleSavePhoto = () => {
     if (!currentPhoto || !currentPhoto.id) return;
     
-    try {
-        await firebaseSyncService.savePhoto(currentPhoto as PhotoItem);
-        setIsModalOpen(false);
-        setCurrentPhoto(null);
-        // No need to reload, onSnapshot will update the UI
-    } catch(error) {
-        console.error("Failed to save photo", error);
-    }
+    setPhotos(prevPhotos => {
+        const existingIndex = prevPhotos.findIndex(p => p.id === currentPhoto.id);
+        if (existingIndex > -1) {
+            const updatedPhotos = [...prevPhotos];
+            updatedPhotos[existingIndex] = currentPhoto as PhotoItem;
+            return updatedPhotos;
+        } else {
+            return [...prevPhotos, currentPhoto as PhotoItem];
+        }
+    });
+
+    setIsModalOpen(false);
+    setCurrentPhoto(null);
   };
 
   const handleRemovePhoto = async (id: string) => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
-        try {
-            await firebaseSyncService.deletePhoto(id);
-            // No need to reload, onSnapshot will update the UI
-        } catch(error) {
-            console.error("Failed to delete photo", error);
-        }
+        setPhotos(prevPhotos => prevPhotos.filter(p => p.id !== id));
     }
   };
   
@@ -192,12 +156,7 @@ const FamilyPhotoAlbum: React.FC = () => {
       </h2>
       <p className="text-gray-600 dark:text-slate-400 mb-6">{t('photo_album_description')}</p>
 
-      {isLoading || photos === null ? (
-        <div className="text-center py-16 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <i className="fas fa-spinner fa-spin text-4xl mb-4 text-indigo-500"></i>
-          <p>{t('loading')}</p>
-        </div>
-      ) : photos.length === 0 ? (
+      {photos.length === 0 ? (
         <div className="text-center py-16 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
           <i className="fas fa-images text-5xl mb-4 text-gray-400 dark:text-slate-500"></i>
           <p>{t('photo_album_empty')}</p>
@@ -205,6 +164,7 @@ const FamilyPhotoAlbum: React.FC = () => {
       ) : (
         <div className="mt-6 space-y-8">
           {Object.entries(groupedPhotos).map(([cityId, cityPhotos]) => {
+            if (cityPhotos.length === 0) return null;
             const city = CITIES.find(c => c.id === cityId);
             const sectionTitle = city ? t(city.nameKey) : t('photo_album_unclassified');
             const sectionIsOpen = openSections[cityId] ?? false;
@@ -221,7 +181,7 @@ const FamilyPhotoAlbum: React.FC = () => {
                 </button>
                 
                 {sectionIsOpen && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4 animate-fade-in">
                     {cityPhotos.map(photo => (
                       <div key={photo.id} className="aspect-square relative group overflow-hidden rounded-lg shadow-md bg-gray-200 dark:bg-slate-700">
                         <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />

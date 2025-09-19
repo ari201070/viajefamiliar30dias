@@ -60,6 +60,8 @@ export interface Translations {
   [Language.HE]: TranslationSet;
 }
 
+export type FirebaseStatus = 'unknown' | 'connecting' | 'connected' | 'error';
+
 export interface AppContextType {
   language: Language;
   setLanguage: (language: Language) => void;
@@ -68,7 +70,6 @@ export interface AppContextType {
   t: (key: string, replacements?: Record<string, string>) => string;
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  currentUser: User | null;
 }
 
 export interface PolygonRateResponse {

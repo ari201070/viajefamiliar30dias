@@ -2,44 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PackingItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
-import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
-import { db } from '../../services/firebaseConfig.ts';
-import { doc, onSnapshot } from 'firebase/firestore';
+
+const STORAGE_KEY = 'packingList';
 
 const PackingList: React.FC = () => {
   const { t, language } = useAppContext();
-  const [packingItems, setPackingItems] = useState<PackingItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [packingItems, setPackingItems] = useState<PackingItem[]>(() => {
+    try {
+      const savedItems = localStorage.getItem(STORAGE_KEY);
+      return savedItems ? JSON.parse(savedItems) : [];
+    } catch (error) {
+      console.error("Failed to load packing list from localStorage", error);
+      return [];
+    }
+  });
   const [newItemText, setNewItemText] = useState('');
   const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
   useEffect(() => {
-    if (!db) {
-        setIsLoading(false);
-        console.error("Firebase not initialized, cannot fetch packing list.");
-        return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(packingItems));
+    } catch (error) {
+      console.error("Failed to save packing list to localStorage", error);
     }
-    
-    setIsLoading(true);
-    const packingListDocRef = doc(db, 'packing/list');
-    const unsubscribe = onSnapshot(packingListDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            setPackingItems(docSnap.data().items || []);
-        } else {
-            // Document doesn't exist yet, start with an empty list
-            setPackingItems([]); 
-        }
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error listening to packing list updates:", error);
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, []);
+  }, [packingItems]);
 
 
-  const handleAddPackingItem = async () => {
+  const handleAddPackingItem = () => {
     if (newItemText.trim() === '') return;
     const newItem: PackingItem = {
       id: uuidv4(),
@@ -48,39 +37,18 @@ const PackingList: React.FC = () => {
       originalLang: language,
     };
     
-    const updatedItems = [...packingItems, newItem];
+    setPackingItems(prevItems => [...prevItems, newItem]);
     setNewItemText('');
-
-    try {
-        await firebaseSyncService.savePackingList(updatedItems);
-    } catch (error) {
-        console.error("Failed to save new packing item", error);
-        // UI will not have changed, so no rollback needed. Consider showing an error message.
-    }
   };
 
-  const handleRemovePackingItem = async (id: string) => {
-    const updatedItems = packingItems.filter(item => item.id !== id);
-    try {
-        await firebaseSyncService.savePackingList(updatedItems);
-    } catch (error) {
-        console.error("Failed to remove packing item", error);
-        // UI will not have changed, so no rollback needed. Consider showing an error message.
-    }
+  const handleRemovePackingItem = (id: string) => {
+    setPackingItems(prevItems => prevItems.filter(item => item.id !== id));
   };
   
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
   
   const renderList = (type: 'essential' | 'optional') => {
-    if (isLoading) {
-        return (
-            <div className="text-center py-10 text-gray-500 dark:text-slate-400">
-                <i className="fas fa-spinner fa-spin text-2xl"></i>
-            </div>
-        );
-    }
-    
     const items = packingItems.filter(item => item.type === type);
     if (items.length === 0) {
       return (
