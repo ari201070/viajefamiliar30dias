@@ -38,7 +38,7 @@ export const CITIES: City[] = [
     activitiesKey: 'buenosaires_activities_recommended', 
     accommodationKey: 'buenosaires_accommodation_examples', 
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '15-40', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '50-120', isPerDay: true },
@@ -55,7 +55,7 @@ export const CITIES: City[] = [
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '3-5', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '20-50', isPerDay: true },
@@ -103,7 +103,7 @@ export const CITIES: City[] = [
     activitiesKey: 'malargue_activities_recommended',
     accommodationKey: 'malargue_accommodation_examples',
     budgetItems: [ 
-      { conceptKey: 'budget_concept_accommodation', value: '50-130', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '35-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '10-25', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '30-80', isPerDay: true },
