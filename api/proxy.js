@@ -74,9 +74,11 @@ const handleGeminiChat = async (payload, res) => {
         : "\n\nPlease respond exclusively in Spanish.";
 
     // Format the existing history for the Gemini API
-    const formattedHistory = history.map(msg => ({
-        role: msg.role === 'model' ? 'model' : 'user', // Ensure role is either 'user' or 'model'
-        parts: [{ text: msg.text }]
+    const formattedHistory = history
+        .filter(msg => msg && typeof msg.role === 'string' && typeof msg.text === 'string') // Sanitize history
+        .map(msg => ({
+            role: msg.role === 'model' ? 'model' : 'user', // Ensure role is either 'user' or 'model'
+            parts: [{ text: msg.text }]
     }));
 
     // Combine history with the new message to form the full conversation context

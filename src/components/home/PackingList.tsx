@@ -35,6 +35,7 @@ const PackingList: React.FC = () => {
       text: newItemText.trim(),
       type: newItemType,
       originalLang: language,
+      checked: false,
     };
     
     setPackingItems(prevItems => [...prevItems, newItem]);
@@ -43,6 +44,14 @@ const PackingList: React.FC = () => {
 
   const handleRemovePackingItem = (id: string) => {
     setPackingItems(prevItems => prevItems.filter(item => item.id !== id));
+  };
+  
+  const handleTogglePackingItem = (id: string) => {
+    setPackingItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id ? { ...item, checked: !item.checked } : item
+      )
+    );
   };
   
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
@@ -61,12 +70,34 @@ const PackingList: React.FC = () => {
     return (
       <ul className="space-y-2">
         {items.map(item => (
-          <li key={item.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg shadow-sm group">
-            <span className="text-gray-800 dark:text-slate-200 break-all">{item.text}</span>
-            <button 
-                onClick={() => handleRemovePackingItem(item.id)} 
-                className="text-red-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 ml-4"
-                aria-label={`Remove ${item.text}`}
+          <li
+            key={item.id}
+            className="flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg shadow-sm group transition-all duration-300"
+          >
+            <div
+              className="flex items-center flex-grow cursor-pointer"
+              onClick={() => handleTogglePackingItem(item.id)}
+            >
+              <input
+                type="checkbox"
+                checked={item.checked}
+                onChange={() => handleTogglePackingItem(item.id)}
+                className="h-5 w-5 rounded border-gray-400 dark:border-slate-500 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-600 dark:checked:bg-indigo-500 dark:checked:border-indigo-500 mr-4 flex-shrink-0"
+                aria-labelledby={`item-text-${item.id}`}
+              />
+              <span
+                id={`item-text-${item.id}`}
+                className={`text-gray-800 dark:text-slate-200 break-all transition-all ${
+                  item.checked ? 'line-through text-gray-400 dark:text-slate-500' : ''
+                }`}
+              >
+                {item.text}
+              </span>
+            </div>
+            <button
+              onClick={() => handleRemovePackingItem(item.id)}
+              className="text-red-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 ml-4 flex-shrink-0"
+              aria-label={`Remove ${item.text}`}
             >
               <i className="fas fa-trash-alt"></i>
             </button>

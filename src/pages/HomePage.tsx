@@ -14,6 +14,7 @@ import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
 import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 import FlightTickets from '../components/home/FlightTickets.tsx';
 import WeatherForecast from '../components/home/WeatherForecast.tsx';
+import Reservations from '../components/home/Reservations.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -111,81 +112,89 @@ const HomePage: React.FC = () => {
         isCalculating: true,
     });
     
-    const totalsByCategory: Record<string, { min: number, max: number }> = {};
-    const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
-    const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
+    try {
+        const totalsByCategory: Record<string, { min: number, max: number }> = {};
+        const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
+        const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
 
-    // FIX: Add trip-wide one-time costs first (e.g., international flights)
-    TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
-        if (!totalsByCategory[item.conceptKey]) {
-            totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
-        }
-        const [min, max] = parseRange(item.value);
-        totalsByCategory[item.conceptKey].min += min;
-        totalsByCategory[item.conceptKey].max += max;
-        oneTimeCostsAdded.add(item.conceptKey);
-    });
-
-    for (const city of CITIES) {
-        const durationStr = t(`${city.id}_dates_duration`);
-        const days = getDaysFromDurationString(durationStr);
-        const cityBudget = savedBudgets[city.id] || city.budgetItems;
-
-        cityBudget.forEach((item: BudgetItem) => {
+        // FIX: Add trip-wide one-time costs first (e.g., international flights)
+        TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
             if (!totalsByCategory[item.conceptKey]) {
                 totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
             }
             const [min, max] = parseRange(item.value);
-
-            if (item.isPerDay) {
-                totalsByCategory[item.conceptKey].min += min * days;
-                totalsByCategory[item.conceptKey].max += max * days;
-            } else {
-                if (!oneTimeCostsAdded.has(item.conceptKey)) {
-                    totalsByCategory[item.conceptKey].min += min;
-                    totalsByCategory[item.conceptKey].max += max;
-                    oneTimeCostsAdded.add(item.conceptKey);
-                }
-            }
+            totalsByCategory[item.conceptKey].min += min;
+            totalsByCategory[item.conceptKey].max += max;
+            oneTimeCostsAdded.add(item.conceptKey);
         });
-    }
-    
-    let totalMinUSD = 0;
-    let totalMaxUSD = 0;
-    Object.values(totalsByCategory).forEach(category => {
-        totalMinUSD += category.min;
-        totalMaxUSD += category.max;
-    });
 
-    const rate = await getCachedExchangeRate('USD', globalCurrency);
+        for (const city of CITIES) {
+            const durationStr = t(`${city.id}_dates_duration`);
+            const days = getDaysFromDurationString(durationStr);
+            const cityBudget = savedBudgets[city.id] || city.budgetItems;
 
-    if (rate !== null) {
-        const formattedBreakdown: Record<string, string> = {};
-        for (const conceptKey in totalsByCategory) {
-            const { min, max } = totalsByCategory[conceptKey];
-            const finalMin = min * rate;
-            const finalMax = max * rate;
-            formattedBreakdown[conceptKey] = `${finalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
+            cityBudget.forEach((item: BudgetItem) => {
+                if (!totalsByCategory[item.conceptKey]) {
+                    totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
+                }
+                const [min, max] = parseRange(item.value);
+
+                if (item.isPerDay) {
+                    totalsByCategory[item.conceptKey].min += min * days;
+                    totalsByCategory[item.conceptKey].max += max * days;
+                } else {
+                    if (!oneTimeCostsAdded.has(item.conceptKey)) {
+                        totalsByCategory[item.conceptKey].min += min;
+                        totalsByCategory[item.conceptKey].max += max;
+                        oneTimeCostsAdded.add(item.conceptKey);
+                    }
+                }
+            });
         }
         
-        const finalTotalMin = totalMinUSD * rate;
-        const finalTotalMax = totalMaxUSD * rate;
-        const formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalTotalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
-        
-        setBudgetDetails({
-            total: formattedTotal,
-            breakdown: formattedBreakdown,
-            isCalculating: false,
+        let totalMinUSD = 0;
+        let totalMaxUSD = 0;
+        Object.values(totalsByCategory).forEach(category => {
+            totalMinUSD += category.min;
+            totalMaxUSD += category.max;
         });
 
-    } else {
+        const rate = await getCachedExchangeRate('USD', globalCurrency);
+
+        if (rate !== null) {
+            const formattedBreakdown: Record<string, string> = {};
+            for (const conceptKey in totalsByCategory) {
+                const { min, max } = totalsByCategory[conceptKey];
+                const finalMin = min * rate;
+                const finalMax = max * rate;
+                formattedBreakdown[conceptKey] = `${finalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
+            }
+            
+            const finalTotalMin = totalMinUSD * rate;
+            const finalTotalMax = totalMaxUSD * rate;
+            const formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalTotalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
+            
+            setBudgetDetails({
+                total: formattedTotal,
+                breakdown: formattedBreakdown,
+                isCalculating: false,
+            });
+
+        } else {
+            setBudgetDetails({
+                total: t('error'),
+                breakdown: {},
+                isCalculating: false,
+            });
+        }
+    } catch (error) {
+        console.error("Failed to calculate trip budget:", error);
         setBudgetDetails({
             total: t('error'),
             breakdown: {},
             isCalculating: false,
         });
     }
-
   }, [t, globalCurrency, language]);
 
   useEffect(() => {
@@ -200,7 +209,7 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [calculateTripBudget]);
 
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover-shadow-slate-700 transition-shadow duration-300";
+  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
 
   return (
     <div className="space-y-12">
@@ -210,6 +219,8 @@ const HomePage: React.FC = () => {
       </section>
 
       <FlightTickets />
+
+      <Reservations />
 
       {/* City Cards */}
       <section>

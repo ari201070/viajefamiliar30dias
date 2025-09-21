@@ -1,13 +1,10 @@
+// FIX: Use firebase compat to resolve module errors.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { auth } from './firebaseConfig.ts';
-import { 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged, 
-  User 
-} from 'firebase/auth';
+import type { User } from '../types.ts';
 
-const provider = new GoogleAuthProvider();
+const provider = new firebase.auth.GoogleAuthProvider();
 
 export const authService = {
   signInWithGoogle: async (): Promise<User | null> => {
@@ -16,7 +13,8 @@ export const authService = {
         return null;
     }
     try {
-      const result = await signInWithPopup(auth, provider);
+      // FIX: Use compat API for signInWithPopup.
+      const result = await auth.signInWithPopup(provider);
       return result.user;
     } catch (error) {
       console.error("Error during Google sign-in:", error);
@@ -34,7 +32,8 @@ export const authService = {
         return;
     }
     try {
-      await signOut(auth);
+      // FIX: Use compat API for signOut.
+      await auth.signOut();
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -47,6 +46,7 @@ export const authService = {
       return () => {};
     }
     // This sets up the listener and returns the unsubscribe function provided by Firebase
-    return onAuthStateChanged(auth, callback);
+    // FIX: Use compat API for onAuthStateChanged.
+    return auth.onAuthStateChanged(callback);
   },
 };

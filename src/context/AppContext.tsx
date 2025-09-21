@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { User } from 'firebase/auth';
+// FIX: Removed incorrect import of User type. It's now handled within AppContextType from types.ts
 import { AppContextType } from '../types.ts';
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);

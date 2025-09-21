@@ -1,4 +1,4 @@
-import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent, BudgetItem } from './types.ts';
+import { City, Translations, Language, TransportLeg, Currency, PointOfInterest, AIPromptContent, BudgetItem, BookingItem } from './types.ts';
 
 export const LANGUAGES = [
   { code: Language.ES, name: 'Español' },
@@ -34,12 +34,12 @@ export const CITIES: City[] = [
     id: 'buenosaires', 
     nameKey: 'buenosaires_title', 
     coords: [-34.6118, -58.3960], 
-    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1618591823938-7df5454f7a2d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'buenosaires_desc_main',
     activitiesKey: 'buenosaires_activities_recommended', 
     accommodationKey: 'buenosaires_accommodation_examples', 
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '15-40', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '50-120', isPerDay: true },
@@ -51,12 +51,12 @@ export const CITIES: City[] = [
     id: 'rosario', 
     nameKey: 'rosario_title', 
     coords: [-32.9442, -60.6505], 
-    image: 'https://images.unsplash.com/photo-1663851753121-abd417bfb0b3?q=80&w=1632&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1663851753121-abd417bfb0b3?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'rosario_desc_main',
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '50-120', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '0', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '30-70', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '3-5', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '20-50', isPerDay: true },
@@ -67,12 +67,12 @@ export const CITIES: City[] = [
     id: 'bariloche', 
     nameKey: 'bariloche_title', 
     coords: [-41.1335, -71.3103], 
-    image: 'https://images.unsplash.com/photo-1598162480222-b2c3d92548d5?q=80&w=1170&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1598162480222-b2c3d92548d5?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'bariloche_desc_main',
     activitiesKey: 'bariloche_activities_recommended',
     accommodationKey: 'bariloche_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '70-180', isPerDay: true },
+      { conceptKey: 'budget_concept_accommodation', value: '258', isPerDay: true },
       { conceptKey: 'budget_concept_food', value: '40-90', isPerDay: true },
       { conceptKey: 'budget_concept_transport', value: '5-15', isPerDay: true },
       { conceptKey: 'budget_concept_activities', value: '30-80', isPerDay: true },
@@ -83,7 +83,7 @@ export const CITIES: City[] = [
     id: 'mendoza', 
     nameKey: 'mendoza_title', 
     coords: [-32.8908, -68.8272], 
-    image: 'https://images.unsplash.com/photo-1665254369274-4b459f3ce48c?q=80&w=1932&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1665254369274-4b459f3ce48c?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'mendoza_desc_main',
     activitiesKey: 'mendoza_activities_recommended',
     accommodationKey: 'mendoza_accommodation_examples',
@@ -99,7 +99,7 @@ export const CITIES: City[] = [
     id: 'malargue', 
     nameKey: 'malargue_title', 
     coords: [-35.4769, -69.5894], 
-    image: 'https://live.staticflickr.com/5598/15633439821_9764cac7c9_k.jpg', 
+    image: 'https://images.unsplash.com/photo-1605788509802-12a1e12c5c99?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'malargue_desc_main',
     activitiesKey: 'malargue_activities_recommended',
     accommodationKey: 'malargue_accommodation_examples',
@@ -131,7 +131,7 @@ export const CITIES: City[] = [
     id: 'iguazu', 
     nameKey: 'iguazu_title', 
     coords: [-25.5952, -54.5732],
-    image: 'https://images.unsplash.com/photo-1679771651554-df7430ada73f?q=80&w=1170&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1679771651554-df7430ada73f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'iguazu_desc_main',
     activitiesKey: 'iguazu_activities_recommended',
     accommodationKey: 'iguazu_accommodation_examples',
@@ -147,7 +147,7 @@ export const CITIES: City[] = [
     id: 'ibera', 
     nameKey: 'ibera_title', 
     coords: [-28.539, -57.16], 
-    image: 'https://plus.unsplash.com/premium_photo-1694475403770-a84bc706ebc3?q=80&w=1170&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1588339323424-51a8d01b17ab?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'ibera_desc_main',
     activitiesKey: 'ibera_activities_recommended',
     accommodationKey: 'ibera_accommodation_examples',
@@ -163,7 +163,7 @@ export const CITIES: City[] = [
     id: 'corrientes', 
     nameKey: 'corrientes_title', 
     coords: [-27.4691, -58.8309], 
-    image: 'https://images.unsplash.com/photo-1727529532198-1a5e6fb88927?q=80&w=1470&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    image: 'https://images.unsplash.com/photo-1727529532198-1a5e6fb88927?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
     descriptionKey: 'corrientes_desc_main',
     activitiesKey: 'corrientes_activities_recommended',
     accommodationKey: 'corrientes_accommodation_examples',
@@ -176,6 +176,82 @@ export const CITIES: City[] = [
     ]
   },
 ];
+
+export const BOOKING_DATA: BookingItem[] = [
+  {
+    id: 'transfer-eze-caba',
+    type: 'transfer',
+    titleKey: 'booking_title_transfer_eze',
+    descriptionKey: 'booking_desc_transfer_eze',
+    data: {
+      from: 'Aeropuerto Ministro Pistarini (EZE)',
+      to: 'Av. Pueyrredón 1161, CABA',
+      date: '2025-09-26',
+      duration: 'Aprox. 43 min',
+      price: 'ARS $45.000',
+    }
+  },
+  {
+    id: 'bus-bue-ros',
+    type: 'bus',
+    titleKey: 'booking_title_bus_bue_ros',
+    descriptionKey: 'booking_desc_bus_bue_ros',
+    data: {
+        from: 'Buenos Aires (Retiro)',
+        to: 'Rosario (Terminal)',
+        departure: '2025-09-30T13:30:00',
+        arrival: '2025-09-30T17:50:00',
+        duration: '4hs 20min',
+        company: 'Flecha Bus',
+        price: 'ARS $96.000',
+        passengers: [
+            { name: "Adulto 1", seat: "21", type: "Semi Cama" },
+            { name: "Adulto 2", seat: "22", type: "Semi Cama" },
+            { name: "Adulto 3", seat: "23", type: "Semi Cama" },
+            { name: "Adolescente 1", seat: "24", type: "Semi Cama" }
+        ]
+    }
+  },
+  {
+    id: 'bus-ros-brc',
+    type: 'bus',
+    titleKey: 'booking_title_bus_ros_brc',
+    descriptionKey: 'booking_desc_bus_ros_brc',
+    data: {
+        from: 'Rosario (Terminal)',
+        to: 'S. C. de Bariloche (Terminal)',
+        departure: '2025-10-04T11:30:00',
+        arrival: '2025-10-05T13:15:00',
+        duration: '25hs 45min',
+        company: 'Via Bariloche',
+        price: 'AR$ 347.200',
+        passengers: [
+            { name: "Adulto 1", seat: "25", type: "Semi Cama" },
+            { name: "Adulto 2", seat: "26", type: "Semi Cama" },
+            { name: "Adulto 3", seat: "27", type: "Semi Cama" },
+            { name: "Adolescente 1", seat: "28", type: "Semi Cama" }
+        ]
+    }
+  },
+  {
+    id: 'hotel-concorde-bariloche',
+    type: 'hotel',
+    titleKey: 'booking_title_hotel_brc',
+    descriptionKey: 'booking_desc_hotel_brc',
+    data: {
+      confirmation: '6112.798.624',
+      pin: '1077',
+      checkIn: '2025-10-05',
+      checkOut: '2025-10-10',
+      nights: 5,
+      guests: '3 adultos, 1 niño (13 años)',
+      price: 'AR$ 1.160.697*',
+      address: 'Libertad 131, 8400 San Carlos de Bariloche',
+      phone: '+54 294 442 4500'
+    }
+  },
+];
+
 
 export const AI_PROMPT_CONFIGS: AIPromptContent[] = [
   { titleKey: 'ai_menu_title', descriptionKey: 'ai_menu_description', buttonKey: 'ai_menu_button', promptKeySuffix: '_ai_prompt_menu', icon: 'fa-utensils', userInputPlaceholderKey: 'ai_menu_input_placeholder' },
@@ -268,6 +344,31 @@ export const translations: Translations = {
     flight_tickets_baggage_allowance: "Equipaje Permitido (por pasajero)",
     flight_tickets_carry_on: "1 equipaje de mano (hasta 7kg)",
     flight_tickets_checked_bags: "2 maletas documentadas (hasta 23kg cada una)",
+    // Reservations & Documents
+    reservations_title: "Reservas y Documentos",
+    reservations_price: "Precio",
+    booking_title_transfer_eze: "Transfer Aeropuerto EZE",
+    booking_desc_transfer_eze: "Traslado al llegar a Buenos Aires.",
+    booking_title_bus_bue_ros: "Bus: Buenos Aires → Rosario",
+    booking_desc_bus_bue_ros: "Pasajes de bus de ida.",
+    booking_title_bus_ros_brc: "Bus: Rosario → Bariloche",
+    booking_desc_bus_ros_brc: "Pasajes de bus nocturno.",
+    booking_title_hotel_brc: "Hotel Concorde, Bariloche",
+    booking_desc_hotel_brc: "Confirmación de reserva de alojamiento.",
+    reservations_hotel_checkin: "Entrada",
+    reservations_hotel_checkout: "Salida",
+    reservations_hotel_guests: "Huéspedes",
+    reservations_hotel_confirmation: "Confirmación",
+    reservations_hotel_nights: "noches",
+    reservations_bus_departure: "Salida",
+    reservations_bus_arrival: "Llegada",
+    reservations_bus_duration: "Duración",
+    reservations_bus_passengers: "Pasajeros",
+    reservations_bus_seat: "Asiento",
+    reservations_transfer_from: "Origen",
+    reservations_transfer_to: "Destino",
+    reservations_transfer_date: "Fecha",
+    reservations_transfer_duration: "Duración",
     // Weather Forecast
     weather_title: "Pronóstico del Clima",
     weather_select_city_label: "Seleccionar ciudad para ver el clima",
@@ -275,6 +376,8 @@ export const translations: Translations = {
     weather_humidity: "Humedad",
     weather_error_fetching: "No se pudo obtener el pronóstico. Inténtelo de nuevo más tarde.",
     weather_error_city_not_found: "Ciudad no encontrada.",
+    weather_prev_week: "Semana Anterior",
+    weather_next_week: "Semana Siguiente",
 
     // Section Titles for Detail Page
     section_title_dates_duration: "Fechas y Duración",
@@ -406,9 +509,7 @@ export const translations: Translations = {
     ai_budget_analysis_description: "Chatea con un asesor financiero para obtener un análisis del presupuesto orientativo para tu estadía en {cityName}, con posibles optimizaciones.",
     ai_budget_analysis_button: "Analizar Presupuesto",
     ai_budget_analysis_input_placeholder: "Menciona tu presupuesto total o prioridades...",
-    buenosaires_ai_prompt_budget_analysis: "Eres un asesor financiero de viajes. Tu misión es analizar el presupuesto orientativo para una familia en Buenos Aires (USD): Alojamiento (noche): 50-120, Comida (día): 30-70, Transporte (día): 3-5, Actividades (día): 20-50, Entradas: 0-15. Proporciona un desglose estimado por día y categoría, y sugiere 2-3 formas de optimizar este presupuesto sin sacrificar la experiencia.",
-    malargue_ai_prompt_budget_analysis: "Eres un asesor financiero de viajes. Tu misión es analizar el presupuesto orientativo para una familia en Malargüe. Consulta el presupuesto detallado de la ciudad, proporciona un desglose estimado por día y categoría, y sugiere 2-3 formas de optimizar este presupuesto.",
-    generic_ai_prompt_budget_analysis: "Eres un asesor financiero de viajes. Tu misión es analizar el presupuesto orientativo para una familia en {cityName}. Consulta el presupuesto detallado de la ciudad, proporciona un desglose estimado por día y categoría, y sugiere 2-3 formas de optimizar este presupuesto sin sacrificar la experiencia.",
+    generic_ai_prompt_budget_analysis: "Eres un asesor financiero de viajes. Tu misión es analizar el siguiente presupuesto orientativo para una familia en {cityName}:\n\n{budgetData}\n\nBasado en estos datos, proporciona un desglose estimado por día y por categoría, y sugiere 2-3 formas de optimizar este presupuesto sin sacrificar la experiencia.",
     
     // AI Chat and Translation
     ai_chat_send_button: "Enviar",
@@ -417,6 +518,7 @@ export const translations: Translations = {
     ai_translated_from_label: "Traducido de {lang}:",
     language_name_es: "Español",
     language_name_he: "Hebreo",
+    ai_chat_new_conversation: "Nueva Conversación",
 
     // ROSARIO (Detailed content)
     rosario_must_see: "- [Monumento Nacional a la Bandera](https://www.monumentoalabandera.gob.ar/)\n- [Parque de la Independencia](https://www.rosario.gob.ar/web/ciudad/parques-y-plazas/parque-de-la-independencia)\n- Costanera del Río Paraná\n- [Isla de los Inventos](https://www.rosario.gob.ar/web/ciudad/cultura/infancia-y-juventud/isla-de-los-inventos)\n- Museo de Ciencias Naturales \"Dr. Ángel Gallardo\"\n- Boulevard Oroño",
@@ -542,6 +644,7 @@ export const translations: Translations = {
     budget_concept_activities_included: "Actividades (incluidas en tarifa)",
     budget_concept_international_flights: "Vuelos Internacionales (familia)",
     budget_concept_airport_transfer: "Transfer Aeropuerto EZE (ida)",
+    budget_per_day_suffix: "(por día)",
     
   },
   [Language.HE]: {
@@ -625,6 +728,31 @@ export const translations: Translations = {
     flight_tickets_baggage_allowance: "כבודה מותרת (לנוסע)",
     flight_tickets_carry_on: "תיק יד 1 (עד 7 ק\"ג)",
     flight_tickets_checked_bags: "2 מזוודות לבטן המטוס (עד 23 ק\"ג כל אחת)",
+    // Reservations & Documents
+    reservations_title: "הזמנות ומסמכים",
+    reservations_price: "מחיר",
+    booking_title_transfer_eze: "הסעה משדה התעופה EZE",
+    booking_desc_transfer_eze: "הסעה בהגעה לבואנוס איירס.",
+    booking_title_bus_bue_ros: "אוטובוס: בואנוס איירס → רוסאריו",
+    booking_desc_bus_bue_ros: "כרטיסי אוטובוס הלוך.",
+    booking_title_bus_ros_brc: "אוטובוס: רוסאריו → ברילוצ'ה",
+    booking_desc_bus_ros_brc: "כרטיסי אוטובוס לילה.",
+    booking_title_hotel_brc: "מלון קונקורד, ברילוצ'ה",
+    booking_desc_hotel_brc: "אישור הזמנת לינה.",
+    reservations_hotel_checkin: "צ'ק-אין",
+    reservations_hotel_checkout: "צ'ק-אאוט",
+    reservations_hotel_guests: "אורחים",
+    reservations_hotel_confirmation: "אישור",
+    reservations_hotel_nights: "לילות",
+    reservations_bus_departure: "יציאה",
+    reservations_bus_arrival: "הגעה",
+    reservations_bus_duration: "משך",
+    reservations_bus_passengers: "נוסעים",
+    reservations_bus_seat: "מושב",
+    reservations_transfer_from: "מקור",
+    reservations_transfer_to: "יעד",
+    reservations_transfer_date: "תאריך",
+    reservations_transfer_duration: "משך",
     // Weather Forecast
     weather_title: "תחזית מזג האוויר",
     weather_select_city_label: "בחר עיר לצפייה במזג האוויר",
@@ -632,6 +760,8 @@ export const translations: Translations = {
     weather_humidity: "לחות",
     weather_error_fetching: "לא ניתן היה לקבל את התחזית. אנא נסה שוב מאוחר יותר.",
     weather_error_city_not_found: "עיר לא נמצאה.",
+    weather_prev_week: "שבוע קודם",
+    weather_next_week: "שבוע הבא",
     
     // Section Titles for Detail Page
     section_title_dates_duration: "תאריכים ומשך זמן",
@@ -763,9 +893,7 @@ export const translations: Translations = {
     ai_budget_analysis_description: "שוחחו עם יועץ פיננסי לקבלת ניתוח של התקציב המשוער לשהותכם ב-{cityName}, עם אופטימיזציות אפשריות.",
     ai_budget_analysis_button: "נתח תקציב",
     ai_budget_analysis_input_placeholder: "ציין תקציב כולל או סדרי עדיפויות...",
-    buenosaires_ai_prompt_budget_analysis: "אתה יועץ פיננסי לטיולים. משימתך היא לנתח את התקציב המשוער למשפחה בבואנוס איירס (USD): לינה (לילה): 50-120, אוכל (יום): 30-70, תחבורה (יום): 3-5, פעילויות (יום): 20-50, כניסות: 0-15. ספק פירוט משוער ליום ולקטגוריה, והצע 2-3 דרכים לייעל תקציב זה מבלי לוותר על החוויה.",
-    malargue_ai_prompt_budget_analysis: "אתה יועץ פיננסי לטיולים. משימתך היא לנתח את התקציב המשוער למשפחה במלארגואה. עיין בתקציב המפורט של העיר, ספק פירוט משוער ליום ולקטגוריה, והצע 2-3 דרכים לייעל תקציב זה.",
-    generic_ai_prompt_budget_analysis: "אתה יועץ פיננסי לטיולים. משימתך היא לנתח את התקציב המשוער למשפחה ב-{cityName}. עיין בתקציב המפורט של העיר, ספק פירוט משוער ליום ולקטגוריה, והצע 2-3 דרכים לייעל תקציב זה מבלי לוותר על החוויה.",
+    generic_ai_prompt_budget_analysis: "אתה יועץ פיננסי לטיולים. משימתך היא לנתח את התקציב המשוער הבא למשפחה ב-{cityName}:\n\n{budgetData}\n\nבהתבסס על נתונים אלה, ספק פירוט משוער ליום ולקטגוריה, והצע 2-3 דרכים לייעל תקציב זה מבלי לוותר על החוויה.",
 
     // AI Chat and Translation
     ai_chat_send_button: "שלח",
@@ -774,6 +902,7 @@ export const translations: Translations = {
     ai_translated_from_label: "תורגם מ-{lang}:",
     language_name_es: "ספרדית",
     language_name_he: "עברית",
+    ai_chat_new_conversation: "שיחה חדשה",
 
     // ROSARIO (Detailed HE content) - (and all other cities as per prior full example)
     rosario_must_see: "- [אנדרטת הדגל הלאומית](https://www.monumentoalabandera.gob.ar/)\n- [פארק העצמאות](https://www.rosario.gob.ar/web/ciudad/parques-y-plazas/parque-de-la-independencia)\n- טיילת נהר פרנה\n- [אי ההמצאות](https://www.rosario.gob.ar/web/ciudad/cultura/infancia-y-juventud/isla-de-los-inventos)\n- מוזיאון למדעי הטבע \"ד\"ר אנחל גז'ארדו\"\n- שדרות אורוניו",
@@ -899,13 +1028,14 @@ export const translations: Translations = {
     budget_concept_activities_included: "פעילויות (כלולות במחיר)",
     budget_concept_international_flights: "טיסות בינלאומיות (משפחה)",
     budget_concept_airport_transfer: "הסעה משדה התעופה EZE (הלוך)",
+    budget_per_day_suffix: "(ליום)",
   },
 };
 
 
 const userProvidedTransportData: (string | number | (string | number)[])[] = [
-    ["Buenos Aires", "Rosario", "Bus", "4 h", 24000, "<a href=\"https://www.flechabus.com.ar/\" target=\"_blank\">Flecha Bus</a>"],
-    ["Rosario", "Bariloche", "Bus Nocturno", "20 h", 347200, "<a href=\"https://www.viabariloche.com.ar/\" target=\"_blank\">Via Bariloche</a>"],
+    ["Buenos Aires", "Rosario", "Bus", "4h 20m", 96000, "<a href=\"https://www.flechabus.com.ar/\" target=\"_blank\">Flecha Bus</a>"],
+    ["Rosario", "Bariloche", "Bus Nocturno", "25h 45m", 347200, "<a href=\"https://www.viabariloche.com.ar/\" target=\"_blank\">Via Bariloche</a>"],
     ["Bariloche", "Mendoza", "Vuelo", "1.5 h", 75000, "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\">Aerolíneas Argentinas</a>"],
     ["Mendoza", "Jujuy", "Bus", "20 h", 45000, "<a href=\"https://www.andesmar.com/\" target=\"_blank\">Andesmar</a>"],
     ["Jujuy", "Iguazú", "Vuelo", "2 h", 95000, "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\">Aerolíneas Argentinas</a>"],

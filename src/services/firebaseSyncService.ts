@@ -1,5 +1,7 @@
 import { PhotoItem, PackingItem } from '../types.ts';
 import { db, storage } from './firebaseConfig.ts';
+// FIX: Imports are no longer needed as we use the compat library's namespaced methods.
+/*
 import {
   collection,
   doc,
@@ -17,6 +19,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from 'firebase/storage';
+*/
 
 // --- SERVICE FOR FIREBASE REAL-TIME SYNC ---
 // This service centralizes data management for synced features.
@@ -34,17 +37,17 @@ if (!db || !storage) {
   console.warn("Firebase is not initialized. Sync features will be disabled.");
 }
 
-// Collections references
-const photosCollection = db ? collection(db, 'photos') : null;
-const packingListDoc = db ? doc(db, 'packing/list') : null;
+// FIX: Use compat API which works with collection strings.
+const photosCollection = db ? db.collection('photos') : null;
+const packingListDoc = db ? db.collection('packing').doc('list') : null;
 
 export const firebaseSyncService = {
   // --- Photo Album Methods ---
   async getPhotos(): Promise<PhotoItem[]> {
     if (!photosCollection) return [];
     try {
-        const q = query(photosCollection, orderBy('dateTaken', 'desc'));
-        const snapshot = await getDocs(q);
+        // FIX: Use compat API for querying and ordering.
+        const snapshot = await photosCollection.orderBy('dateTaken', 'desc').get();
         return snapshot.docs.map(doc => doc.data() as PhotoItem);
     } catch(e) {
         handleFirebaseError(e, "getPhotos");
@@ -55,18 +58,21 @@ export const firebaseSyncService = {
   async savePhoto(photo: PhotoItem): Promise<void> {
     if (!photosCollection || !storage) return;
     try {
-        const photoRef = doc(photosCollection, photo.id);
+        // FIX: Use compat API for doc references.
+        const photoRef = photosCollection.doc(photo.id);
         let photoData = { ...photo };
 
         // If src is a base64 string, upload it to Storage
         if (photoData.src.startsWith('data:image')) {
-            const storageRef = ref(storage, `photos/${photo.id}`);
-            const snapshot = await uploadString(storageRef, photoData.src, 'data_url');
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            // FIX: Use compat Storage API.
+            const storageRef = storage.ref(`photos/${photo.id}`);
+            const snapshot = await storageRef.putString(photoData.src, 'data_url');
+            const downloadURL = await snapshot.ref.getDownloadURL();
             photoData.src = downloadURL; // Update src to be the public URL
         }
-
-        await setDoc(photoRef, photoData, { merge: true });
+        
+        // FIX: Use compat set method.
+        await photoRef.set(photoData, { merge: true });
     } catch(e) {
         handleFirebaseError(e, "savePhoto");
     }
@@ -75,12 +81,13 @@ export const firebaseSyncService = {
   async deletePhoto(id: string): Promise<void> {
     if (!photosCollection || !storage) return;
     try {
-        const photoRef = doc(photosCollection, id);
-        await deleteDoc(photoRef);
+        // FIX: Use compat doc().delete() methods.
+        const photoRef = photosCollection.doc(id);
+        await photoRef.delete();
 
-        const storageRef = ref(storage, `photos/${id}`);
+        const storageRef = storage.ref(`photos/${id}`);
         // Attempt to delete from storage, but don't fail if it doesn't exist (e.g., placeholder images)
-        await deleteObject(storageRef).catch(error => {
+        await storageRef.delete().catch(error => {
             if (error.code !== 'storage/object-not-found') {
                 console.error("Error deleting photo from storage:", error);
             }
@@ -93,9 +100,10 @@ export const firebaseSyncService = {
   async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
     if (!db || !photosCollection) return;
     try {
-        const batch = writeBatch(db);
+        // FIX: Use compat batch API.
+        const batch = db.batch();
         photos.forEach(photo => {
-            const docRef = doc(photosCollection, photo.id);
+            const docRef = photosCollection.doc(photo.id);
             batch.set(docRef, photo);
         });
         await batch.commit();
@@ -108,9 +116,10 @@ export const firebaseSyncService = {
   async getPackingList(): Promise<PackingItem[]> {
       if (!packingListDoc) return [];
       try {
-        const docSnap = await getDoc(packingListDoc);
-        if (docSnap.exists()) {
-            return docSnap.data().items || [];
+        // FIX: Use compat get() method.
+        const docSnap = await packingListDoc.get();
+        if (docSnap.exists) {
+            return docSnap.data()?.items || [];
         }
         return [];
       } catch(e) {
@@ -123,7 +132,8 @@ export const firebaseSyncService = {
       if (!packingListDoc) return;
       try {
           // We store the entire list in a single document under the 'items' field
-          await setDoc(packingListDoc, { items });
+          // FIX: Use compat set() method.
+          await packingListDoc.set({ items });
       } catch(e) {
         handleFirebaseError(e, "savePackingList");
       }

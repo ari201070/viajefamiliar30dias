@@ -41,6 +41,17 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
+  const handleNewConversation = () => {
+    if (speakingMessageId) {
+        window.speechSynthesis.cancel();
+        setSpeakingMessageId(null);
+    }
+    if (isRecording) {
+        recognitionRef.current?.stop();
+        setIsRecording(false);
+    }
+    setMessages([]);
+  };
 
   useEffect(() => {
     try {
@@ -144,26 +155,45 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
       translations: {},
     };
     
+    // FIX: Capture the history *before* updating the state to ensure the correct context is sent to the API.
+    const historyForAPI = [...messages];
+    
     setMessages(prev => [...prev, userMessage]);
     setUserInput('');
     setIsLoading(true);
 
-    // FIX: Conditionally construct systemInstruction based on whether a city is provided.
     let systemInstruction: string;
-    if (city) {
+
+    // Refined logic: Special handling for budget analysis to inject dynamic data
+    if (city && config.promptKeySuffix === '_ai_prompt_budget_analysis') {
+        const perDayText = t('budget_per_day_suffix');
+        const budgetData = city.budgetItems
+            .map(item => `- ${t(item.conceptKey)}: ${item.value} USD ${item.isPerDay ? perDayText : ''}`.trim())
+            .join('\n');
+        
+        const promptTemplateKey = `generic${config.promptKeySuffix}`; // Use generic as the template
+        const promptTemplate = t(promptTemplateKey);
+        
+        systemInstruction = promptTemplate
+            .replace('{cityName}', t(city.nameKey))
+            .replace('{budgetData}', budgetData);
+            
+    } else if (city) { // Logic for other city-specific chats
         const basePromptKey = `${city.id}${config.promptKeySuffix}`;
         systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
         if (systemInstruction === basePromptKey) {
+            // Fallback to generic prompt if specific one doesn't exist
             const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
             systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
         }
-    } else {
+    } else { // Handle general AI chat on homepage (no city)
         const promptKey = config.promptKeySuffix.replace(/^_/, '');
         systemInstruction = t(promptKey);
     }
 
+
     try {
-      const responseText = await sendMessageInChat(systemInstruction, messages, trimmedInput, language);
+      const responseText = await sendMessageInChat(systemInstruction, historyForAPI, trimmedInput, language);
       const aiMessage: ChatMessage = {
         id: uuidv4(),
         role: 'model',
@@ -221,9 +251,19 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
 
   return (
     <section className={cardClasses} style={{ minHeight: '500px' }}>
-      <h2 className={sectionTitleClasses}>
-        <i className={`fas ${config.icon} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
-        {t(config.titleKey)}
+      <h2 className={`${sectionTitleClasses} justify-between`}>
+        <div className="flex items-center">
+          <i className={`fas ${config.icon} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+          {t(config.titleKey)}
+        </div>
+        <button
+            onClick={handleNewConversation}
+            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors ml-4 whitespace-nowrap flex-shrink-0"
+            aria-label={t('ai_chat_new_conversation')}
+        >
+            <i className="fas fa-sync-alt mr-2"></i>
+            {t('ai_chat_new_conversation')}
+        </button>
       </h2>
       <p className={`${detailTextClasses} mb-4 flex-shrink-0`}>
         {/* FIX: Conditionally render description text to avoid errors when city is not present. */}

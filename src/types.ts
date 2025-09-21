@@ -1,4 +1,7 @@
-import type { User } from 'firebase/auth';
+import type firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+
+export type User = firebase.User;
 
 export enum Language {
   ES = 'es',
@@ -114,6 +117,7 @@ export interface PackingItem {
   text: string;
   type: 'essential' | 'optional';
   originalLang: Language;
+  checked: boolean;
 }
 
 export interface PhotoItem {
@@ -125,6 +129,52 @@ export interface PhotoItem {
   tripDay?: number;
   dateTaken?: string; // YYYY-MM-DD format
 }
+
+export type BookingItem = {
+  id: string;
+  type: 'hotel' | 'bus' | 'transfer';
+  titleKey: string;
+  descriptionKey: string;
+  data: HotelData | BusData | TransferData;
+};
+
+export interface HotelData {
+    confirmation: string;
+    pin: string;
+    checkIn: string; // YYYY-MM-DD
+    checkOut: string; // YYYY-MM-DD
+    nights: number;
+    guests: string;
+    price: string;
+    address: string;
+    phone: string;
+};
+
+export interface BusPassenger {
+  name: string;
+  seat: string;
+  type: string;
+};
+
+export interface BusData {
+  from: string;
+  to: string;
+  departure: string; // ISO DateTime string
+  arrival: string; // ISO DateTime string
+  duration: string;
+  passengers: BusPassenger[];
+  price: string;
+  company: string;
+};
+
+export interface TransferData {
+    from: string;
+    to: string;
+    date: string; // YYYY-MM-DD
+    duration: string;
+    price: string;
+};
+
 
 // Types for Grounding / Google Search Tool
 export interface WebChunk {
