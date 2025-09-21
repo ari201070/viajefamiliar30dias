@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { Language, Currency, Theme } from './types.ts';
+import { Language, Currency, Theme, User } from './types.ts';
 import { translations } from './constants.ts';
 import HomePage from './pages/HomePage.tsx';
 import CityDetailPage from './pages/CityDetailPage.tsx';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import { AppContext, useAppContext } from './context/AppContext.tsx';
+import { authService } from './services/authService.ts';
+import { isFirebaseConfigured } from './services/firebaseConfig.ts';
+import Login from './components/Login.tsx';
 
 
 // --- Scroll to Top Button Component ---
@@ -55,6 +58,8 @@ const App: React.FC = () => {
   // App-wide state
   const [language, setLanguage] = useState<Language>(Language.ES);
   const [currency, setCurrency] = useState<Currency>(Currency.ARS);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const storedTheme = localStorage.getItem('theme') as Theme;
@@ -67,6 +72,24 @@ const App: React.FC = () => {
     }
     return Theme.LIGHT;
   });
+
+  useEffect(() => {
+    if (isFirebaseConfigured) {
+      const unsubscribe = authService.onAuthChange(currentUser => {
+        setUser(currentUser);
+        setIsAuthLoading(false);
+      });
+      return () => unsubscribe(); // Cleanup listener on component unmount
+    } else {
+      // If Firebase is not configured, create a mock user to allow app usage.
+      // Sync features will fall back to local storage.
+      setUser({
+        uid: 'local-user',
+        displayName: 'Ariel Flier (Local)',
+      } as User);
+      setIsAuthLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -99,10 +122,21 @@ const App: React.FC = () => {
     currency, setCurrency,
     t,
     theme, setTheme,
+    user,
   };
 
-  return (
-    <AppContext.Provider value={appContextValue}>
+  const renderContent = () => {
+    if (isAuthLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
+        </div>
+      );
+    }
+    if (!user) {
+      return <Login />;
+    }
+    return (
       <HashRouter>
         <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
           <TopBar />
@@ -116,6 +150,12 @@ const App: React.FC = () => {
           <ScrollToTopButton />
         </div>
       </HashRouter>
+    );
+  };
+  
+  return (
+    <AppContext.Provider value={appContextValue}>
+      {renderContent()}
     </AppContext.Provider>
   );
 };

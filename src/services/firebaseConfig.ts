@@ -12,7 +12,6 @@ let db: firebase.firestore.Firestore | null = null;
 let storage: firebase.storage.Storage | null = null;
 let auth: firebase.auth.Auth | null = null;
 export let isFirebaseConfigured = false;
-export let firebaseConfigError: string | null = null;
 
 // Check if the credentials have been replaced from the placeholder values.
 if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
@@ -29,12 +28,12 @@ if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.api
     isFirebaseConfigured = true;
     console.log("Firebase initialized successfully from firebaseCredentials.ts.");
   } catch (error: any) {
-    firebaseConfigError = `CRITICAL: Firebase initialization failed. Check the configuration object in src/firebaseCredentials.ts. Details: ${error.message}`;
-    console.error(firebaseConfigError);
+    console.error(`CRITICAL: Firebase initialization failed. Check the configuration object in src/firebaseCredentials.ts. Details: ${error.message}`);
   }
 } else {
-  firebaseConfigError = "CRITICAL: La configuración de Firebase está incompleta. Por favor, edita el archivo 'src/firebaseCredentials.ts' y reemplaza los valores de ejemplo con la configuración real de tu proyecto de Firebase.";
-  console.error(firebaseConfigError);
+  // If credentials are not filled in, the app will use local storage fallbacks.
+  // We log a warning for the developer, but we don't treat it as a critical, blocking error.
+  console.warn("Firebase not configured. App is running in local/offline mode. Sync features will be disabled.");
 }
 
 export { app, db, storage, auth };

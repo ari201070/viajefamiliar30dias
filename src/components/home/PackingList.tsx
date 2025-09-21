@@ -1,32 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PackingItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
-
-const STORAGE_KEY = 'packingList';
+import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
+import { isFirebaseConfigured } from '../../services/firebaseConfig.ts';
 
 const PackingList: React.FC = () => {
-  const { t, language } = useAppContext();
-  const [packingItems, setPackingItems] = useState<PackingItem[]>(() => {
-    try {
-      const savedItems = localStorage.getItem(STORAGE_KEY);
-      return savedItems ? JSON.parse(savedItems) : [];
-    } catch (error) {
-      console.error("Failed to load packing list from localStorage", error);
-      return [];
-    }
-  });
+  const { t, language, user } = useAppContext();
+  const [packingItems, setPackingItems] = useState<PackingItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newItemText, setNewItemText] = useState('');
   const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(packingItems));
-    } catch (error) {
-      console.error("Failed to save packing list to localStorage", error);
+  const fetchList = useCallback(async () => {
+    setIsLoading(true);
+    if (user && isFirebaseConfigured) {
+        const items = await firebaseSyncService.getPackingList(user.uid);
+        setPackingItems(items);
+    } else {
+        try {
+            const saved = localStorage.getItem('packingList');
+            setPackingItems(saved ? JSON.parse(saved) : []);
+        } catch (e) {
+            console.error("Failed to load packing list from localStorage", e);
+            setPackingItems([]);
+        }
     }
-  }, [packingItems]);
+    setIsLoading(false);
+  }, [user]);
 
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+  
+  const saveList = useCallback(async (items: PackingItem[]) => {
+      if (user && isFirebaseConfigured) {
+        await firebaseSyncService.savePackingList(user.uid, items);
+      } else {
+        try {
+            localStorage.setItem('packingList', JSON.stringify(items));
+        } catch (e) {
+            console.error("Failed to save packing list to localStorage", e);
+        }
+      }
+  }, [user]);
 
   const handleAddPackingItem = () => {
     if (newItemText.trim() === '') return;
@@ -38,26 +55,37 @@ const PackingList: React.FC = () => {
       checked: false,
     };
     
-    setPackingItems(prevItems => [...prevItems, newItem]);
+    const updatedItems = [...packingItems, newItem];
+    setPackingItems(updatedItems);
+    saveList(updatedItems);
     setNewItemText('');
   };
 
   const handleRemovePackingItem = (id: string) => {
-    setPackingItems(prevItems => prevItems.filter(item => item.id !== id));
+    const updatedItems = packingItems.filter(item => item.id !== id);
+    setPackingItems(updatedItems);
+    saveList(updatedItems);
   };
   
   const handleTogglePackingItem = (id: string) => {
-    setPackingItems(prevItems =>
-      prevItems.map(item =>
+    const updatedItems = packingItems.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
-      )
     );
+    setPackingItems(updatedItems);
+    saveList(updatedItems);
   };
   
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
-  
+
   const renderList = (type: 'essential' | 'optional') => {
+    if (isLoading) {
+      return (
+        <div className="text-center py-10 text-gray-500 dark:text-slate-400">
+          <i className="fas fa-spinner fa-spin text-3xl"></i>
+        </div>
+      );
+    }
     const items = packingItems.filter(item => item.type === type);
     if (items.length === 0) {
       return (

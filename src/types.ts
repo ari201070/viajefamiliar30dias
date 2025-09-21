@@ -73,6 +73,7 @@ export interface AppContextType {
   t: (key: string, replacements?: Record<string, string>) => string;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  user: User | null;
 }
 
 export interface PolygonRateResponse {

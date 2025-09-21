@@ -1,34 +1,38 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { CITIES } from '../../constants.ts';
+import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
+import { isFirebaseConfigured } from '../../services/firebaseConfig.ts';
+import { dbService } from '../../services/dbService.ts';
 
-const STORAGE_KEY = 'familyPhotos';
 
 const FamilyPhotoAlbum: React.FC = () => {
-  const { t, language } = useAppContext();
+  const { t, language, user } = useAppContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
-    try {
-      const savedPhotos = localStorage.getItem(STORAGE_KEY);
-      return savedPhotos ? JSON.parse(savedPhotos) : [];
-    } catch (error) {
-      console.error("Failed to load photos from localStorage", error);
-      return [];
-    }
-  });
-
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(photos));
-    } catch (error) {
-      console.error("Failed to save photos to localStorage", error);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const fetchPhotos = useCallback(async () => {
+    setIsLoading(true);
+    if (user && isFirebaseConfigured) {
+        const fetchedPhotos = await firebaseSyncService.getPhotos(user.uid);
+        setPhotos(fetchedPhotos);
+    } else {
+        const localPhotos = await dbService.getPhotos();
+        setPhotos(localPhotos);
     }
-  }, [photos]);
+    setIsLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
 
   const groupedPhotos = useMemo(() => {
     const groups: Record<string, PhotoItem[]> = {};
@@ -65,7 +69,7 @@ const FamilyPhotoAlbum: React.FC = () => {
         let stateChanged = false;
         Object.keys(groupedPhotos).forEach(cityId => {
             if (newOpenState[cityId] === undefined) {
-              newOpenState[cityId] = false;
+              newOpenState[cityId] = true; // Default to open
               stateChanged = true;
             }
         });
@@ -106,19 +110,17 @@ const FamilyPhotoAlbum: React.FC = () => {
     setIsModalOpen(true);
   };
   
-  const handleSavePhoto = () => {
+  const handleSavePhoto = async () => {
     if (!currentPhoto || !currentPhoto.id) return;
     
-    setPhotos(prevPhotos => {
-        const existingIndex = prevPhotos.findIndex(p => p.id === currentPhoto.id);
-        if (existingIndex > -1) {
-            const updatedPhotos = [...prevPhotos];
-            updatedPhotos[existingIndex] = currentPhoto as PhotoItem;
-            return updatedPhotos;
-        } else {
-            return [...prevPhotos, currentPhoto as PhotoItem];
-        }
-    });
+    setIsUploading(true);
+    if (user && isFirebaseConfigured) {
+      await firebaseSyncService.savePhoto(user.uid, currentPhoto as PhotoItem);
+    } else {
+      await dbService.savePhoto(currentPhoto as PhotoItem);
+    }
+    await fetchPhotos(); // Refresh list
+    setIsUploading(false);
 
     setIsModalOpen(false);
     setCurrentPhoto(null);
@@ -126,7 +128,12 @@ const FamilyPhotoAlbum: React.FC = () => {
 
   const handleRemovePhoto = async (id: string) => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
-        setPhotos(prevPhotos => prevPhotos.filter(p => p.id !== id));
+      if (user && isFirebaseConfigured) {
+        await firebaseSyncService.deletePhoto(user.uid, id);
+      } else {
+        await dbService.deletePhoto(id);
+      }
+      await fetchPhotos();
     }
   };
   
@@ -156,7 +163,9 @@ const FamilyPhotoAlbum: React.FC = () => {
       </h2>
       <p className="text-gray-600 dark:text-slate-400 mb-6">{t('photo_album_description')}</p>
 
-      {photos.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-16"><i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i></div>
+      ) : photos.length === 0 ? (
         <div className="text-center py-16 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
           <i className="fas fa-images text-5xl mb-4 text-gray-400 dark:text-slate-500"></i>
           <p>{t('photo_album_empty')}</p>
@@ -234,8 +243,11 @@ const FamilyPhotoAlbum: React.FC = () => {
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 rounded-md hover:bg-gray-300 dark:hover:bg-slate-500">{t('photo_album_cancel_button')}</button>
-                    <button onClick={handleSavePhoto} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">{t('photo_album_save_button')}</button>
+                    <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 rounded-md hover:bg-gray-300 dark:hover:bg-slate-500" disabled={isUploading}>{t('photo_album_cancel_button')}</button>
+                    <button onClick={handleSavePhoto} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50" disabled={isUploading}>
+                      {isUploading ? <i className="fas fa-spinner fa-spin mr-2"></i> : ''}
+                      {t('photo_album_save_button')}
+                    </button>
                 </div>
             </div>
         </div>

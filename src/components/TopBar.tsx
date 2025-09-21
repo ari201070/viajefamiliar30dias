@@ -3,9 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.tsx';
 import { Language, Theme } from '../types.ts';
 import { LANGUAGES, CURRENCIES } from '../constants.ts';
+import { authService } from '../services/authService.ts';
 
 const TopBar: React.FC = () => {
-  const { language, setLanguage, currency, setCurrency, t, theme, setTheme } = useAppContext();
+  const { language, setLanguage, currency, setCurrency, t, theme, setTheme, user } = useAppContext();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
@@ -23,6 +24,11 @@ const TopBar: React.FC = () => {
 
   const handleThemeToggle = () => {
     setTheme(theme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT);
+  };
+
+  const handleLogout = async () => {
+    await authService.signOutUser();
+    // The onAuthChange listener in App.tsx will handle the state update
   };
   
   const handleCopy = async () => {
@@ -183,6 +189,18 @@ const TopBar: React.FC = () => {
           {/* Desktop Controls */}
           <div className="hidden md:flex items-center gap-x-4 lg:gap-x-6">
             {renderControls(false)}
+            {user && (
+                <div className="flex items-center gap-3 border-l border-gray-200 dark:border-slate-600 pl-4">
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-300 hidden lg:inline">{user.displayName}</span>
+                    <button 
+                        onClick={handleLogout}
+                        className={`${commonButtonClasses} bg-red-500 text-white hover:bg-red-600 focus:ring-red-400`}
+                    >
+                        <i className="fas fa-sign-out-alt mr-2"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -210,6 +228,18 @@ const TopBar: React.FC = () => {
           >
             <div className="flex flex-col gap-y-4">
               {renderControls(true)}
+              {user && (
+                  <div className="border-t border-gray-200 dark:border-slate-600 pt-4">
+                      <p className="text-sm font-medium text-center text-gray-700 dark:text-slate-300 mb-2">{user.displayName}</p>
+                      <button 
+                          onClick={handleLogout}
+                          className={`w-full ${commonButtonClasses} bg-red-500 text-white hover:bg-red-600 focus:ring-red-400`}
+                      >
+                          <i className="fas fa-sign-out-alt mr-2"></i>
+                          Cerrar Sesión
+                      </button>
+                  </div>
+              )}
             </div>
           </div>
         )}
