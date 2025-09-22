@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
-import { CITIES, TRIP_WIDE_BUDGET_ITEMS } from '../constants.ts';
+import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
 import { Currency, BudgetItem, AIPromptContent, Price } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
@@ -67,15 +67,6 @@ const HomePage: React.FC = () => {
     breakdown: {},
     isCalculating: true,
   });
-
-  const generalAIConfig: AIPromptContent = {
-    titleKey: 'iaTitulo',
-    descriptionKey: 'iaDescription',
-    buttonKey: 'consultarBtn',
-    promptKeySuffix: '_ai_prompt_general',
-    icon: 'fa-robot',
-    userInputPlaceholderKey: 'iaPlaceholder'
-  };
 
   // --- Price Conversion & Formatting Logic ---
   const updateAllExchangeRates = useCallback(async () => {
@@ -288,7 +279,16 @@ const HomePage: React.FC = () => {
 
       <PackingList />
 
-      <AIChatBox config={generalAIConfig} chatId="general_ai_query" />
+      {/* AI Chatbots Section */}
+      <section className="space-y-12">
+        {AI_PROMPT_CONFIGS.map(config => (
+           <AIChatBox 
+              key={config.promptKeySuffix} 
+              config={config} 
+              chatId={`homepage_${config.promptKeySuffix}`}
+            />
+        ))}
+      </section>
       
       <CurrencyConverter />
     </div>

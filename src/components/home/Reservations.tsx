@@ -9,7 +9,7 @@ interface ReservationsProps {
 
 const Reservations: React.FC<ReservationsProps> = ({ getFormattedPrice }) => {
     const { t, language } = useAppContext();
-    const [isExpanded, setIsExpanded] = useState(true); // Default to open
+    const [isExpanded, setIsExpanded] = useState(false); // Start collapsed
 
     const getBookingDate = (item: BookingItem): Date => {
       switch (item.type) {

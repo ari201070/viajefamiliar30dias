@@ -308,8 +308,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
         </button>
       </h2>
       <p className={`${detailTextClasses} mb-4 flex-shrink-0`}>
-        {/* FIX: Conditionally render description text to avoid errors when city is not present. */}
-        {city ? t(config.descriptionKey, { cityName: t(city.nameKey) }) : t(config.descriptionKey)}
+        {t(config.descriptionKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') })}
       </p>
       
       <div 
@@ -390,7 +389,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
                   handleSendMessage(e);
               }
           }}
-          placeholder={t('ai_chat_input_placeholder')}
+          placeholder={t(config.userInputPlaceholderKey)}
           rows={1}
           className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none"
           disabled={isLoading}

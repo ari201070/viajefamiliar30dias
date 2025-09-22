@@ -6,7 +6,7 @@ import { City, Language, Currency, Translations, TransportLeg, AIPromptContent, 
 
 // --- FRAMEWORK CONSTANTS ---
 
-export const DEFAULT_CITY_IMAGE = 'https://images.unsplash.com/photo-1599557041284-7e2a1581e393?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80';
+export const DEFAULT_CITY_IMAGE = 'https://images.unsplash.com/photo-1589924228499-8e213677e094?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80';
 
 export const LANGUAGES = [
   { code: Language.ES, name: 'Español' },
@@ -57,7 +57,7 @@ export const CITIES: City[] = [
     id: 'buenosaires',
     nameKey: 'buenosaires_name',
     coords: [-34.6037, -58.3816],
-    image: './docs/imagenes/buenosaires/buenosaires.jpg',
+    image: '/imagenes/buenosaires/buenosaires.jpg',
     descriptionKey: 'buenosaires_description',
     activitiesKey: 'buenosaires_activities_recommended',
     accommodationKey: 'buenosaires_accommodation_examples',
@@ -77,7 +77,7 @@ export const CITIES: City[] = [
     id: 'rosario',
     nameKey: 'rosario_name',
     coords: [-32.9442, -60.6505],
-    image: './docs/imagenes/rosario/rosario.jpg',
+    image: '/imagenes/rosario/rosario.jpg',
     descriptionKey: 'rosario_description',
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
@@ -95,7 +95,7 @@ export const CITIES: City[] = [
     id: 'bariloche',
     nameKey: 'bariloche_name',
     coords: [-41.133, -71.310],
-    image: './docs/imagenes/bariloche/bariloche.jpg',
+    image: '/imagenes/bariloche/bariloche.jpg',
     descriptionKey: 'bariloche_description',
     activitiesKey: 'bariloche_activities_recommended',
     accommodationKey: 'bariloche_accommodation_examples',
@@ -113,7 +113,7 @@ export const CITIES: City[] = [
     id: 'mendoza',
     nameKey: 'mendoza_name',
     coords: [-32.889, -68.845],
-    image: './docs/imagenes/mendoza/mendoza.jpg',
+    image: '/imagenes/mendoza/mendoza.jpg',
     descriptionKey: 'mendoza_description',
     activitiesKey: 'mendoza_activities_recommended',
     accommodationKey: 'mendoza_accommodation_examples',
@@ -131,7 +131,7 @@ export const CITIES: City[] = [
     id: 'malargue',
     nameKey: 'malargue_name',
     coords: [-35.4746, -69.5881],
-    image: './docs/imagenes/malargue/malargue.jpg',
+    image: '/imagenes/malargue/malargue.jpg',
     descriptionKey: 'malargue_description',
     activitiesKey: 'malargue_activities_recommended',
     accommodationKey: 'malargue_accommodation_examples',
@@ -148,7 +148,7 @@ export const CITIES: City[] = [
     id: 'jujuy',
     nameKey: 'jujuy_name',
     coords: [-24.1856, -65.2995],
-    image: './docs/imagenes/jujuy/jujuy.jpg',
+    image: '/imagenes/jujuy/jujuy.jpg',
     descriptionKey: 'jujuy_description',
     activitiesKey: 'jujuy_activities_recommended',
     accommodationKey: 'jujuy_accommodation_examples',
@@ -167,7 +167,7 @@ export const CITIES: City[] = [
     id: 'iguazu',
     nameKey: 'iguazu_name',
     coords: [-25.6953, -54.4367],
-    image: './docs/imagenes/iguazu/iguazu.jpg',
+    image: '/imagenes/iguazu/iguazu.jpg',
     descriptionKey: 'iguazu_description',
     activitiesKey: 'iguazu_activities_recommended',
     accommodationKey: 'iguazu_accommodation_examples',
@@ -186,7 +186,7 @@ export const CITIES: City[] = [
     id: 'esteros_ibera',
     nameKey: 'esteros_ibera_name',
     coords: [-28.533, -57.167],
-    image: './docs/imagenes/ibera/ibera.jpg',
+    image: '/imagenes/ibera/ibera.jpg',
     descriptionKey: 'esteros_ibera_description',
     activitiesKey: 'esteros_ibera_activities_recommended',
     accommodationKey: 'esteros_ibera_accommodation_examples',
@@ -201,7 +201,7 @@ export const CITIES: City[] = [
     id: 'corrientes',
     nameKey: 'corrientes_name',
     coords: [-27.467, -58.834],
-    image: './docs/imagenes/corrientes/corrientes.jpg',
+    image: '/imagenes/corrientes/corrientes.jpg',
     descriptionKey: 'corrientes_description',
     activitiesKey: 'corrientes_activities_recommended',
     accommodationKey: 'corrientes_accommodation_examples',
@@ -226,14 +226,14 @@ export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
 // --- TRANSPORT DATA ---
 
 export const TRANSPORT_DATA: TransportLeg[] = [
-  { id: '1', fromKey: 'buenosaires_name', toKey: 'rosario_name', meanKey: 'medio_bus', timeKey: 'tiempo_4h_20m', company: 'Flecha Bus', basePriceARS: 96000 },
-  { id: '2', fromKey: 'rosario_name', toKey: 'bariloche_name', meanKey: 'medio_bus_nocturno', timeKey: 'tiempo_25h_45m', company: 'Via Bariloche', basePriceARS: 347200 },
-  { id: '3', fromKey: 'bariloche_name', toKey: 'mendoza_name', meanKey: 'medio_avion', timeKey: 'tiempo_1_5h', company: 'Aerolíneas Argentinas', basePriceARS: 75000 },
-  { id: '4', fromKey: 'mendoza_name', toKey: 'jujuy_name', meanKey: 'medio_bus', timeKey: 'tiempo_20h', company: 'Andesmar', basePriceARS: 45000 },
-  { id: '5', fromKey: 'jujuy_name', toKey: 'iguazu_name', meanKey: 'medio_avion', timeKey: 'tiempo_2h', company: 'Aerolíneas Argentinas', basePriceARS: 95000 },
+  { id: '1', fromKey: 'buenosaires_name', toKey: 'rosario_name', meanKey: 'medio_bus', timeKey: 'tiempo_4h_20m', company: '<a href="https://www.flechabus.com.ar/" target="_blank" rel="noopener noreferrer">Flecha Bus</a>', basePriceARS: 96000 },
+  { id: '2', fromKey: 'rosario_name', toKey: 'bariloche_name', meanKey: 'medio_bus_nocturno', timeKey: 'tiempo_25h_45m', company: '<a href="https://www.viabariloche.com.ar/" target="_blank" rel="noopener noreferrer">Via Bariloche</a>', basePriceARS: 347200 },
+  { id: '3', fromKey: 'bariloche_name', toKey: 'mendoza_name', meanKey: 'medio_avion', timeKey: 'tiempo_1_5h', company: '<a href="https://www.aerolineas.com.ar/" target="_blank" rel="noopener noreferrer">Aerolíneas Argentinas</a>', basePriceARS: 75000 },
+  { id: '4', fromKey: 'mendoza_name', toKey: 'jujuy_name', meanKey: 'medio_bus', timeKey: 'tiempo_20h', company: '<a href="https://www.andesmar.com/" target="_blank" rel="noopener noreferrer">Andesmar</a>', basePriceARS: 45000 },
+  { id: '5', fromKey: 'jujuy_name', toKey: 'iguazu_name', meanKey: 'medio_avion', timeKey: 'tiempo_2h', company: '<a href="https://www.aerolineas.com.ar/" target="_blank" rel="noopener noreferrer">Aerolíneas Argentinas</a>', basePriceARS: 95000 },
   { id: '6', fromKey: 'iguazu_name', toKey: 'esteros_ibera_name', meanKey: 'medio_transfer', timeKey: 'tiempo_5h', company: 'Transfers Privados', basePriceARS: 70000 },
   { id: '7', fromKey: 'esteros_ibera_name', toKey: 'corrientes_name', meanKey: 'medio_transfer', timeKey: 'tiempo_4h', company: 'Transfers Locales', basePriceARS: 60000 },
-  { id: '8', fromKey: 'corrientes_name', toKey: 'buenosaires_name', meanKey: 'medio_avion', timeKey: 'tiempo_1_5h', company: 'Aerolíneas Argentinas', basePriceARS: 65000 },
+  { id: '8', fromKey: 'corrientes_name', toKey: 'buenosaires_name', meanKey: 'medio_avion', timeKey: 'tiempo_1_5h', company: '<a href="https://www.aerolineas.com.ar/" target="_blank" rel="noopener noreferrer">Aerolíneas Argentinas</a>', basePriceARS: 65000 },
 ];
 
 // --- BOOKING DATA ---
@@ -315,7 +315,7 @@ export const BOOKING_DATA: BookingItem[] = [
 
 // --- TRANSLATIONS ---
 
-const es: { [key: string]: string } = {
+export const translations_es: { [key: string]: string } = {
   // General
   tituloPrincipal: 'Itinerario de Viaje Familiar por Argentina',
   bienvenidaPrincipal: 'Un plan detallado para nuestra aventura de un mes.',
@@ -327,6 +327,7 @@ const es: { [key: string]: string } = {
   loading: 'Cargando...',
   error: 'Error',
   generating: 'Generando...',
+  any_city_placeholder: 'una ciudad de nuestro viaje',
   
   // TopBar Share
   share_app_label: 'Compartir aplicación',
@@ -356,7 +357,7 @@ const es: { [key: string]: string } = {
   jujuy_dates_duration: '🗓️ 16/10 al 20/10\n✈️ Nota: Vuelo a Iguazú.',
   iguazu_name: 'Puerto Iguazú',
   iguazu_description: 'Hogar de las impresionantes Cataratas del Iguazú, una de las siete maravillas naturales del mundo.',
-  iguazu_dates_duration: '🗓️ 19/10 al 22/10 (4 días)',
+  iguazu_dates_duration: '🗓️ 20/10 al 22/10 (4 días)',
   esteros_ibera_name: 'Esteros del Iberá',
   esteros_ibera_description: 'Uno de los humedales más grandes del mundo, con una increíble biodiversidad.',
   esteros_ibera_dates_duration: '🗓️ 22/10 al 24/10\n📝 Nota: Dejar valijas en Corrientes.',
@@ -421,6 +422,15 @@ const es: { [key: string]: string } = {
   packing_list_empty: 'La lista está vacía. ¡Añade tu primer ítem!',
   
   // AI Chat Box
+  ai_chat_title_kids_activities: "Actividades para Niños",
+  ai_chat_description_kids_activities: "Pregúntale a la IA por recomendaciones de actividades, parques y lugares divertidos para los niños en {cityName}.",
+  ai_chat_input_placeholder_kids: "Ej: ¿Cuáles son los mejores museos para niños?",
+  ai_chat_title_restaurant_finder: "Buscador de Restaurantes",
+  ai_chat_description_restaurant_finder: "Pídele a la IA que encuentre restaurantes en {cityName} que se ajusten a nuestras preferencias (ej. con opciones sin gluten, para familias, etc.).",
+  ai_chat_input_placeholder_restaurants: "Ej: Encuentra un restaurante con pelotero.",
+  ai_chat_title_budget_analysis: "Análisis de Presupuesto",
+  ai_chat_description_budget_analysis: "Consulta a la IA sobre cómo optimizar nuestro presupuesto en {cityName}, basado en los costos estimados.",
+  ai_chat_input_placeholder_budget: "Ej: ¿En qué podemos ahorrar más dinero aquí?",
   ai_chat_new_conversation: 'Nueva Conversación',
   ai_chat_input_placeholder: 'Escribe tu mensaje...',
   ai_chat_send_button: 'Enviar',
@@ -529,7 +539,7 @@ const es: { [key: string]: string } = {
 
 };
 
-const he: { [key: string]: string } = {
+export const translations_he: { [key: string]: string } = {
   // General
   tituloPrincipal: 'מסלול טיול משפחתי בארגנטינה',
   bienvenidaPrincipal: 'תוכנית מפורטת להרפתקה של חודש ימים.',
@@ -541,6 +551,7 @@ const he: { [key: string]: string } = {
   loading: 'טוען...',
   error: 'שגיאה',
   generating: 'יוצר...',
+  any_city_placeholder: 'עיר כלשהי בטיול שלנו',
   
   // TopBar Share
   share_app_label: 'שתף אפליקציה',
@@ -638,6 +649,15 @@ const he: { [key: string]: string } = {
   packing_list_empty: 'הרשימה ריקה. הוסף את הפריט הראשון שלך!',
   
   // AI Chat Box
+  ai_chat_title_kids_activities: "פעילויות לילדים",
+  ai_chat_description_kids_activities: "שאל את הבינה המלאכותית להמלצות על פעילויות, פארקים ומקומות מהנים לילדים ב{cityName}.",
+  ai_chat_input_placeholder_kids: "לדוגמה: מהם המוזיאונים הטובים ביותר לילדים?",
+  ai_chat_title_restaurant_finder: "מאתר מסעדות",
+  ai_chat_description_restaurant_finder: "בקש מה-AI למצוא מסעדות ב{cityName} שמתאימות להעדפות שלנו (למשל, עם אפשרויות ללא גלוטן, ידידותיות למשפחות וכו').",
+  ai_chat_input_placeholder_restaurants: "לדוגמה: מצא מסעדה עם משחקייה.",
+  ai_chat_title_budget_analysis: "ניתוח תקציב",
+  ai_chat_description_budget_analysis: "התייעץ עם ה-AI כיצד למטב את התקציב שלנו ב{cityName}, בהתבסס על העלויות המשוערות.",
+  ai_chat_input_placeholder_budget: "לדוגמה: על מה אנחנו יכולים לחסוך פה הכי הרבה כסף?",
   ai_chat_new_conversation: 'שיחה חדשה',
   ai_chat_input_placeholder: 'כתוב את הודעתך...',
   ai_chat_send_button: 'שלח',
@@ -745,5 +765,3 @@ const he: { [key: string]: string } = {
   photo_album_cancel_button: 'בטל',
 
 };
-
-export const translations: Translations = { es, he };

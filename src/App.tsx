@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Language, Currency, Theme, User } from './types.ts';
-import { translations } from './constants.ts';
+import { translations_es, translations_he } from './constants.ts';
 import HomePage from './pages/HomePage.tsx';
 import CityDetailPage from './pages/CityDetailPage.tsx';
 import TopBar from './components/TopBar.tsx';
@@ -102,8 +102,17 @@ const App: React.FC = () => {
   }, [language, theme]);
 
   const t = useCallback((key: string, replacements?: Record<string, string>): string => {
-    const langSet = translations[language] as any;
-    let translatedString = langSet[key] || key; // Fallback to key if translation not found
+    let langSet;
+    switch (language) {
+      case Language.HE:
+        langSet = translations_he;
+        break;
+      case Language.ES:
+      default:
+        langSet = translations_es;
+        break;
+    }
+    let translatedString = (langSet as any)[key] || key;
     if (replacements) {
       Object.keys(replacements).forEach(placeholder => {
         translatedString = translatedString.replace(`{${placeholder}}`, replacements[placeholder]);
