@@ -1,11 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { BookingItem, HotelData, BusData, TransferData } from '../../types.ts';
+import { BookingItem, HotelData, BusData, TransferData, Price } from '../../types.ts';
 import { BOOKING_DATA } from '../../constants.ts';
 
-const Reservations: React.FC = () => {
+interface ReservationsProps {
+  getFormattedPrice: (price: Price) => string;
+}
+
+const Reservations: React.FC<ReservationsProps> = ({ getFormattedPrice }) => {
     const { t, language } = useAppContext();
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true); // Default to open
 
     const getBookingDate = (item: BookingItem): Date => {
       switch (item.type) {
@@ -58,7 +62,7 @@ const Reservations: React.FC = () => {
                             <div><strong className="text-gray-600 dark:text-slate-300">{t('reservations_hotel_confirmation')}:</strong> <span className="font-mono text-gray-800 dark:text-slate-100">{hotelData.confirmation}</span></div>
                             <div><strong className="text-gray-600 dark:text-slate-300">PIN:</strong> <span className="font-mono text-gray-800 dark:text-slate-100">{hotelData.pin}</span></div>
                         </div>
-                        <p className="text-right font-bold mt-2 text-blue-800 dark:text-blue-300">{hotelData.price}</p>
+                        <p className="text-right font-bold mt-2 text-blue-800 dark:text-blue-300">{getFormattedPrice(hotelData.price)}</p>
                     </div>
                 );
             case 'bus':
@@ -82,7 +86,7 @@ const Reservations: React.FC = () => {
                                 ))}
                             </ul>
                         </div>
-                         <p className="text-right font-bold mt-2 text-orange-800 dark:text-orange-300">{busData.price}</p>
+                         <p className="text-right font-bold mt-2 text-orange-800 dark:text-orange-300">{getFormattedPrice(busData.price)}</p>
                     </div>
                 );
             case 'transfer':
@@ -108,7 +112,7 @@ const Reservations: React.FC = () => {
                                <span className="text-gray-800 dark:text-slate-100 block">{transferData.duration}</span>
                             </div>
                         </div>
-                        <p className="text-right font-bold mt-2 text-yellow-800 dark:text-yellow-300">{transferData.price}</p>
+                        <p className="text-right font-bold mt-2 text-yellow-800 dark:text-yellow-300">{getFormattedPrice(transferData.price)}</p>
                     </div>
                 );
             default: return null;

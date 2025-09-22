@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 import { CITIES, TRIP_WIDE_BUDGET_ITEMS } from '../constants.ts';
-import { Currency, BudgetItem, AIPromptContent } from '../types.ts';
+import { Currency, BudgetItem, AIPromptContent, Price } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
@@ -61,7 +61,7 @@ const HomePage: React.FC = () => {
   const { t, language, currency: globalCurrency } = useAppContext();
 
   // State and logic that needs to be shared or is at the page level
-  const [transportRates, setTransportRates] = useState<Record<string, number | null>>({});
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number | null>>({});
   const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({
     total: t('budget_summary_calculating'),
     breakdown: {},
@@ -77,32 +77,52 @@ const HomePage: React.FC = () => {
     userInputPlaceholderKey: 'iaPlaceholder'
   };
 
-  // --- Transport Price Conversion Logic ---
-  const updateTransportRates = useCallback(async () => {
+  // --- Price Conversion & Formatting Logic ---
+  const updateAllExchangeRates = useCallback(async () => {
     const newRates: Record<string, number | null> = {};
-    if (globalCurrency !== Currency.ARS) {
-        const rate = await getCachedExchangeRate(Currency.ARS, globalCurrency);
-        newRates[globalCurrency] = rate;
-    } else {
-        newRates[Currency.ARS] = 1;
+    const baseCurrencies = [Currency.ARS, Currency.USD]; // All our prices are based in these
+    const allCurrencies = Object.values(Currency);
+
+    for (const base of baseCurrencies) {
+        for (const target of allCurrencies) {
+            if (base === target) {
+                newRates[`${base}_${target}`] = 1;
+                continue;
+            };
+            const key = `${base}_${target}`;
+            if (!newRates[key]) { // Avoid re-fetching
+                const rate = await getCachedExchangeRate(base, target);
+                newRates[key] = rate;
+            }
+        }
     }
-    setTransportRates(newRates);
-  }, [globalCurrency]);
+    setExchangeRates(newRates);
+  }, []);
 
   useEffect(() => {
-    updateTransportRates();
-  }, [updateTransportRates]);
+    updateAllExchangeRates();
+  }, [updateAllExchangeRates]);
 
-  const getConvertedPrice = (basePriceARS: number) => {
-    if (globalCurrency === Currency.ARS) {
-        return t('transport_price_ars_generic', {price: basePriceARS.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR')});
+  const getFormattedPrice = useCallback((priceInput: { value: number; currency: Currency } | number) => {
+    // Standardize input to be a Price object, assuming ARS for raw numbers
+    const price: Price = typeof priceInput === 'number'
+        ? { value: priceInput, currency: Currency.ARS }
+        : priceInput;
+
+    if (price.currency === globalCurrency) {
+        return `${price.currency} ${price.value.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
     }
-    const rate = transportRates[globalCurrency];
+
+    const rateKey = `${price.currency}_${globalCurrency}`;
+    const rate = exchangeRates[rateKey];
+
     if (rate !== null && rate !== undefined) {
-        return `${(basePriceARS * rate).toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${globalCurrency}`;
+        const convertedValue = price.value * rate;
+        return `${globalCurrency} ${convertedValue.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
     }
+    
     return t('loading');
-  };
+  }, [globalCurrency, language, t, exchangeRates]);
   
   // --- Trip Budget Calculation Logic ---
   const calculateTripBudget = useCallback(async () => {
@@ -235,7 +255,7 @@ const HomePage: React.FC = () => {
 
       <FlightTickets />
 
-      <Reservations />
+      <Reservations getFormattedPrice={getFormattedPrice} />
 
       {/* City Cards */}
       <section>
@@ -260,7 +280,7 @@ const HomePage: React.FC = () => {
         <InteractiveMap cities={CITIES} />
       </section>
       
-      <TransportTable getConvertedPrice={getConvertedPrice} />
+      <TransportTable getFormattedPrice={getFormattedPrice} />
 
       <ItineraryAnalysis />
       

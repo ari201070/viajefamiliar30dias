@@ -1,13 +1,13 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { TransportLeg } from '../../types.ts';
+import { TransportLeg, Price } from '../../types.ts';
 import { TRANSPORT_DATA } from '../../constants.ts';
 
 interface TransportTableProps {
-  getConvertedPrice: (basePriceARS: number) => string;
+  getFormattedPrice: (price: Price | number) => string;
 }
 
-const TransportTable: React.FC<TransportTableProps> = ({ getConvertedPrice }) => {
+const TransportTable: React.FC<TransportTableProps> = ({ getFormattedPrice }) => {
   const { t, language } = useAppContext();
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
@@ -37,7 +37,7 @@ const TransportTable: React.FC<TransportTableProps> = ({ getConvertedPrice }) =>
                   <td className={`${tableCellClasses} font-semibold text-gray-800 dark:text-slate-200 ${textAlignClass}`}>{t(leg.toKey)}</td>
                   <td className={`${tableCellClasses} text-gray-600 dark:text-slate-400 ${textAlignClass}`}>{t(leg.meanKey)}</td>
                   <td className={`${tableCellClasses} text-gray-600 dark:text-slate-400 ${textAlignClass}`}>{t(leg.timeKey)}</td>
-                  <td className={`${tableCellClasses} text-gray-600 dark:text-slate-400 ${textAlignClass}`}>{getConvertedPrice(leg.basePriceARS)}</td>
+                  <td className={`${tableCellClasses} text-gray-600 dark:text-slate-400 ${textAlignClass}`}>{getFormattedPrice(leg.basePriceARS)}</td>
                   <td className={`${tableCellClasses} text-gray-600 dark:text-slate-400 ${textAlignClass}`} dangerouslySetInnerHTML={{ __html: leg.company.replace('<a ', '<a class="text-indigo-600 dark:text-indigo-400 hover:underline" ') }}></td>
                 </tr>
               );

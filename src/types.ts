@@ -140,6 +140,11 @@ export type BookingItem = {
   data: HotelData | BusData | TransferData;
 };
 
+export interface Price {
+    value: number;
+    currency: Currency;
+}
+
 export interface HotelData {
     confirmation: string;
     pin: string;
@@ -147,7 +152,7 @@ export interface HotelData {
     checkOut: string; // YYYY-MM-DD
     nights: number;
     guests: string;
-    price: string;
+    price: Price;
     address: string;
     phone: string;
 };
@@ -165,7 +170,7 @@ export interface BusData {
   arrival: string; // ISO DateTime string
   duration: string;
   passengers: BusPassenger[];
-  price: string;
+  price: Price;
   company: string;
 };
 
@@ -174,7 +179,7 @@ export interface TransferData {
     to: string;
     date: string; // YYYY-MM-DD
     duration: string;
-    price: string;
+    price: Price;
 };
 
 
