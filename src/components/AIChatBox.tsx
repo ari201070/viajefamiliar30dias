@@ -40,6 +40,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   const handleNewConversation = () => {
     if (speakingMessageId) {
@@ -63,6 +64,23 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
       chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
     }
   }, [messages, storageKey]);
+  
+  useEffect(() => {
+    const loadVoices = () => {
+      if (isSpeechSupported) {
+        setVoices(window.speechSynthesis.getVoices());
+      }
+    };
+    if (isSpeechSupported) {
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+      loadVoices(); // Initial call
+    }
+    return () => {
+      if (isSpeechSupported) {
+        window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+      }
+    };
+  }, []);
 
   // --- Speech Recognition (Voice Input) Logic ---
   const setupRecognition = useCallback(() => {
@@ -123,7 +141,24 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     const rawText = message.translations?.[language] || message.text;
     const textToSpeak = stripMarkdown(rawText);
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = language === Language.HE ? 'he-IL' : 'es-AR';
+    
+    // --- Voice Selection Logic ---
+    if (language === Language.HE) {
+        utterance.lang = 'he-IL';
+        const hebrewVoice = voices.find(voice => voice.lang === 'he-IL');
+        if (hebrewVoice) utterance.voice = hebrewVoice;
+    } else { // Spanish
+        utterance.lang = 'es-AR'; // Set desired language tag
+        
+        // Find the best available voice with a fallback strategy
+        const argentinianVoice = voices.find(voice => voice.lang === 'es-AR');
+        const latinAmericanVoice = voices.find(voice => voice.lang.startsWith('es-') && voice.lang !== 'es-ES' && voice.lang !== 'es-US');
+        const anySpanishVoice = voices.find(voice => voice.lang.startsWith('es-'));
+
+        utterance.voice = argentinianVoice || latinAmericanVoice || anySpanishVoice || null;
+    }
+    // --- End Voice Selection ---
+
     utterance.onstart = () => setSpeakingMessageId(message.id);
     utterance.onend = () => setSpeakingMessageId(null);
     utterance.onerror = () => setSpeakingMessageId(null);
@@ -216,7 +251,7 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     }
   };
   
-  const handleTranslate = async (messageId: string) => {
+  const handleTranslate = useCallback(async (messageId: string) => {
     const messageToTranslate = messages.find(m => m.id === messageId);
     if (!messageToTranslate) return;
 
@@ -243,7 +278,14 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     } finally {
         setTranslatingId(null);
     }
-};
+  }, [messages, language]);
+  
+  useEffect(() => {
+    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+    if (!isLoading && lastMessage && lastMessage.role === 'model' && lastMessage.originalLang !== language && !lastMessage.translations?.[language]) {
+        handleTranslate(lastMessage.id);
+    }
+  }, [language, messages, isLoading, handleTranslate]);
 
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg dark:shadow-slate-700/50 hover:shadow-xl dark:hover:shadow-slate-700 transition-shadow duration-300 ease-in-out flex flex-col";
   const sectionTitleClasses = "text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 pb-2 border-b border-indigo-200 dark:border-slate-600 flex items-center";
