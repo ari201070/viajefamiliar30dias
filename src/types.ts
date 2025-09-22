@@ -74,6 +74,7 @@ export interface AppContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   user: User | null;
+  setUser: (user: User | null) => void;
 }
 
 export interface PolygonRateResponse {
@@ -222,6 +223,7 @@ export interface CurrentWeather {
 
 export interface DailyForecast {
     dayOfWeek: string;
+    date: string;
     temp_min: number;
     temp_max: number;
     description: string;

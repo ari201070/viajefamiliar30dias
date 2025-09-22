@@ -159,20 +159,35 @@ const HomePage: React.FC = () => {
             totalMaxUSD += category.max;
         });
 
-        const rate = await getCachedExchangeRate('USD', globalCurrency);
+        // FIX: Use Currency enum instead of string literal for type safety.
+        const rate = await getCachedExchangeRate(Currency.USD, globalCurrency);
 
         if (rate !== null) {
             const formattedBreakdown: Record<string, string> = {};
+            const locale = language === 'he' ? 'he-IL' : 'es-AR';
+            const formattingOptions = { maximumFractionDigits: 0 };
+
             for (const conceptKey in totalsByCategory) {
                 const { min, max } = totalsByCategory[conceptKey];
                 const finalMin = min * rate;
                 const finalMax = max * rate;
-                formattedBreakdown[conceptKey] = `${finalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
+                
+                if (finalMin === finalMax) {
+                    formattedBreakdown[conceptKey] = `${finalMin.toLocaleString(locale, formattingOptions)}`;
+                } else {
+                    formattedBreakdown[conceptKey] = `${finalMin.toLocaleString(locale, formattingOptions)} - ${finalMax.toLocaleString(locale, formattingOptions)}`;
+                }
             }
             
             const finalTotalMin = totalMinUSD * rate;
             const finalTotalMax = totalMaxUSD * rate;
-            const formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })} - ${finalTotalMax.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', { maximumFractionDigits: 0 })}`;
+            
+            let formattedTotal;
+            if (finalTotalMin === finalTotalMax) {
+                formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(locale, formattingOptions)}`;
+            } else {
+                formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(locale, formattingOptions)} - ${finalTotalMax.toLocaleString(locale, formattingOptions)}`;
+            }
             
             setBudgetDetails({
                 total: formattedTotal,

@@ -1,10 +1,24 @@
 import React from 'react';
 import { authService } from '../services/authService.ts';
+import { isFirebaseConfigured } from '../services/firebaseConfig.ts';
+import { useAppContext } from '../context/AppContext.tsx';
+import type { User } from '../types.ts';
+
 
 const Login: React.FC = () => {
+  const { setUser } = useAppContext();
+
   const handleLogin = async () => {
-    await authService.signInWithGoogle();
-    // The onAuthChange listener in App.tsx will handle the state change.
+    if (isFirebaseConfigured) {
+        await authService.signInWithGoogle();
+        // The onAuthChange listener in App.tsx will handle the state change.
+    } else {
+        // In local/offline mode, set a mock user to proceed.
+        setUser({
+            uid: 'local-user',
+            displayName: 'Ariel Flier (Local)',
+        } as User);
+    }
   };
 
   return (

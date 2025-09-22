@@ -179,72 +179,81 @@ const handlePolygonConvert = async (payload, res) => {
 const handleWeatherForecast = async (payload, res) => {
     const { lat, lon, lang } = payload;
     
-    // NOTE: This uses MOCK DATA to avoid needing a real API key during development.
-    // In a real scenario, you would uncomment the fetch call below.
     if (!OPENWEATHER_API_KEY) {
-        console.warn("OpenWeather API key not found. Using mock weather data.");
-        const mockData = getMockWeatherData(lat, lang);
-        return sendJSON(res, 200, mockData);
+      console.warn("OpenWeather API key not found. Proxy is not calling the real API.");
+      return sendJSON(res, 500, { message: "OpenWeather API key not configured on server." });
     }
     
-    // Real API call (currently unused in favor of mock data)
-    const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${OPENWEATHER_API_KEY}&units=metric&lang=${lang}`;
+    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=${lang}`;
+    
     try {
         const weatherResponse = await fetch(url);
         const data = await weatherResponse.json();
+
         if (!weatherResponse.ok) {
             throw new Error(data.message || 'Failed to fetch weather data');
         }
-        const formattedData = {
-            current: {
-                temp: data.current.temp,
-                feels_like: data.current.feels_like,
-                humidity: data.current.humidity,
-                description: data.current.weather[0].description,
-                icon: data.current.weather[0].icon,
-            },
-            forecast: data.daily.slice(1, 6).map(day => ({
-                dayOfWeek: new Date(day.dt * 1000).toLocaleDateString(lang === 'he' ? 'he-IL' : 'es-AR', { weekday: 'short' }),
-                temp_min: day.temp.min,
-                temp_max: day.temp.max,
-                description: day.weather[0].description,
-                icon: day.weather[0].icon,
-            })),
+
+        // Create 'current' weather from the first forecast item
+        const currentData = {
+            temp: data.list[0].main.temp,
+            feels_like: data.list[0].main.feels_like,
+            humidity: data.list[0].main.humidity,
+            description: data.list[0].weather[0].description,
+            icon: data.list[0].weather[0].icon,
         };
-        return sendJSON(res, 200, formattedData);
+
+        // Process the 3-hourly list into daily forecasts
+        const dailyForecasts = {};
+        data.list.forEach(item => {
+            const date = new Date(item.dt * 1000).toISOString().split('T')[0]; // Group by date string YYYY-MM-DD
+            if (!dailyForecasts[date]) {
+                dailyForecasts[date] = {
+                    temps: [],
+                    icons: {},
+                    descriptions: {},
+                };
+            }
+            dailyForecasts[date].temps.push(item.main.temp);
+            
+            const icon = item.weather[0].icon;
+            const desc = item.weather[0].description;
+            dailyForecasts[date].icons[icon] = (dailyForecasts[date].icons[icon] || 0) + 1;
+            dailyForecasts[date].descriptions[desc] = (dailyForecasts[date].descriptions[desc] || 0) + 1;
+
+            // Store a noon-ish entry as a good representative for the day's weather
+            const hour = new Date(item.dt * 1000).getUTCHours();
+            if (hour >= 12 && hour <= 15) {
+                dailyForecasts[date].representativeIcon = icon;
+                dailyForecasts[date].representativeDesc = desc;
+            }
+        });
+
+        // Format the processed data into the structure the frontend expects
+        const formattedForecast = Object.keys(dailyForecasts).map(dateStr => {
+            const dayData = dailyForecasts[dateStr];
+            const dateObj = new Date(dateStr + 'T12:00:00Z');
+
+            const mostFrequent = (obj) => Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b, '');
+
+            return {
+                date: dateObj.toLocaleDateString(lang === 'he' ? 'he-IL' : 'es-AR', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+                dayOfWeek: dateObj.toLocaleDateString(lang === 'he' ? 'he-IL' : 'es-AR', { weekday: 'short', timeZone: 'UTC' }),
+                temp_min: Math.min(...dayData.temps),
+                temp_max: Math.max(...dayData.temps),
+                description: dayData.representativeDesc || mostFrequent(dayData.descriptions),
+                icon: dayData.representativeIcon || mostFrequent(dayData.icons),
+            };
+        }).slice(0, 5); // Ensure we only return 5 days of forecast
+
+        const finalData = {
+            current: currentData,
+            forecast: formattedForecast,
+        };
+        
+        return sendJSON(res, 200, finalData);
+
     } catch(e) {
         return handleError(res, e, 'weather_forecast_fetch');
     }
-};
-
-// Mock data generation for weather
-const getMockWeatherData = (lat, lang) => {
-    // Determine city based on latitude to provide more "realistic" mock data
-    let temp_base = 20; // Mendoza/Bariloche
-    if (lat > -26) temp_base = 28; // Jujuy/Iguazu
-    else if (lat > -33) temp_base = 24; // Rosario
-    else if (lat > -35) temp_base = 22; // Buenos Aires
-
-    const es_days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const he_days = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'שבת'];
-    const days = lang === 'he' ? he_days : es_days;
-    
-    const today = new Date().getDay();
-
-    return {
-        current: {
-            temp: temp_base + Math.random() * 4 - 2,
-            feels_like: temp_base + Math.random() * 4 - 1,
-            humidity: 60 + Math.floor(Math.random() * 20),
-            description: lang === 'he' ? 'שמיים בהירים' : 'cielo claro',
-            icon: '01d',
-        },
-        forecast: Array.from({ length: 5 }, (_, i) => ({
-            dayOfWeek: days[(today + i + 1) % 7],
-            temp_min: temp_base - 5 + Math.random() * 3,
-            temp_max: temp_base + 3 + Math.random() * 3,
-            description: lang === 'he' ? 'מעונן חלקית' : 'nubes parciales',
-            icon: i % 2 === 0 ? '02d' : '03d',
-        })),
-    };
 };

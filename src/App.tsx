@@ -81,12 +81,7 @@ const App: React.FC = () => {
       });
       return () => unsubscribe(); // Cleanup listener on component unmount
     } else {
-      // If Firebase is not configured, create a mock user to allow app usage.
-      // Sync features will fall back to local storage.
-      setUser({
-        uid: 'local-user',
-        displayName: 'Ariel Flier (Local)',
-      } as User);
+      // In local mode, user is null by default, showing the Login screen.
       setIsAuthLoading(false);
     }
   }, []);
@@ -123,6 +118,7 @@ const App: React.FC = () => {
     t,
     theme, setTheme,
     user,
+    setUser,
   };
 
   const renderContent = () => {

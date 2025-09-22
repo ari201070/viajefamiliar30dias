@@ -4,9 +4,10 @@ import { useAppContext } from '../context/AppContext.tsx';
 import { Language, Theme } from '../types.ts';
 import { LANGUAGES, CURRENCIES } from '../constants.ts';
 import { authService } from '../services/authService.ts';
+import { isFirebaseConfigured } from '../services/firebaseConfig.ts';
 
 const TopBar: React.FC = () => {
-  const { language, setLanguage, currency, setCurrency, t, theme, setTheme, user } = useAppContext();
+  const { language, setLanguage, currency, setCurrency, t, theme, setTheme, user, setUser } = useAppContext();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
@@ -27,8 +28,13 @@ const TopBar: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await authService.signOutUser();
-    // The onAuthChange listener in App.tsx will handle the state update
+    if (isFirebaseConfigured) {
+        await authService.signOutUser();
+    } else {
+        setUser(null);
+    }
+    // The onAuthChange listener in App.tsx will handle the state update for firebase mode
+    // or the setUser will handle it for local mode.
   };
   
   const handleCopy = async () => {

@@ -1,194 +1,202 @@
-import { Language, GroundingChunk, ChatMessage, Currency, WeatherData } from '../types.ts';
-import { translations } from '../constants.ts';
+import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types.ts';
+import { CITIES } from '../constants.ts';
 
-// --- API Proxy Service ---
-
-// Generic fetch handler for our proxy
-const fetchFromProxy = async (action: string, payload: object) => {
-  const response = await fetch('/api/proxy', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred.' }));
-    throw new Error(errorData.message || `API call failed with status: ${response.status}`);
-  }
-
-  return response.json();
-};
-
-// --- Gemini AI Service (via Proxy) ---
-
-const getApiErrorMessage = (lang: Language) => 
-  lang === Language.HE 
-    ? "אירעה שגיאה בתקשורת עם שרת ה-AI." 
-    : "An error occurred while contacting the AI server.";
-
-
-export const askGemini = async (userPrompt: string, currentLanguage: Language): Promise<string> => {
-  try {
-    const data = await fetchFromProxy('gemini_ask', { userPrompt, language: currentLanguage });
-    return data.text;
-  } catch (error) {
-    console.error("Error calling proxy for askGemini:", error);
-    return getApiErrorMessage(currentLanguage);
-  }
-};
-
-export const sendMessageInChat = async (
-  systemInstruction: string,
-  history: ChatMessage[],
-  newMessage: string,
-  currentLanguage: Language
-): Promise<string> => {
-  try {
-    const data = await fetchFromProxy('gemini_chat', { 
-        systemInstruction, 
-        history, 
-        newMessage, 
-        language: currentLanguage 
-    });
-    return data.text;
-  } catch (error) {
-    console.error("Error calling proxy for sendMessageInChat:", error);
-    return getApiErrorMessage(currentLanguage);
-  }
-};
-
-export const translateText = async (text: string, targetLanguage: Language): Promise<string> => {
-  try {
-    const targetLanguageName = translations[targetLanguage][`language_name_${targetLanguage}`] || (targetLanguage === 'he' ? 'Hebrew' : 'Spanish');
-    const data = await fetchFromProxy('gemini_translate', { 
-        text, 
-        targetLanguage,
-        targetLanguageName 
-    });
-    return data.text;
-  } catch (error) {
-    console.error(`Error calling proxy for translateText to ${targetLanguage}:`, error);
-    return targetLanguage === Language.HE ? "שגיאת תרגום" : "Translation error";
-  }
-};
-
-export const findEventsWithGoogleSearch = async (
-  prompt: string,
-  currentLanguage: Language
-): Promise<{ text: string; sources: GroundingChunk[] }> => {
-  try {
-    const data = await fetchFromProxy('gemini_search_events', { prompt, language: currentLanguage });
-    return { text: data.text, sources: data.sources || [] };
-  } catch (error) {
-    console.error("Error calling proxy for findEventsWithGoogleSearch:", error);
-    const text = currentLanguage === Language.HE 
-      ? "אירעה שגיאה בחיפוש אירועים." 
-      : "An error occurred while searching for events.";
-    return { text, sources: [] };
-  }
+// --- DEFINITIVE ENVIRONMENT CHECK ---
+// This new function robustly checks for all common local development scenarios,
+// including running from the local file system (`file://`) or a local server (`localhost`).
+// This is the definitive fix to prevent network calls that hang indefinitely.
+const isDevelopmentMode = (): boolean => {
+    if (typeof window === 'undefined') return false; // Not a browser
+    const { protocol, hostname } = window.location;
+    return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
 };
 
 
-// --- Currency Conversion Service (Local Fallback) ---
+// --- MOCK DATA AND HELPERS (For Local Development) ---
 
-export const convertCurrency = async (amount: number, fromCurrency: string, toCurrency: string): Promise<number | null> => {
-  if (fromCurrency === toCurrency) return amount;
-  
-  // This function now uses a local mock/fallback implementation to ensure functionality
-  // during development, bypassing the need for a running proxy server with an API key.
-  console.warn(`Using fallback currency conversion for ${fromCurrency} to ${toCurrency}`);
-  
-  const usdToArs = 900;
-  const usdToEur = 0.93;
-  const usdToIls = 3.72;
-  // A simple rates map for bi-directional conversion
-  const rates: { [key: string]: number } = {
-      'USD_ARS': usdToArs, 'ARS_USD': 1 / usdToArs,
-      'USD_EUR': usdToEur, 'EUR_USD': 1 / usdToEur,
-      'USD_ILS': usdToIls, 'ILS_USD': 1 / usdToIls,
-      'ARS_EUR': (1 / usdToArs) * usdToEur, 'EUR_ARS': usdToArs / usdToEur,
-      'ARS_ILS': (1 / usdToArs) * usdToIls, 'ILS_ARS': usdToArs / usdToIls,
-      'EUR_ILS': (1 / usdToEur) * usdToIls, 'ILS_EUR': usdToEur / usdToIls,
-  };
-  const key = `${fromCurrency}_${toCurrency}`;
-  const rate = rates[key];
-  
-  if (rate) {
-    return Promise.resolve(amount * rate);
-  }
-  
-  console.error(`Fallback conversion rate not found for ${key}`);
-  return Promise.resolve(null);
-};
-
-
-const exchangeRateCache = new Map<string, { rate: number, timestamp: number }>();
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
-
-export const getCachedExchangeRate = async (from: string, to: string): Promise<number | null> => {
-  if (from === to) return 1.0;
-  const cacheKey = `${from}_${to}`;
-  const cached = exchangeRateCache.get(cacheKey);
-
-  if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-    return cached.rate;
-  }
-
-  const convertedOneUnit = await convertCurrency(1, from, to);
-  if (convertedOneUnit !== null) {
-    exchangeRateCache.set(cacheKey, { rate: convertedOneUnit, timestamp: Date.now() });
-  }
-  return convertedOneUnit;
-};
-
-// --- Weather Forecast Service (Local Mock) ---
-
-// Mock data generation for weather, adapted from api/proxy.js
-const getMockWeatherData = (lat: number, lang: string): WeatherData => {
-    let temp_base = 20; // Default for Mendoza/Bariloche
+const getMockWeatherData = (lat: number, language: Language): WeatherData => {
+    let temp_base = 20; // Default temp
     if (lat > -26) temp_base = 28; // Jujuy/Iguazu
     else if (lat > -33) temp_base = 24; // Rosario
     else if (lat > -35) temp_base = 22; // Buenos Aires
 
     const es_days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const he_days = ['א\'', 'ב\'', 'ג\'', 'ד\'', 'ה\'', 'ו\'', 'שבת'];
-    const days = lang === 'he' ? he_days : es_days;
+    const days = language === 'he' ? he_days : es_days;
+    const today = new Date();
+
+    const forecast = Array.from({ length: 5 }, (_, i): DailyForecast => {
+        const forecastDate = new Date(today);
+        forecastDate.setDate(today.getDate() + i); // Start from today
+        return {
+            dayOfWeek: days[forecastDate.getDay()],
+            date: forecastDate.toLocaleDateString(language === 'he' ? 'he-IL' : 'es-AR', { day: 'numeric', month: 'short' }),
+            temp_min: temp_base - 5 + Math.random() * 3,
+            temp_max: temp_base + 3 + Math.random() * 3,
+            description: language === 'he' ? 'מעונן חלקית' : 'nubes parciales',
+            icon: i % 3 === 0 ? '02d' : (i % 3 === 1 ? '03d' : '01d'),
+        };
+    });
     
-    const today = new Date().getDay();
-    const weatherIcons = ['01d', '02d', '03d', '04d', '09d', '10d', '11d', '13d', '50d'];
-    const weatherDescriptionsEs = ['cielo claro', 'nubes parciales', 'nublado', 'muy nublado', 'lluvia', 'lluvia ligera', 'tormenta', 'nieve', 'niebla'];
-    const weatherDescriptionsHe = ['שמיים בהירים', 'מעונן חלקית', 'מעונן', 'מעונן מאוד', 'גשם', 'גשם קל', 'סערה', 'שלג', 'ערפל'];
+    // Use the first day's forecast for "current" conditions for consistency
+    const currentFromForecast = forecast[0];
 
     return {
         current: {
-            temp: temp_base + Math.random() * 4 - 2,
-            feels_like: temp_base + Math.random() * 4 - 1,
+            temp: (currentFromForecast.temp_max + currentFromForecast.temp_min) / 2,
+            feels_like: (currentFromForecast.temp_max + currentFromForecast.temp_min) / 2 - 1,
             humidity: 60 + Math.floor(Math.random() * 20),
-            description: lang === 'he' ? 'שמיים בהירים' : 'cielo claro',
-            icon: '01d',
+            description: currentFromForecast.description,
+            icon: currentFromForecast.icon,
         },
-        forecast: Array.from({ length: 14 }, (_, i) => {
-            const randomWeatherIndex = Math.floor(Math.random() * weatherIcons.length);
-            return {
-                dayOfWeek: days[(today + i + 1) % 7],
-                temp_min: temp_base - 5 + Math.random() * 3,
-                temp_max: temp_base + 3 + Math.random() * 3,
-                description: lang === 'he' ? weatherDescriptionsHe[randomWeatherIndex] : weatherDescriptionsEs[randomWeatherIndex],
-                icon: weatherIcons[randomWeatherIndex],
-            }
-        }),
+        forecast,
     };
 };
 
-export const getWeatherForecast = async (coords: [number, number], lang: Language): Promise<WeatherData> => {
-  // This function now uses a local mock implementation to ensure functionality
-  // during development, bypassing the need for a running proxy server.
-  console.warn("Using mock weather data in apiService.ts");
-  try {
-      const mockData = getMockWeatherData(coords[0], lang);
-      return await Promise.resolve(mockData);
-  } catch (error) {
-      console.error("Error generating mock weather data:", error);
-      throw error;
-  }
+const getFallbackExchangeRate = (from: Currency, to: Currency): number | null => {
+    const usdToArs = 900;
+    const usdToEur = 0.93;
+    const usdToIls = 3.72;
+    const rates: Record<string, number> = {
+        'USD_ARS': usdToArs, 'ARS_USD': 1 / usdToArs,
+        'USD_EUR': usdToEur, 'EUR_USD': 1 / usdToEur,
+        'USD_ILS': usdToIls, 'ILS_USD': 1 / usdToIls,
+        'ARS_EUR': (1 / usdToArs) * usdToEur, 'EUR_ARS': usdToArs / usdToEur,
+        'ARS_ILS': (1 / usdToArs) * usdToIls, 'ILS_ARS': usdToArs / usdToIls,
+        'EUR_ILS': (1 / usdToEur) * usdToIls, 'ILS_EUR': usdToEur / usdToIls,
+    };
+    const key = `${from}_${to}`;
+    return rates[key] || null;
 };
+
+// --- PROXY FETCHER ---
+// The environment check happens here, before any `fetch` is attempted.
+async function fetchFromProxy(action: string, payload: any): Promise<any> {
+    if (isDevelopmentMode()) {
+        // This throw is now guaranteed to trigger for all local dev cases.
+        // It will be caught by the calling function, which will then serve mock data.
+        throw new Error("Development mode detected. API call cancelled.");
+    }
+
+    try {
+        const response = await fetch('/api/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+            throw new Error(errorData.message || `Proxy request failed with status ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Proxy fetch for action '${action}' failed:`, error);
+        throw error;
+    }
+}
+
+
+// --- UNIFIED API FUNCTIONS (DEV vs PROD with fallback) ---
+// The `try/catch` is the correct pattern for "use mock data if API doesn't work".
+// The fix is ensuring the API call fails correctly and immediately in a dev environment.
+
+export async function askGemini(userPrompt: string, language: Language): Promise<string> {
+  try {
+    const { text } = await fetchFromProxy('gemini_ask', { userPrompt, language });
+    return text;
+  } catch (error) {
+    console.warn("askGemini failed, returning mock response.", error);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return language === 'he' 
+      ? "תכונות הבינה המלאכותית מושבתות בפיתוח מקומי." 
+      : "Las funciones de IA están deshabilitadas en el desarrollo local.";
+  }
+}
+
+export async function sendMessageInChat(systemInstruction: string, history: ChatMessage[], newMessage: string, language: Language): Promise<string> {
+  try {
+    const { text } = await fetchFromProxy('gemini_chat', { systemInstruction, history, newMessage, language });
+    return text;
+  } catch (error) {
+    console.warn("sendMessageInChat failed, returning mock response.", error);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return language === 'he' 
+      ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות בסביבת הפיתוח המקומית." 
+      : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas en el entorno de desarrollo local.";
+  }
+}
+
+export async function translateText(textToTranslate: string, language: Language): Promise<string> {
+    try {
+        const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
+        const { text } = await fetchFromProxy('gemini_translate', { text: textToTranslate, targetLanguageName });
+        return text;
+    } catch (error) {
+       console.warn("translateText failed, returning mock response.", error);
+       await new Promise(resolve => setTimeout(resolve, 300));
+       return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
+    }
+}
+
+export async function findEventsWithGoogleSearch(prompt: string, language: Language): Promise<{ text: string; sources: GroundingChunk[] }> {
+    try {
+      return await fetchFromProxy('gemini_search_events', { prompt, language });
+    } catch (error) {
+      console.warn("findEventsWithGoogleSearch failed, returning mock response.", error);
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      const text = language === 'he'
+        ? "חיפוש אירועים אינו זמין כרגע. נסה שוב מאוחר יותר."
+        : "La búsqueda de eventos no está disponible en este momento. Por favor, inténtalo de nuevo más tarde.";
+      return { text, sources: [] };
+    }
+}
+
+export async function convertCurrency(amount: number, fromCurrency: Currency, toCurrency: Currency): Promise<number | null> {
+  if (fromCurrency === toCurrency) return amount;
+  
+  try {
+    const { convertedAmount } = await fetchFromProxy('polygon_convert', { amount, fromCurrency, toCurrency });
+    return convertedAmount;
+  } catch(e) {
+      console.warn("Failed to fetch real currency conversion, using fallback:", e);
+      // Fallback if proxy call fails for any reason
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const rate = getFallbackExchangeRate(fromCurrency, toCurrency);
+      return rate ? amount * rate : null;
+  }
+}
+
+const exchangeRateCache: Record<string, { rate: number; timestamp: number }> = {};
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
+export async function getCachedExchangeRate(from: Currency, to: Currency): Promise<number | null> {
+  if (from === to) return 1;
+
+  const cacheKey = `${from}_${to}`;
+  const cached = exchangeRateCache[cacheKey];
+
+  if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+    return cached.rate;
+  }
+  
+  const rate = await convertCurrency(1, from, to);
+
+  if (rate !== null) {
+    exchangeRateCache[cacheKey] = { rate, timestamp: Date.now() };
+  }
+  return rate;
+}
+
+export async function getWeatherForecast(coords: [number, number], language: Language): Promise<WeatherData | null> {
+    try {
+        const payload = { lat: coords[0], lon: coords[1], lang: language };
+        return await fetchFromProxy('weather_forecast', payload);
+    } catch (error) {
+        console.warn("Using mock weather data due to environment or network error:", error);
+        // Fallback to mock data if proxy fails
+        await new Promise(resolve => setTimeout(resolve, 400));
+        const city = CITIES.find(c => c.coords[0] === coords[0] && c.coords[1] === coords[1]);
+        const lat = city ? city.coords[0] : -34.61;
+        return getMockWeatherData(lat, language);
+    }
+}

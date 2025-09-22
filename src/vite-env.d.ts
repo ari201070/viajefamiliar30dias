@@ -1,3 +1,11 @@
-// FIX: The reference to "vite/client" was removed to fix a TypeScript error.
-// The project does not appear to use any Vite-specific client-side APIs
-// (like import.meta.env) that would require these type definitions.
+// This file is for TypeScript type definitions for Vite's environment variables.
+// Since we are no longer using `import.meta.env.DEV` and instead using a runtime
+// check, the custom definitions that caused errors are no longer needed.
+
+interface ImportMetaEnv {
+  // We no longer define DEV here to avoid conflicts and because it's unused.
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

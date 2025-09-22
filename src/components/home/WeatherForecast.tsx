@@ -10,12 +10,10 @@ const WeatherForecast: React.FC = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [weekOffset, setWeekOffset] = useState(0);
 
   const fetchWeather = useCallback(async (cityId: string) => {
     setIsLoading(true);
     setError(null);
-    setWeekOffset(0); // Reset to first week on city change
     const city = CITIES.find(c => c.id === cityId);
     if (!city) {
         setError(t('weather_error_city_not_found'));
@@ -54,8 +52,6 @@ const WeatherForecast: React.FC = () => {
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
   
-  const displayedForecast = weatherData?.forecast.slice(weekOffset * 7, (weekOffset + 1) * 7) || [];
-
   return (
     <section className={cardClasses}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -95,35 +91,19 @@ const WeatherForecast: React.FC = () => {
                 <p>{t('weather_humidity')}: {weatherData.current.humidity}%</p>
             </div>
           </div>
-          {/* 7-Day Forecast */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 text-center">
-            {displayedForecast.map((day: DailyForecast, index: number) => (
-              <div key={index} className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-                <p className="font-semibold text-gray-800 dark:text-slate-200">{day.dayOfWeek}</p>
-                <i className={`fas ${getWeatherIcon(day.icon)} text-3xl my-3 text-indigo-500 dark:text-indigo-400`}></i>
-                <p className="text-lg font-bold text-gray-700 dark:text-slate-300">{Math.round(day.temp_max)}° / {Math.round(day.temp_min)}°</p>
+          {/* 5-Day Forecast */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
+            {weatherData.forecast.map((day: DailyForecast, index: number) => (
+              <div key={index} className="p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg flex flex-col justify-between">
+                <div>
+                    <p className="font-bold text-gray-800 dark:text-slate-200">{day.dayOfWeek}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{day.date}</p>
+                </div>
+                <i className={`fas ${getWeatherIcon(day.icon)} text-3xl my-2 text-indigo-500 dark:text-indigo-400`}></i>
+                <p className="text-lg font-semibold text-gray-700 dark:text-slate-300 mt-2">{Math.round(day.temp_max)}° / {Math.round(day.temp_min)}°</p>
               </div>
             ))}
           </div>
-          {/* Navigation Buttons */}
-           <div className="flex justify-center items-center mt-6 gap-4">
-               <button
-                  onClick={() => setWeekOffset(0)}
-                  disabled={weekOffset === 0}
-                  className="px-4 py-2 text-sm font-semibold bg-gray-200 dark:bg-slate-600 rounded-lg shadow-sm hover:bg-gray-300 dark:hover:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <i className="fas fa-chevron-left mr-2"></i>
-                  {t('weather_prev_week')}
-                </button>
-                <button
-                  onClick={() => setWeekOffset(1)}
-                  disabled={weekOffset === 1 || (weatherData?.forecast.length ?? 0) <= 7}
-                  className="px-4 py-2 text-sm font-semibold bg-gray-200 dark:bg-slate-600 rounded-lg shadow-sm hover:bg-gray-300 dark:hover:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('weather_next_week')}
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </button>
-           </div>
         </div>
       ) : null}
     </section>
