@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
+// FIX: Import AI_PROMPT_CONFIGS to be used for rendering AI chat components.
 import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
-import { Currency, BudgetItem, AIPromptContent, Price } from '../types.ts';
+import { Currency, BudgetItem, Price } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
@@ -15,6 +16,7 @@ import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
 import FlightTickets from '../components/home/FlightTickets.tsx';
 import WeatherForecast from '../components/home/WeatherForecast.tsx';
 import Reservations from '../components/home/Reservations.tsx';
+import { BudgetDetails } from '../types.ts';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -51,11 +53,6 @@ const getDaysFromDurationString = (durationStr: string): number => {
   return totalDays;
 };
 
-export interface BudgetDetails {
-  total: string;
-  breakdown: Record<string, string>;
-  isCalculating: boolean;
-}
 
 const HomePage: React.FC = () => {
   const { t, language, currency: globalCurrency } = useAppContext();
@@ -128,7 +125,7 @@ const HomePage: React.FC = () => {
         const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
 
-        // FIX: Add trip-wide one-time costs first (e.g., international flights)
+        // Add trip-wide one-time costs first (e.g., international flights)
         TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
             if (!totalsByCategory[item.conceptKey]) {
                 totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
@@ -170,7 +167,6 @@ const HomePage: React.FC = () => {
             totalMaxUSD += category.max;
         });
 
-        // FIX: Use Currency enum instead of string literal for type safety.
         const rate = await getCachedExchangeRate(Currency.USD, globalCurrency);
 
         if (rate !== null) {
@@ -235,7 +231,7 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [calculateTripBudget]);
 
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover-shadow-slate-700 transition-shadow duration-300";
 
   return (
     <div className="space-y-12">

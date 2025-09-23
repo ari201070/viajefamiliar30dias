@@ -21,7 +21,7 @@ const BudgetSummary: React.FC<BudgetSummaryProps> = ({ budgetDetails }) => {
   const { t } = useAppContext();
   const { total, breakdown, isCalculating } = budgetDetails;
   const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover-shadow-slate-700 transition-shadow duration-300";
 
   const sortedBreakdown = Object.entries(breakdown).sort(([keyA], [keyB]) => {
     const isFlightA = keyA.includes('flight');

@@ -12,30 +12,33 @@ const PackingList: React.FC = () => {
   const [newItemText, setNewItemText] = useState('');
   const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
-  const fetchList = useCallback(async () => {
+  useEffect(() => {
     setIsLoading(true);
     if (user && isFirebaseConfigured) {
-        const items = await firebaseSyncService.getPackingList(user.uid);
+      // Use real-time listener for instant sync across devices.
+      const unsubscribe = firebaseSyncService.listenToPackingList((items) => {
         setPackingItems(items);
+        setIsLoading(false);
+      });
+      // Cleanup subscription on component unmount
+      return () => unsubscribe();
     } else {
-        try {
-            const saved = localStorage.getItem('packingList');
-            setPackingItems(saved ? JSON.parse(saved) : []);
-        } catch (e) {
-            console.error("Failed to load packing list from localStorage", e);
-            setPackingItems([]);
-        }
+      // Fallback to local storage if Firebase is not used
+      try {
+          const saved = localStorage.getItem('packingList');
+          setPackingItems(saved ? JSON.parse(saved) : []);
+      } catch (e) {
+          console.error("Failed to load packing list from localStorage", e);
+          setPackingItems([]);
+      }
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [user]);
-
-  useEffect(() => {
-    fetchList();
-  }, [fetchList]);
   
   const saveList = useCallback(async (items: PackingItem[]) => {
       if (user && isFirebaseConfigured) {
-        await firebaseSyncService.savePackingList(user.uid, items);
+        // Save to the shared family list.
+        await firebaseSyncService.savePackingList(items);
       } else {
         try {
             localStorage.setItem('packingList', JSON.stringify(items));
@@ -56,14 +59,13 @@ const PackingList: React.FC = () => {
     };
     
     const updatedItems = [...packingItems, newItem];
-    setPackingItems(updatedItems);
+    // The listener will handle updating the state upon successful save.
     saveList(updatedItems);
     setNewItemText('');
   };
 
   const handleRemovePackingItem = (id: string) => {
     const updatedItems = packingItems.filter(item => item.id !== id);
-    setPackingItems(updatedItems);
     saveList(updatedItems);
   };
   
@@ -71,7 +73,6 @@ const PackingList: React.FC = () => {
     const updatedItems = packingItems.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
     );
-    setPackingItems(updatedItems);
     saveList(updatedItems);
   };
   

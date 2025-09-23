@@ -37,40 +37,46 @@ if (!db || !storage) {
   console.warn("Firebase is not initialized. Sync features will be disabled.");
 }
 
-// User-specific collection/document getters
-const getPhotosCollection = (userId: string) => db?.collection('users').doc(userId).collection('photos');
-const getPackingListDoc = (userId: string) => db?.collection('users').doc(userId).collection('data').doc('packingList');
-const getPhotoStorageRef = (userId: string, photoId: string) => storage?.ref(`users/${userId}/photos/${photoId}`);
+// FIX: Switched to a shared data model for the family trip instead of per-user data.
+const SHARED_TRIP_ID = 'main_family_trip_v1';
+const getSharedTripDoc = () => db?.collection('trips').doc(SHARED_TRIP_ID);
+const getPhotosCollection = () => getSharedTripDoc()?.collection('photos');
+const getPackingListDoc = () => getSharedTripDoc()?.collection('data').doc('packingList');
+const getPhotoStorageRef = (photoId: string) => storage?.ref(`trips/${SHARED_TRIP_ID}/photos/${photoId}`);
 
 
 export const firebaseSyncService = {
   // --- Photo Album Methods ---
-  async getPhotos(userId: string): Promise<PhotoItem[]> {
-    const photosCollection = getPhotosCollection(userId);
-    if (!photosCollection) return [];
+  listenToPhotos(callback: (photos: PhotoItem[]) => void): () => void {
+    const photosCollection = getPhotosCollection();
+    if (!photosCollection) return () => {};
     try {
-        const snapshot = await photosCollection.orderBy('dateTaken', 'desc').get();
-        return snapshot.docs.map(doc => doc.data() as PhotoItem);
-    } catch(e) {
-        handleFirebaseError(e, "getPhotos");
-        return [];
+      const unsubscribe = photosCollection.orderBy('dateTaken', 'desc').onSnapshot(snapshot => {
+        const photos = snapshot.docs.map(doc => doc.data() as PhotoItem);
+        callback(photos);
+      }, (error) => handleFirebaseError(error, "listenToPhotos"));
+      return unsubscribe;
+    } catch (e) {
+      handleFirebaseError(e, "listenToPhotos setup");
+      return () => {};
     }
   },
 
-  async savePhoto(userId: string, photo: PhotoItem): Promise<void> {
-    const photosCollection = getPhotosCollection(userId);
+  async savePhoto(photo: PhotoItem): Promise<void> {
+    const photosCollection = getPhotosCollection();
     if (!photosCollection || !storage) return;
     try {
         const photoRef = photosCollection.doc(photo.id);
         let photoData = { ...photo };
 
+        // If the src is a new base64 upload, put it in storage and get the URL
         if (photoData.src.startsWith('data:image')) {
-            const storageRef = getPhotoStorageRef(userId, photo.id);
+            const storageRef = getPhotoStorageRef(photo.id);
             if (!storageRef) throw new Error("Storage reference could not be created.");
             
             const snapshot = await storageRef.putString(photoData.src, 'data_url');
             const downloadURL = await snapshot.ref.getDownloadURL();
-            photoData.src = downloadURL;
+            photoData.src = downloadURL; // Replace base64 with permanent URL
         }
         
         await photoRef.set(photoData, { merge: true });
@@ -79,15 +85,16 @@ export const firebaseSyncService = {
     }
   },
 
-  async deletePhoto(userId: string, id: string): Promise<void> {
-    const photosCollection = getPhotosCollection(userId);
+  async deletePhoto(id: string): Promise<void> {
+    const photosCollection = getPhotosCollection();
     if (!photosCollection || !storage) return;
     try {
         const photoRef = photosCollection.doc(id);
         await photoRef.delete();
 
-        const storageRef = getPhotoStorageRef(userId, id);
+        const storageRef = getPhotoStorageRef(id);
         if (storageRef) {
+          // Attempt to delete from storage, but don't block if it fails (e.g., file doesn't exist)
           await storageRef.delete().catch(error => {
               if (error.code !== 'storage/object-not-found') {
                   console.error("Error deleting photo from storage:", error);
@@ -99,11 +106,14 @@ export const firebaseSyncService = {
     }
   },
 
-  async addPhotosBatch(userId: string, photos: PhotoItem[]): Promise<void> {
-    const photosCollection = getPhotosCollection(userId);
+  async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
+    const photosCollection = getPhotosCollection();
     if (!db || !photosCollection) return;
     try {
         const batch = db.batch();
+        // Note: This simplified batch upload doesn't handle image file uploads to Storage.
+        // It assumes the `src` is either a URL or will be handled later.
+        // For the current app flow, `savePhoto` is used for uploads, this is for metadata.
         photos.forEach(photo => {
             const docRef = photosCollection.doc(photo.id);
             batch.set(docRef, photo);
@@ -115,23 +125,25 @@ export const firebaseSyncService = {
   },
 
   // --- Packing List Methods ---
-  async getPackingList(userId: string): Promise<PackingItem[]> {
-      const packingListDoc = getPackingListDoc(userId);
-      if (!packingListDoc) return [];
-      try {
-        const docSnap = await packingListDoc.get();
-        if (docSnap.exists) {
-            return docSnap.data()?.items || [];
-        }
-        return [];
-      } catch(e) {
-        handleFirebaseError(e, "getPackingList");
-        return [];
-      }
+  listenToPackingList(callback: (items: PackingItem[]) => void): () => void {
+    const packingListDoc = getPackingListDoc();
+    if (!packingListDoc) return () => {};
+    try {
+        const unsubscribe = packingListDoc.onSnapshot(docSnap => {
+            callback(docSnap.exists ? docSnap.data()?.items || [] : []);
+        }, (error) => {
+            handleFirebaseError(error, "listenToPackingList");
+            callback([]); // return empty list on error
+        });
+        return unsubscribe;
+    } catch(e) {
+        handleFirebaseError(e, "listenToPackingList setup");
+        return () => {};
+    }
   },
 
-  async savePackingList(userId: string, items: PackingItem[]): Promise<void> {
-      const packingListDoc = getPackingListDoc(userId);
+  async savePackingList(items: PackingItem[]): Promise<void> {
+      const packingListDoc = getPackingListDoc();
       if (!packingListDoc) return;
       try {
           await packingListDoc.set({ items });

@@ -31,21 +31,26 @@ const FamilyPhotoAlbum: React.FC = () => {
   });
   const [uploadMessage, setUploadMessage] = useState('');
 
-  const fetchPhotos = useCallback(async () => {
+  useEffect(() => {
     setIsLoading(true);
     if (user && isFirebaseConfigured) {
-        const fetchedPhotos = await firebaseSyncService.getPhotos(user.uid);
+      // Use real-time listener for instant sync across devices.
+      const unsubscribe = firebaseSyncService.listenToPhotos((fetchedPhotos) => {
         setPhotos(fetchedPhotos);
+        setIsLoading(false);
+      });
+      // Cleanup subscription on component unmount
+      return () => unsubscribe();
     } else {
+      // Fallback to local IndexedDB if Firebase is not used
+      const fetchLocalPhotos = async () => {
         const localPhotos = await dbService.getPhotos();
         setPhotos(localPhotos);
+        setIsLoading(false);
+      };
+      fetchLocalPhotos();
     }
-    setIsLoading(false);
   }, [user]);
-
-  useEffect(() => {
-    fetchPhotos();
-  }, [fetchPhotos]);
 
   const groupedPhotos = useMemo(() => {
     const groups: Record<string, PhotoItem[]> = {};
@@ -148,11 +153,12 @@ const FamilyPhotoAlbum: React.FC = () => {
     
     setIsUploading(true);
     if (user && isFirebaseConfigured) {
-      await firebaseSyncService.savePhoto(user.uid, currentPhoto as PhotoItem);
+      // Save to the shared family album.
+      await firebaseSyncService.savePhoto(currentPhoto as PhotoItem);
     } else {
       await dbService.savePhoto(currentPhoto as PhotoItem);
     }
-    await fetchPhotos(); // Refresh list
+    // The listener will handle updating the state.
     setIsUploading(false);
 
     setIsModalOpen(false);
@@ -162,11 +168,12 @@ const FamilyPhotoAlbum: React.FC = () => {
   const handleRemovePhoto = async (id: string) => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
       if (user && isFirebaseConfigured) {
-        await firebaseSyncService.deletePhoto(user.uid, id);
+        // Delete from the shared family album.
+        await firebaseSyncService.deletePhoto(id);
       } else {
         await dbService.deletePhoto(id);
       }
-      await fetchPhotos();
+      // The listener will handle updating the state.
     }
   };
   
@@ -191,13 +198,14 @@ const FamilyPhotoAlbum: React.FC = () => {
       tripDay: batchDetails.tripDay,
       dateTaken: batchDetails.dateTaken,
     } as PhotoItem));
-
-    if (user && isFirebaseConfigured) {
-        await firebaseSyncService.addPhotosBatch(user.uid, photosToSave);
-    } else {
-        await dbService.addPhotosBatch(photosToSave);
+    
+    for (const photo of photosToSave) {
+        if (user && isFirebaseConfigured) {
+            await firebaseSyncService.savePhoto(photo);
+        } else {
+            await dbService.savePhoto(photo);
+        }
     }
-    await fetchPhotos();
 
     setIsUploading(false);
     setIsBatchModalOpen(false);
