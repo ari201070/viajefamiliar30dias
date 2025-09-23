@@ -2,18 +2,14 @@ import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyFore
 import { CITIES } from '../constants.ts';
 
 // --- DEFINITIVE ENVIRONMENT CHECK ---
-// This new function robustly checks for all common local development scenarios,
-// including running from the local file system (`file://`) or a local server (`localhost`).
-// This is the definitive fix to prevent network calls that hang indefinitely.
 const isDevelopmentMode = (): boolean => {
     if (typeof window === 'undefined') return false; // Not a browser
-    const { protocol } = window.location;
-    // FIX: Modified the development mode check. The previous version was too strict,
-    // blocking legitimate API calls from local development servers (e.g., 'localhost').
-    // The check is now relaxed to only block calls when running directly from the 
-    // file system (`file://`), which is the primary scenario where API proxy calls would fail.
-    // This allows developers running a local server to correctly test the live API.
-    return protocol === 'file:';
+    const { protocol, hostname } = window.location;
+    // To ensure a stable and predictable local development experience, we will use mock data
+    // when running from the local file system OR a local server. This prevents network
+    // errors when the backend serverless functions are not running. The live API
+    // will be used automatically upon deployment.
+    return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
 };
 
 
