@@ -57,7 +57,7 @@ export const CITIES: City[] = [
     id: 'buenosaires',
     nameKey: 'buenosaires_name',
     coords: [-34.6037, -58.3816],
-    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'buenosaires_description',
     activitiesKey: 'buenosaires_activities_recommended',
     accommodationKey: 'buenosaires_accommodation_examples',
@@ -125,23 +125,6 @@ export const CITIES: City[] = [
     ],
     pointsOfInterest: [
         { id: 'aconcagua', nameKey: 'poi_aconcagua_name', coords: [-32.653, -70.011] },
-    ]
-  },
-  {
-    id: 'malargue',
-    nameKey: 'malargue_name',
-    coords: [-35.4746, -69.5881],
-    image: 'https://live.staticflickr.com/5598/15633439821_9764cac7c9_k.jpg',
-    descriptionKey: 'malargue_description',
-    activitiesKey: 'malargue_activities_recommended',
-    accommodationKey: 'malargue_accommodation_examples',
-    budgetItems: [
-      { conceptKey: 'budget_concept_accommodation', value: '40-80', isPerDay: true },
-      { conceptKey: 'budget_concept_food', value: '30-60', isPerDay: true },
-      { conceptKey: 'budget_concept_activities', value: '25-60', isPerDay: true },
-    ],
-    pointsOfInterest: [
-      { id: 'caverna_brujas', nameKey: 'poi_caverna_brujas_name', coords: [-35.7833, -69.8167] },
     ]
   },
   {
@@ -228,7 +211,7 @@ export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
 export const TRANSPORT_DATA: TransportLeg[] = [
   { id: '1', fromKey: 'buenosaires_name', toKey: 'rosario_name', meanKey: 'medio_bus', timeKey: 'tiempo_4h_20m', company: '<a href="https://www.flechabus.com.ar/" target="_blank" rel="noopener noreferrer">Flecha Bus</a>', basePriceARS: 96000 },
   { id: '2', fromKey: 'rosario_name', toKey: 'bariloche_name', meanKey: 'medio_bus_nocturno', timeKey: 'tiempo_25h_45m', company: '<a href="https://www.viabariloche.com.ar/" target="_blank" rel="noopener noreferrer">Via Bariloche</a>', basePriceARS: 347200 },
-  { id: '3', fromKey: 'bariloche_name', toKey: 'mendoza_name', meanKey: 'medio_avion', timeKey: 'tiempo_1_5h', company: '<a href="https://www.aerolineas.com.ar/" target="_blank" rel="noopener noreferrer">Aerolíneas Argentinas</a>', basePriceARS: 75000 },
+  { id: '3', fromKey: 'bariloche_name', toKey: 'mendoza_name', meanKey: 'medio_bus', timeKey: 'tiempo_18h_30m', company: 'CATA Internacional', basePriceARS: 291200 },
   { id: '4', fromKey: 'mendoza_name', toKey: 'jujuy_name', meanKey: 'medio_bus', timeKey: 'tiempo_20h', company: '<a href="https://www.andesmar.com/" target="_blank" rel="noopener noreferrer">Andesmar</a>', basePriceARS: 45000 },
   { id: '5', fromKey: 'jujuy_name', toKey: 'iguazu_name', meanKey: 'medio_avion', timeKey: 'tiempo_2h', company: '<a href="https://www.aerolineas.com.ar/" target="_blank" rel="noopener noreferrer">Aerolíneas Argentinas</a>', basePriceARS: 95000 },
   { id: '6', fromKey: 'iguazu_name', toKey: 'esteros_ibera_name', meanKey: 'medio_transfer', timeKey: 'tiempo_5h', company: 'Transfers Privados', basePriceARS: 70000 },
@@ -296,6 +279,7 @@ export const BOOKING_DATA: BookingItem[] = [
     {
         id: 'hotel_bariloche_20251005',
         type: 'hotel',
+        cityId: 'bariloche',
         titleKey: 'booking_title_hotel_bar',
         descriptionKey: 'booking_desc_hotel_bar',
         data: {
@@ -306,9 +290,30 @@ export const BOOKING_DATA: BookingItem[] = [
             nights: 5,
             guests: '3 adultos, 1 niño (13 años)',
             price: { value: 1160697, currency: Currency.ARS },
-            address: 'San Martín 127, San Carlos de Bariloche', // Placeholder address
-            phone: '+54 294 442-2621', // Placeholder phone
+            address: 'San Martín 127, San Carlos de Bariloche', 
+            phone: '+54 294 442-2621', 
         } as HotelData,
+    },
+    {
+        id: 'bus_bar_men_20251010',
+        type: 'bus',
+        titleKey: 'booking_title_bus_bar_men',
+        descriptionKey: 'booking_desc_bus_bar_men',
+        data: {
+            from: 'Bariloche',
+            to: 'Mendoza',
+            departure: '2025-10-10T12:30:00Z',
+            arrival: '2025-10-11T07:00:00Z',
+            duration: '18hs 30min',
+            passengers: [
+                { name: 'Pasajero 1', seat: '35', type: 'Semicama' },
+                { name: 'Pasajero 2', seat: '36', type: 'Semicama' },
+                { name: 'Pasajero 3', seat: '41', type: 'Semicama' },
+                { name: 'Pasajero 4', seat: '42', type: 'Semicama' },
+            ],
+            price: { value: 291200, currency: Currency.ARS },
+            company: 'CATA Internacional',
+        } as BusData,
     },
 ];
 
@@ -347,25 +352,25 @@ export const translations_es: { [key: string]: string } = {
   rosario_dates_duration: '🗓️ 30/09 al 04/10 (5 días)\n🚌 Nota: Viaje al mediodía a Bariloche.',
   bariloche_name: 'Bariloche',
   bariloche_description: 'Famosa por su arquitectura de estilo suizo y sus chocolates, ubicada en la Patagonia.',
-  bariloche_dates_duration: '🗓️ 05/10 al 10/10 (6 días)\n✈️ Nota: Viaje al mediodía a Mendoza.',
+  bariloche_dates_duration: '🗓️ 05/10 al 10/10 (6 días)\n🚌 Nota: Viaje al mediodía a Mendoza.',
   mendoza_name: 'Mendoza',
   mendoza_description: 'El corazón de la región vinícola de Argentina, famosa por sus Malbecs.',
-  mendoza_dates_duration: '🗓️ 11/10 al 15/10 (4 días)\n📝 Nota: Visitar Malargüe como excursión.',
+  mendoza_dates_duration: '🗓️ 11/10 al 15/10 (5 días)\n🚌 Nota: Viaje en bus a Jujuy.',
   malargue_name: 'Malargüe',
   malargue_description: 'Un destino de aventura conocido por sus paisajes volcánicos, cuevas y cielos estrellados.',
   jujuy_name: 'Jujuy',
   jujuy_description: 'Una región de paisajes montañosos espectaculares y cultura andina.',
-  jujuy_dates_duration: '🗓️ 16/10 al 20/10 (5 días)\n✈️ Nota: Vuelo a Iguazú.',
+  jujuy_dates_duration: '🗓️ 15/10 al 19/10 (5 días)\n✈️ Nota: Vuelo a Iguazú.',
   iguazu_name: 'Puerto Iguazú',
   iguazu_description: 'Hogar de las impresionantes Cataratas del Iguazú, una de las siete maravillas naturales del mundo.',
-  iguazu_dates_duration: '🗓️ 20/10 al 22/10 (3 días)',
+  iguazu_dates_duration: '🗓️ 19/10 al 21/10 (3 días)',
   esteros_ibera_name: 'Esteros del Iberá',
   esteros_ibera_description: 'Uno de los humedales más grandes del mundo, con una increíble biodiversidad.',
-  esteros_ibera_dates_duration: '🗓️ 22/10 al 24/10 (3 días)\n📝 Nota: Dejar valijas en Corrientes.',
+  esteros_ibera_dates_duration: '🗓️ 21/10 al 23/10 (3 días)\n📝 Nota: Dejar valijas en Corrientes.',
   corrientes_name: 'Corrientes',
   corrientes_description: 'Capital de la provincia homónima, a orillas del río Paraná.',
-  corrientes_dates_duration: '🗓️ 24/10 al 26/10 (3 días)\n✈️ Nota: Vuelo a Buenos Aires.',
-  buenosaires_final_stay_dates_duration: '🗓️ 26/10 al 28/10 (3 días)\n✈️ Nota: Vuelo a Addis Ababa (ADD).',
+  corrientes_dates_duration: '🗓️ 23/10 al 25/10 (3 días)\n✈️ Nota: Vuelo a Buenos Aires.',
+  buenosaires_final_stay_dates_duration: '🗓️ 25/10 al 28/10 (4 días)\n✈️ Nota: Vuelo a Addis Ababa (ADD).',
 
   // HomePage components
   mapaInteractivoTitulo: 'Mapa Interactivo del Viaje',
@@ -392,6 +397,7 @@ export const translations_es: { [key: string]: string } = {
   medio_transfer: 'Transfer',
   tiempo_4h_20m: '4h 20m',
   tiempo_25h_45m: '25h 45m',
+  tiempo_18h_30m: '18h 30m',
   tiempo_1_5h: '1.5h',
   tiempo_20h: '20h',
   tiempo_2h: '2h',
@@ -508,6 +514,8 @@ export const translations_es: { [key: string]: string } = {
   booking_desc_bus_ros_bar: 'Pasajes de bus nocturno.',
   booking_title_hotel_bar: 'Hotel Concorde, Bariloche',
   booking_desc_hotel_bar: 'Confirmación de reserva de alojamiento.',
+  booking_title_bus_bar_men: 'Bus: Bariloche → Mendoza',
+  booking_desc_bus_bar_men: 'Pasajes de bus.',
   reservations_hotel_checkin: 'Entrada',
   reservations_hotel_checkout: 'Salida',
   reservations_hotel_guests: 'Huéspedes',
@@ -591,13 +599,13 @@ export const translations_he: { [key: string]: string } = {
   // Dates and durations in Hebrew (as an example, you'd fill these out)
   buenosaires_dates_duration: '🗓️ 26/09 עד 30/09 (5 ימים)\n🚌 הערה: נסיעת צהריים לרוסאריו.',
   rosario_dates_duration: '🗓️ 30/09 עד 04/10 (5 ימים)\n🚌 הערה: נסיעת צהריים לברילוצ\'ה.',
-  bariloche_dates_duration: '🗓️ 05/10 עד 10/10 (6 ימים)\n✈️ הערה: נסיעת צהריים למנדוסה.',
-  mendoza_dates_duration: '🗓️ 11/10 עד 15/10 (4 ימים)\n📝 הערה: ביקור במלרגואה כטיול יום.',
-  jujuy_dates_duration: '🗓️ 16/10 עד 20/10 (5 ימים)\n✈️ הערה: טיסה לאיגואסו.',
-  iguazu_dates_duration: '🗓️ 19/10 עד 22/10 (3 ימים)',
-  esteros_ibera_dates_duration: '🗓️ 22/10 עד 24/10 (3 ימים)\n📝 הערה: השארת מזוודות בקוריינטס.',
-  corrientes_dates_duration: '🗓️ 24/10 עד 26/10 (3 ימים)\n✈️ הערה: טיסה לבואנוס איירס.',
-  buenosaires_final_stay_dates_duration: '🗓️ 26/10 עד 28/10 (3 ימים)\n✈️ הערה: טיסה לאדיס אבבה (ADD).',
+  bariloche_dates_duration: '🗓️ 05/10 עד 10/10 (6 ימים)\n🚌 הערה: נסיעת צהריים למנדוסה.',
+  mendoza_dates_duration: '🗓️ 11/10 עד 15/10 (5 ימים)\n🚌 הערה: נסיעת אוטובוס לחוחוי.',
+  jujuy_dates_duration: '🗓️ 15/10 עד 19/10 (5 ימים)\n✈️ הערה: טיסה לאיגואסו.',
+  iguazu_dates_duration: '🗓️ 19/10 עד 21/10 (3 ימים)',
+  esteros_ibera_dates_duration: '🗓️ 21/10 עד 23/10 (3 ימים)\n📝 הערה: השארת מזוודות בקוריינטס.',
+  corrientes_dates_duration: '🗓️ 23/10 עד 25/10 (3 ימים)\n✈️ הערה: טיסה לבואנוס איירס.',
+  buenosaires_final_stay_dates_duration: '🗓️ 25/10 עד 28/10 (4 ימים)\n✈️ הערה: טיסה לאדיס אבבה (ADD).',
 
 
   // HomePage components
@@ -625,6 +633,7 @@ export const translations_he: { [key: string]: string } = {
   medio_transfer: 'העברה',
   tiempo_4h_20m: '4ש 20ד',
   tiempo_25h_45m: '25ש 45ד',
+  tiempo_18h_30m: '18ש 30ד',
   tiempo_1_5h: '1.5ש',
   tiempo_20h: '20ש',
   tiempo_2h: '2ש',
@@ -741,6 +750,8 @@ export const translations_he: { [key: string]: string } = {
   booking_desc_bus_ros_bar: 'כרטיסי אוטובוס לילה.',
   booking_title_hotel_bar: 'מלון קונקורד, ברילוצ\'ה',
   booking_desc_hotel_bar: 'אישור הזמנת לינה.',
+  booking_title_bus_bar_men: 'אוטובוס: ברילוצ\'ה → מנדוסה',
+  booking_desc_bus_bar_men: 'כרטיסי אוטובוס.',
   reservations_hotel_checkin: 'צ\'ק-אין',
   reservations_hotel_checkout: 'צ\'ק-אאוט',
   reservations_hotel_guests: 'אורחים',
