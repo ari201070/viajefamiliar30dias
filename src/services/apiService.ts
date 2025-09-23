@@ -7,8 +7,13 @@ import { CITIES } from '../constants.ts';
 // This is the definitive fix to prevent network calls that hang indefinitely.
 const isDevelopmentMode = (): boolean => {
     if (typeof window === 'undefined') return false; // Not a browser
-    const { protocol, hostname } = window.location;
-    return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
+    const { protocol } = window.location;
+    // FIX: Modified the development mode check. The previous version was too strict,
+    // blocking legitimate API calls from local development servers (e.g., 'localhost').
+    // The check is now relaxed to only block calls when running directly from the 
+    // file system (`file://`), which is the primary scenario where API proxy calls would fail.
+    // This allows developers running a local server to correctly test the live API.
+    return protocol === 'file:';
 };
 
 
