@@ -5,10 +5,10 @@ import { CITIES } from '../constants.ts';
 const isDevelopmentMode = (): boolean => {
     if (typeof window === 'undefined') return false; // Not a browser
     const { protocol, hostname } = window.location;
-    // To ensure a stable and predictable local development experience, we will use mock data
-    // when running from the local file system OR a local server. This prevents network
-    // errors when the backend serverless functions are not running. The live API
-    // will be used automatically upon deployment.
+    // To ensure a stable and predictable local development experience, this robust check
+    // identifies all local scenarios. The app will use mock data if served from the
+    // filesystem (`file:`), `localhost`, or the loopback IP `127.0.0.1`. This prevents
+    // network errors and guarantees a stable development environment.
     return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
 };
 
