@@ -108,15 +108,25 @@ export const firebaseSyncService = {
 
   async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
     const photosCollection = getPhotosCollection();
-    if (!db || !photosCollection) return;
+    if (!db || !storage || !photosCollection) return;
     try {
+        // Step 1: Parallelize all image uploads to Storage for speed.
+        const processedPhotos = await Promise.all(photos.map(async (photo) => {
+            if (photo.src.startsWith('data:image')) {
+                const storageRef = getPhotoStorageRef(photo.id);
+                if (!storageRef) throw new Error(`Storage reference failed for ${photo.id}`);
+                const snapshot = await storageRef.putString(photo.src, 'data_url');
+                const downloadURL = await snapshot.ref.getDownloadURL();
+                return { ...photo, src: downloadURL }; // Return a new object with the permanent URL
+            }
+            return photo; // This photo already has a URL, no upload needed
+        }));
+
+        // Step 2: Write all processed photo metadata to Firestore in a single atomic batch operation.
         const batch = db.batch();
-        // Note: This simplified batch upload doesn't handle image file uploads to Storage.
-        // It assumes the `src` is either a URL or will be handled later.
-        // For the current app flow, `savePhoto` is used for uploads, this is for metadata.
-        photos.forEach(photo => {
+        processedPhotos.forEach(photo => {
             const docRef = photosCollection.doc(photo.id);
-            batch.set(docRef, photo);
+            batch.set(docRef, photo, { merge: true }); // Use merge to be safe
         });
         await batch.commit();
     } catch(e) {

@@ -152,15 +152,20 @@ const FamilyPhotoAlbum: React.FC = () => {
     if (!currentPhoto || !currentPhoto.id) return;
     
     setIsUploading(true);
-    if (user && isFirebaseConfigured) {
-      // Save to the shared family album.
-      await firebaseSyncService.savePhoto(currentPhoto as PhotoItem);
-    } else {
-      await dbService.savePhoto(currentPhoto as PhotoItem);
-    }
-    // The listener will handle updating the state.
-    setIsUploading(false);
+    const photoToSave = currentPhoto as PhotoItem;
 
+    if (user && isFirebaseConfigured) {
+      // Save to the shared family album. The listener will update the UI.
+      await firebaseSyncService.savePhoto(photoToSave);
+    } else {
+      // Save to local IndexedDB
+      await dbService.savePhoto(photoToSave);
+      // Manually update local state since there is no listener for offline mode
+      const newPhotos = await dbService.getPhotos(); // Re-fetch to get the correctly sorted list
+      setPhotos(newPhotos);
+    }
+
+    setIsUploading(false);
     setIsModalOpen(false);
     setCurrentPhoto(null);
   };
@@ -168,12 +173,13 @@ const FamilyPhotoAlbum: React.FC = () => {
   const handleRemovePhoto = async (id: string) => {
     if (window.confirm(t('photo_album_confirm_delete'))) {
       if (user && isFirebaseConfigured) {
-        // Delete from the shared family album.
+        // Delete from the shared family album. The listener will update state.
         await firebaseSyncService.deletePhoto(id);
       } else {
         await dbService.deletePhoto(id);
+        // Manually update local state
+        setPhotos(prevPhotos => prevPhotos.filter(p => p.id !== id));
       }
-      // The listener will handle updating the state.
     }
   };
   
@@ -199,18 +205,27 @@ const FamilyPhotoAlbum: React.FC = () => {
       dateTaken: batchDetails.dateTaken,
     } as PhotoItem));
     
-    for (const photo of photosToSave) {
-        if (user && isFirebaseConfigured) {
-            await firebaseSyncService.savePhoto(photo);
-        } else {
-            await dbService.savePhoto(photo);
-        }
+    try {
+      if (user && isFirebaseConfigured) {
+        // Use the new, more efficient batch function.
+        // The real-time listener will update the UI automatically.
+        await firebaseSyncService.addPhotosBatch(photosToSave);
+      } else {
+        // Use batch add for local DB for better performance
+        await dbService.addPhotosBatch(photosToSave);
+        // Then update the state all at once.
+        const newPhotos = await dbService.getPhotos(); // Re-fetch to get the correctly sorted list.
+        setPhotos(newPhotos);
+      }
+    } catch (error) {
+        console.error("Failed to save batch photos:", error);
+        // Here you could show an error message to the user
+    } finally {
+      setIsUploading(false);
+      setIsBatchModalOpen(false);
+      setBatchPhotos([]);
+      setUploadMessage('');
     }
-
-    setIsUploading(false);
-    setIsBatchModalOpen(false);
-    setBatchPhotos([]);
-    setUploadMessage('');
   };
 
 
