@@ -206,12 +206,17 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
             .map(item => `- ${t(item.conceptKey)}: ${item.value} USD ${item.isPerDay ? perDayText : ''}`.trim())
             .join('\n');
         
+        const durationText = t(`${city.id}_dates_duration`);
+        const familyInfo = t('family_info_for_ai');
+        
         const promptTemplateKey = `generic${config.promptKeySuffix}`; // Use generic as the template
         const promptTemplate = t(promptTemplateKey);
         
         systemInstruction = promptTemplate
             .replace('{cityName}', t(city.nameKey))
-            .replace('{budgetData}', budgetData);
+            .replace('{budgetData}', budgetData)
+            .replace('{duration}', durationText)
+            .replace('{familyInfo}', familyInfo);
             
     } else if (city) { // Logic for other city-specific chats
         const basePromptKey = `${city.id}${config.promptKeySuffix}`;

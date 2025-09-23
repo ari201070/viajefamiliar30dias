@@ -57,7 +57,7 @@ export const CITIES: City[] = [
     id: 'buenosaires',
     nameKey: 'buenosaires_name',
     coords: [-34.6037, -58.3816],
-    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://plus.unsplash.com/premium_photo-1754211851708-019956b12300?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'buenosaires_description',
     activitiesKey: 'buenosaires_activities_recommended',
     accommodationKey: 'buenosaires_accommodation_examples',
@@ -77,7 +77,7 @@ export const CITIES: City[] = [
     id: 'rosario',
     nameKey: 'rosario_name',
     coords: [-32.9442, -60.6505],
-    image: 'https://images.unsplash.com/photo-1663851753121-abd417bfb0b3?q=80&w=1632&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://images.unsplash.com/photo-1663851753121-abd417bfb0b3?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'rosario_description',
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
@@ -95,7 +95,7 @@ export const CITIES: City[] = [
     id: 'bariloche',
     nameKey: 'bariloche_name',
     coords: [-41.133, -71.310],
-    image: 'https://images.unsplash.com/photo-1598162480222-b2c3d92548d5?q=80&w=1170&auto=format&fit=crop&ixlib-rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: 'https://images.unsplash.com/photo-1598162480222-b2c3d92548d5?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     descriptionKey: 'bariloche_description',
     activitiesKey: 'bariloche_activities_recommended',
     accommodationKey: 'bariloche_accommodation_examples',
@@ -328,6 +328,7 @@ export const translations_es: { [key: string]: string } = {
   error: 'Error',
   generating: 'Generando...',
   any_city_placeholder: 'una ciudad de nuestro viaje',
+  family_info_for_ai: "una familia de 4 personas (2 adultos, 2 adolescentes)",
   
   // TopBar Share
   share_app_label: 'Compartir aplicación',
@@ -431,6 +432,7 @@ export const translations_es: { [key: string]: string } = {
   ai_chat_title_budget_analysis: "Análisis de Presupuesto",
   ai_chat_description_budget_analysis: "Consulta a la IA sobre cómo optimizar nuestro presupuesto en {cityName}, basado en los costos estimados.",
   ai_chat_input_placeholder_budget: "Ej: ¿En qué podemos ahorrar más dinero aquí?",
+  generic_ai_prompt_budget_analysis: "Eres un asistente de viajes experto en presupuestos para familias en Argentina. Tu objetivo es ayudar a una familia a optimizar su presupuesto para su estadía en {cityName}. Ya tienes toda la información clave, NO necesitas preguntar por ella.\n\nAquí está el contexto del viaje para {cityName}:\n- **Viajeros**: {familyInfo}.\n- **Duración de la estadía**: {duration}.\n- **Presupuesto estimado actual (en USD)**:\n{budgetData}\n\nBasado ESTRICTAMENTE en esta información, responde las preguntas del usuario sobre cómo pueden ahorrar dinero o si su presupuesto es realista. Ofrece consejos concretos y prácticos. NO preguntes por fechas, número de personas, tipo de alojamiento o presupuesto; asume que la información proporcionada es correcta. Comienza tu primera respuesta saludando a la familia y confirmando que entiendes su plan para {cityName}, luego pregunta en qué área específica del presupuesto les gustaría enfocarse para ahorrar.",
   ai_chat_new_conversation: 'Nueva Conversación',
   ai_chat_input_placeholder: 'Escribe tu mensaje...',
   ai_chat_send_button: 'Enviar',
@@ -536,6 +538,10 @@ export const translations_es: { [key: string]: string } = {
   photo_album_add_details_title: 'Añadir detalles a la foto',
   photo_album_save_button: 'Guardar',
   photo_album_cancel_button: 'Cancelar',
+  photo_album_add_details_batch_title: 'Añadir detalles a {count} fotos',
+  photo_album_apply_to_all: 'Aplicar a todas las fotos seleccionadas',
+  photo_album_save_all_button: 'Guardar Fotos',
+  photo_album_uploading_many: 'Subiendo {count} fotos...',
 
 };
 
@@ -552,6 +558,7 @@ export const translations_he: { [key: string]: string } = {
   error: 'שגיאה',
   generating: 'יוצר...',
   any_city_placeholder: 'עיר כלשהי בטיול שלנו',
+  family_info_for_ai: "משפחה בת 4 נפשות (2 מבוגרים, 2 מתבגרים)",
   
   // TopBar Share
   share_app_label: 'שתף אפליקציה',
@@ -658,6 +665,7 @@ export const translations_he: { [key: string]: string } = {
   ai_chat_title_budget_analysis: "ניתוח תקציב",
   ai_chat_description_budget_analysis: "התייעץ עם ה-AI כיצד למטב את התקציב שלנו ב{cityName}, בהתבסס על העלויות המשוערות.",
   ai_chat_input_placeholder_budget: "לדוגמה: על מה אנחנו יכולים לחסוך פה הכי הרבה כסף?",
+  generic_ai_prompt_budget_analysis: "אתה עוזר טיולים מומחה בתקציבים למשפחות בארגנטינה. מטרתך היא לעזור למשפחה לייעל את התקציב שלה לשהות ב{cityName}. כבר יש לך את כל המידע המרכזי, אינך צריך לשאול עליו.\n\nהנה ההקשר של הטיול עבור {cityName}:\n- **מטיילים**: {familyInfo}.\n- **משך השהייה**: {duration}.\n- **תקציב מוערך נוכחי (בדולר ארה\"ב)**:\n{budgetData}\n\nבהתבסס אך ורק על מידע זה, ענה על שאלות המשתמש לגבי איך הם יכולים לחסוך כסף או אם התקציב שלהם ריאלי. ספק טיפים קונקרטיים ומעשיים. אל תשאל על תאריכים, מספר אנשים, סוג לינה או תקציב; הנח שהמידע שסופק נכון. התחל את תשובתך הראשונה בברכת שלום למשפחה ואישור שהבנת את תוכניתם ל{cityName}, ואז שאל באיזה תחום ספציפי בתקציב הם היו רוצים להתמקד כדי לחסוך.",
   ai_chat_new_conversation: 'שיחה חדשה',
   ai_chat_input_placeholder: 'כתוב את הודעתך...',
   ai_chat_send_button: 'שלח',
@@ -763,5 +771,9 @@ export const translations_he: { [key: string]: string } = {
   photo_album_add_details_title: 'הוסף פרטים לתמונה',
   photo_album_save_button: 'שמור',
   photo_album_cancel_button: 'בטל',
+  photo_album_add_details_batch_title: 'הוסף פרטים ל-{count} תמונות',
+  photo_album_apply_to_all: 'החל על כל התמונות שנבחרו',
+  photo_album_save_all_button: 'שמור תמונות',
+  photo_album_uploading_many: 'מעלה {count} תמונות...',
 
 };
