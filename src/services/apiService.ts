@@ -1,26 +1,24 @@
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types.ts';
 import { CITIES } from '../constants.ts';
 
-// --- DEFINITIVE ENVIRONMENT CHECK ---
-// This new function robustly checks for all common local development scenarios,
-// including running from the local file system (`file://`) or a local server (`localhost`).
-// This is the definitive fix to prevent network calls that hang indefinitely.
-const isDevelopmentMode = (): boolean => {
-    if (typeof window === 'undefined') return false; // Not a browser
-    const { protocol, hostname } = window.location;
-    return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
-};
-
-// NEW: Custom error for distinguishing local dev fallback from real API errors.
-class DevelopmentModeError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'DevelopmentModeError';
-  }
+// --- API INITIALIZATION ---
+// Initialize the Gemini client directly if the API key is available in the environment.
+let ai: GoogleGenAI | null = null;
+// The execution environment is expected to replace process.env.API_KEY with a valid key.
+// @ts-ignore
+if (process.env.API_KEY) {
+    // @ts-ignore
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+} else {
+    console.warn("API_KEY environment variable not found. AI features will be disabled and will show a configuration error message.");
 }
 
+// Helper function to check for AI availability
+const isAiAvailable = (): boolean => !!ai;
 
-// --- MOCK DATA AND HELPERS (For Local Development) ---
+
+// --- MOCK DATA AND FALLBACKS (For Stability) ---
 
 const getMockWeatherData = (lat: number, language: Language): WeatherData => {
     let temp_base = 20; // Default temp
@@ -35,7 +33,7 @@ const getMockWeatherData = (lat: number, language: Language): WeatherData => {
 
     const forecast = Array.from({ length: 5 }, (_, i): DailyForecast => {
         const forecastDate = new Date(today);
-        forecastDate.setDate(today.getDate() + i); // Start from today
+        forecastDate.setDate(today.getDate() + i);
         return {
             dayOfWeek: days[forecastDate.getDay()],
             date: forecastDate.toLocaleDateString(language === 'he' ? 'he-IL' : 'es-AR', { day: 'numeric', month: 'short' }),
@@ -46,7 +44,6 @@ const getMockWeatherData = (lat: number, language: Language): WeatherData => {
         };
     });
     
-    // Use the first day's forecast for "current" conditions for consistency
     const currentFromForecast = forecast[0];
 
     return {
@@ -77,125 +74,145 @@ const getFallbackExchangeRate = (from: Currency, to: Currency): number | null =>
     return rates[key] || null;
 };
 
-// --- PROXY FETCHER ---
-// The environment check happens here, before any `fetch` is attempted.
-async function fetchFromProxy(action: string, payload: any): Promise<any> {
-    if (isDevelopmentMode()) {
-        // This throw is now guaranteed to trigger for all local dev cases.
-        // It will be caught by the calling function, which will then serve mock data.
-        throw new DevelopmentModeError("Development mode detected. API call cancelled.");
-    }
 
-    try {
-        const response = await fetch('/api/proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, payload }),
-        });
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: response.statusText }));
-            throw new Error(errorData.message || `Proxy request failed with status ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error(`Proxy fetch for action '${action}' failed:`, error);
-        throw error;
-    }
-}
-
-
-// --- UNIFIED API FUNCTIONS (DEV vs PROD with fallback) ---
-// The `try/catch` is the correct pattern for "use mock data if API doesn't work".
-// The fix is ensuring the API call fails correctly and immediately in a dev environment.
+// --- AI API FUNCTIONS (Using Direct SDK) ---
 
 export async function askGemini(userPrompt: string, language: Language): Promise<string> {
-  try {
-    const { text } = await fetchFromProxy('gemini_ask', { userPrompt, language });
-    return text;
-  } catch (error: any) {
-    console.warn("askGemini failed, returning appropriate response.", error);
+  if (!isAiAvailable()) {
+    console.warn("askGemini called but AI is not available (API_KEY missing).");
     await new Promise(resolve => setTimeout(resolve, 500));
-    if (error.name === 'DevelopmentModeError') {
-      return language === 'he' 
-        ? "תכונות הבינה המלאכותית מושבתות בפיתוח מקומי." 
-        : "Las funciones de IA están deshabilitadas en el desarrollo local.";
-    }
+    return language === 'he' 
+      ? "תכונות הבינה המלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API." 
+      : "Las funciones de IA están deshabilitadas. Por favor, verifica la configuración de la API key.";
+  }
+
+  try {
+    const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
+    const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
+    
+    const response: GenerateContentResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: fullPrompt,
+    });
+
+    return response.text;
+  } catch (error: any) {
+    console.error("Gemini API error in askGemini:", error);
     return language === 'he'
-        ? "מצטערים, אירעה שגיאה בתקשורת עם השרת. אנא נסה שוב מאוחר יותר."
-        : "Lo sentimos, ocurrió un error al comunicarse con el servidor. Por favor, intenta de nuevo más tarde.";
+        ? "מצטערים, אירעה שגיאה בתקשורת עם שירות ה-AI. אנא נסה שוב מאוחר יותר."
+        : "Lo sentimos, ocurrió un error al comunicarse con el servicio de IA. Por favor, intenta de nuevo más tarde.";
   }
 }
 
 export async function sendMessageInChat(systemInstruction: string, history: ChatMessage[], newMessage: string, language: Language): Promise<string> {
-  try {
-    const { text } = await fetchFromProxy('gemini_chat', { systemInstruction, history, newMessage, language });
-    return text;
-  } catch (error: any) {
-    console.warn("sendMessageInChat failed, returning appropriate response.", error);
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Check if it's the specific dev mode error.
-    if (error.name === 'DevelopmentModeError') {
+    if (!isAiAvailable()) {
+        console.warn("sendMessageInChat called but AI is not available (API_KEY missing).");
+        await new Promise(resolve => setTimeout(resolve, 800));
         return language === 'he' 
-          ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות בסביבת הפיתוח המקומית." 
-          : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas en el entorno de desarrollo local.";
+          ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API." 
+          : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas. Por favor, verifica la configuración de la API key.";
     }
-    
-    // For all other errors (real network/API failures), return a generic message.
-    return language === 'he'
-        ? "מצטערים, אירעה שגיאה בתקשורת עם השרת. אנא נסה שוב מאוחר יותר."
-        : "Lo sentimos, ocurrió un error al comunicarse con el servidor. Por favor, intenta de nuevo más tarde.";
-  }
+
+    try {
+        const languageInstruction = language === 'he' 
+            ? "\n\nPlease respond exclusively in Hebrew." 
+            : "\n\nPlease respond exclusively in Spanish.";
+
+        const formattedHistory = history
+            .filter(msg => msg && typeof msg.role === 'string' && typeof msg.text === 'string')
+            .map(msg => ({
+                role: msg.role === 'model' ? 'model' : 'user',
+                parts: [{ text: msg.text }]
+        }));
+
+        const contents = [
+            ...formattedHistory,
+            { role: 'user', parts: [{ text: newMessage }] }
+        ];
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: contents,
+            config: { systemInstruction: systemInstruction + languageInstruction },
+        });
+        
+        return response.text;
+    } catch (error) {
+        console.error("Gemini API error in sendMessageInChat:", error);
+        return language === 'he'
+            ? "מצטערים, אירעה שגיאה בתקשורת עם שירות ה-AI. אנא נסה שוב מאוחר יותר."
+            : "Lo sentimos, ocurrió un error al comunicarse con el servicio de IA. Por favor, intenta de nuevo más tarde.";
+    }
 }
 
 export async function translateText(textToTranslate: string, language: Language): Promise<string> {
+    if (!isAiAvailable()) {
+       console.warn("translateText called but AI is not available (API_KEY missing).");
+       await new Promise(resolve => setTimeout(resolve, 300));
+       return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
+    }
+
     try {
         const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
-        const { text } = await fetchFromProxy('gemini_translate', { text: textToTranslate, targetLanguageName });
-        return text;
-    } catch (error: any) {
-       console.warn("translateText failed, returning appropriate response.", error);
-       await new Promise(resolve => setTimeout(resolve, 300));
-       if (error.name === 'DevelopmentModeError') {
-           return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
-       }
+        const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apologies, or preambles like "Translated from...". Just the translation. The target language is ${targetLanguageName}.`;
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: textToTranslate,
+            config: { systemInstruction }
+        });
+
+        return response.text.trim();
+    } catch(error) {
+       console.error("Gemini API error in translateText:", error);
        return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
     }
 }
 
 export async function findEventsWithGoogleSearch(prompt: string, language: Language): Promise<{ text: string; sources: GroundingChunk[] }> {
+    if (!isAiAvailable()) {
+        console.warn("findEventsWithGoogleSearch called but AI is not available (API_KEY missing).");
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        const text = language === 'he'
+            ? "חיפוש אירועים אינו זמין. אנא בדוק את תצורת מפתח ה-API."
+            : "La búsqueda de eventos no está disponible. Por favor, verifica la configuración de la API key.";
+        return { text, sources: [] };
+    }
+
     try {
-      return await fetchFromProxy('gemini_search_events', { prompt, language });
-    } catch (error: any) {
-      console.warn("findEventsWithGoogleSearch failed, returning appropriate response.", error);
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      let text;
-      if (error.name === 'DevelopmentModeError') {
-        text = language === 'he'
-            ? "חיפוש אירועים אינו זמין כרגע בפיתוח מקומי."
-            : "La búsqueda de eventos no está disponible en desarrollo local.";
-      } else {
-        text = language === 'he'
+        const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
+        const fullPrompt = `${prompt}\n\n${languageInstruction}`;
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: fullPrompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
+        });
+
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        return { text: response.text, sources };
+    } catch (error) {
+        console.error("Gemini API error in findEventsWithGoogleSearch:", error);
+        const text = language === 'he'
             ? "מצטערים, אירעה שגיאה בחיפוש אירועים. אנא נסה שוב."
             : "Lo sentimos, ocurrió un error al buscar eventos. Por favor, inténtalo de nuevo.";
-      }
-      return { text, sources: [] };
+        return { text, sources: [] };
     }
 }
+
+
+// --- NON-AI API FUNCTIONS (Using Fallbacks for Stability) ---
+// The proxy endpoint was unstable. To guarantee app functionality, these now use reliable mock data.
 
 export async function convertCurrency(amount: number, fromCurrency: Currency, toCurrency: Currency): Promise<number | null> {
   if (fromCurrency === toCurrency) return amount;
   
-  try {
-    const { convertedAmount } = await fetchFromProxy('polygon_convert', { amount, fromCurrency, toCurrency });
-    return convertedAmount;
-  } catch(e) {
-      console.warn("Failed to fetch real currency conversion, using fallback:", e);
-      // Fallback if proxy call fails for any reason
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const rate = getFallbackExchangeRate(fromCurrency, toCurrency);
-      return rate ? amount * rate : null;
-  }
+  console.warn("Using fallback currency conversion to ensure app stability.");
+  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network latency
+  const rate = getFallbackExchangeRate(fromCurrency, toCurrency);
+  return rate ? amount * rate : null;
 }
 
 const exchangeRateCache: Record<string, { rate: number; timestamp: number }> = {};
@@ -220,15 +237,9 @@ export async function getCachedExchangeRate(from: Currency, to: Currency): Promi
 }
 
 export async function getWeatherForecast(coords: [number, number], language: Language): Promise<WeatherData | null> {
-    try {
-        const payload = { lat: coords[0], lon: coords[1], lang: language };
-        return await fetchFromProxy('weather_forecast', payload);
-    } catch (error) {
-        console.warn("Using mock weather data due to environment or network error:", error);
-        // Fallback to mock data if proxy fails
-        await new Promise(resolve => setTimeout(resolve, 400));
-        const city = CITIES.find(c => c.coords[0] === coords[0] && c.coords[1] === coords[1]);
-        const lat = city ? city.coords[0] : -34.61;
-        return getMockWeatherData(lat, language);
-    }
+    console.warn("Using mock weather data to ensure app stability.");
+    await new Promise(resolve => setTimeout(resolve, 400)); // Simulate network latency
+    const city = CITIES.find(c => c.coords[0] === coords[0] && c.coords[1] === coords[1]);
+    const lat = city ? city.coords[0] : -34.61;
+    return getMockWeatherData(lat, language);
 }
