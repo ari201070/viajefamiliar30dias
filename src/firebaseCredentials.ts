@@ -16,10 +16,10 @@
 // =================================================================================
 
 export const firebaseCredentials = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID"
+  apiKey: "AIzaSyAbwv-3H9S4Q2lRlIBWWYXIs1QOLD9iREQ",
+  authDomain: "viajes-argentina-en-30-dias.firebaseapp.com",
+  projectId: "viajes-argentina-en-30-dias",
+  storageBucket: "viajes-argentina-en-30-dias.appspot.com",
+  messagingSenderId: "52421464497",
+  appId: "1:52421464497:web:5b48fe7b53783a087bad90"
 };

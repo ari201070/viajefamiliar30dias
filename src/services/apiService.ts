@@ -1,17 +1,15 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types.ts';
 import { CITIES } from '../constants.ts';
+import { firebaseCredentials } from "../firebaseCredentials.ts";
 
 // --- API INITIALIZATION ---
-// Initialize the Gemini client directly if the API key is available in the environment.
+// Initialize the Gemini client directly from the dedicated credentials file.
 let ai: GoogleGenAI | null = null;
-// The execution environment is expected to replace process.env.API_KEY with a valid key.
-// @ts-ignore
-if (process.env.API_KEY) {
-    // @ts-ignore
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+if (firebaseCredentials.apiKey && firebaseCredentials.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
+    ai = new GoogleGenAI({ apiKey: firebaseCredentials.apiKey });
 } else {
-    console.warn("API_KEY environment variable not found. AI features will be disabled and will show a configuration error message.");
+    console.warn("Gemini API key is not configured in src/firebaseCredentials.ts. AI features will be disabled and will show a configuration error message.");
 }
 
 // Helper function to check for AI availability
@@ -79,11 +77,11 @@ const getFallbackExchangeRate = (from: Currency, to: Currency): number | null =>
 
 export async function askGemini(userPrompt: string, language: Language): Promise<string> {
   if (!isAiAvailable()) {
-    console.warn("askGemini called but AI is not available (API_KEY missing).");
+    console.warn("askGemini called but AI is not available (API Key missing in firebaseCredentials.ts).");
     await new Promise(resolve => setTimeout(resolve, 500));
     return language === 'he' 
-      ? "תכונות הבינה המלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API." 
-      : "Las funciones de IA están deshabilitadas. Por favor, verifica la configuración de la API key.";
+      ? "תכונות הבינה המלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API בקובץ `src/firebaseCredentials.ts`." 
+      : "Las funciones de IA están deshabilitadas. Por favor, verifica la configuración de la API key en el archivo `src/firebaseCredentials.ts`.";
   }
 
   try {
@@ -106,10 +104,10 @@ export async function askGemini(userPrompt: string, language: Language): Promise
 
 export async function sendMessageInChat(systemInstruction: string, history: ChatMessage[], newMessage: string, language: Language): Promise<string> {
     if (!isAiAvailable()) {
-        console.warn("sendMessageInChat called but AI is not available (API_KEY missing).");
+        console.warn("sendMessageInChat called but AI is not available (API Key missing in firebaseCredentials.ts).");
         await new Promise(resolve => setTimeout(resolve, 800));
         return language === 'he' 
-          ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API." 
+          ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות. אנא בדוק את תצורת מפתח ה-API בקובץ `src/firebaseCredentials.ts`." 
           : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas. Por favor, verifica la configuración de la API key.";
     }
 
@@ -147,7 +145,7 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
 
 export async function translateText(textToTranslate: string, language: Language): Promise<string> {
     if (!isAiAvailable()) {
-       console.warn("translateText called but AI is not available (API_KEY missing).");
+       console.warn("translateText called but AI is not available (API Key missing in firebaseCredentials.ts).");
        await new Promise(resolve => setTimeout(resolve, 300));
        return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
     }
@@ -171,7 +169,7 @@ export async function translateText(textToTranslate: string, language: Language)
 
 export async function findEventsWithGoogleSearch(prompt: string, language: Language): Promise<{ text: string; sources: GroundingChunk[] }> {
     if (!isAiAvailable()) {
-        console.warn("findEventsWithGoogleSearch called but AI is not available (API_KEY missing).");
+        console.warn("findEventsWithGoogleSearch called but AI is not available (API Key missing in firebaseCredentials.ts).");
         await new Promise(resolve => setTimeout(resolve, 1200));
         const text = language === 'he'
             ? "חיפוש אירועים אינו זמין. אנא בדוק את תצורת מפתח ה-API."
