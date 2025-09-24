@@ -11,6 +11,14 @@ const isDevelopmentMode = (): boolean => {
     return protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
 };
 
+// NEW: Custom error for distinguishing local dev fallback from real API errors.
+class DevelopmentModeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DevelopmentModeError';
+  }
+}
+
 
 // --- MOCK DATA AND HELPERS (For Local Development) ---
 
@@ -75,7 +83,7 @@ async function fetchFromProxy(action: string, payload: any): Promise<any> {
     if (isDevelopmentMode()) {
         // This throw is now guaranteed to trigger for all local dev cases.
         // It will be caught by the calling function, which will then serve mock data.
-        throw new Error("Development mode detected. API call cancelled.");
+        throw new DevelopmentModeError("Development mode detected. API call cancelled.");
     }
 
     try {
@@ -104,12 +112,17 @@ export async function askGemini(userPrompt: string, language: Language): Promise
   try {
     const { text } = await fetchFromProxy('gemini_ask', { userPrompt, language });
     return text;
-  } catch (error) {
-    console.warn("askGemini failed, returning mock response.", error);
+  } catch (error: any) {
+    console.warn("askGemini failed, returning appropriate response.", error);
     await new Promise(resolve => setTimeout(resolve, 500));
-    return language === 'he' 
-      ? "תכונות הבינה המלאכותית מושבתות בפיתוח מקומי." 
-      : "Las funciones de IA están deshabilitadas en el desarrollo local.";
+    if (error.name === 'DevelopmentModeError') {
+      return language === 'he' 
+        ? "תכונות הבינה המלאכותית מושבתות בפיתוח מקומי." 
+        : "Las funciones de IA están deshabilitadas en el desarrollo local.";
+    }
+    return language === 'he'
+        ? "מצטערים, אירעה שגיאה בתקשורת עם השרת. אנא נסה שוב מאוחר יותר."
+        : "Lo sentimos, ocurrió un error al comunicarse con el servidor. Por favor, intenta de nuevo más tarde.";
   }
 }
 
@@ -117,12 +130,21 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
   try {
     const { text } = await fetchFromProxy('gemini_chat', { systemInstruction, history, newMessage, language });
     return text;
-  } catch (error) {
-    console.warn("sendMessageInChat failed, returning mock response.", error);
+  } catch (error: any) {
+    console.warn("sendMessageInChat failed, returning appropriate response.", error);
     await new Promise(resolve => setTimeout(resolve, 800));
-    return language === 'he' 
-      ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות בסביבת הפיתוח המקומית." 
-      : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas en el entorno de desarrollo local.";
+
+    // Check if it's the specific dev mode error.
+    if (error.name === 'DevelopmentModeError') {
+        return language === 'he' 
+          ? "תודה על שאלתך! כרגע, תכונות הצ'אט עם בינה מלאכותית מושבתות בסביבת הפיתוח המקומית." 
+          : "¡Gracias por tu pregunta! Actualmente, las funciones de chat con IA están deshabilitadas en el entorno de desarrollo local.";
+    }
+    
+    // For all other errors (real network/API failures), return a generic message.
+    return language === 'he'
+        ? "מצטערים, אירעה שגיאה בתקשורת עם השרת. אנא נסה שוב מאוחר יותר."
+        : "Lo sentimos, ocurrió un error al comunicarse con el servidor. Por favor, intenta de nuevo más tarde.";
   }
 }
 
@@ -131,22 +153,32 @@ export async function translateText(textToTranslate: string, language: Language)
         const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
         const { text } = await fetchFromProxy('gemini_translate', { text: textToTranslate, targetLanguageName });
         return text;
-    } catch (error) {
-       console.warn("translateText failed, returning mock response.", error);
+    } catch (error: any) {
+       console.warn("translateText failed, returning appropriate response.", error);
        await new Promise(resolve => setTimeout(resolve, 300));
-       return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
+       if (error.name === 'DevelopmentModeError') {
+           return `[${language === 'he' ? 'תרגום מדומה' : 'Traducción simulada'}] ${textToTranslate}`;
+       }
+       return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
     }
 }
 
 export async function findEventsWithGoogleSearch(prompt: string, language: Language): Promise<{ text: string; sources: GroundingChunk[] }> {
     try {
       return await fetchFromProxy('gemini_search_events', { prompt, language });
-    } catch (error) {
-      console.warn("findEventsWithGoogleSearch failed, returning mock response.", error);
+    } catch (error: any) {
+      console.warn("findEventsWithGoogleSearch failed, returning appropriate response.", error);
       await new Promise(resolve => setTimeout(resolve, 1200));
-      const text = language === 'he'
-        ? "חיפוש אירועים אינו זמין כרגע. נסה שוב מאוחר יותר."
-        : "La búsqueda de eventos no está disponible en este momento. Por favor, inténtalo de nuevo más tarde.";
+      let text;
+      if (error.name === 'DevelopmentModeError') {
+        text = language === 'he'
+            ? "חיפוש אירועים אינו זמין כרגע בפיתוח מקומי."
+            : "La búsqueda de eventos no está disponible en desarrollo local.";
+      } else {
+        text = language === 'he'
+            ? "מצטערים, אירעה שגיאה בחיפוש אירועים. אנא נסה שוב."
+            : "Lo sentimos, ocurrió un error al buscar eventos. Por favor, inténtalo de nuevo.";
+      }
       return { text, sources: [] };
     }
 }
