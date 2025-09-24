@@ -3,8 +3,8 @@ import { useAppContext } from '../context/AppContext.tsx';
 import CityCard from '../components/CityCard.tsx';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 // FIX: Import AI_PROMPT_CONFIGS to be used for rendering AI chat components.
-import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS, BOOKING_DATA } from '../constants.ts';
-import { Currency, BudgetItem, Price, HotelData } from '../types.ts';
+import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
+import { Currency, BudgetItem, Price } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
 import BudgetSummary from '../components/home/BudgetSummary.tsx';
 import TransportTable from '../components/home/TransportTable.tsx';
@@ -122,27 +122,10 @@ const HomePage: React.FC = () => {
     
     try {
         const totalsByCategory: Record<string, { min: number, max: number }> = {};
+        const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
 
-        // --- NEW: Process real bookings first to override estimates ---
-        const bookedAccommodationCostsUSD: Record<string, number> = {};
-        for (const item of BOOKING_DATA) {
-            if (item.type === 'hotel' && item.cityId) {
-                const price = (item.data as HotelData).price;
-                let priceInUSD = 0;
-                if (price.currency === Currency.USD) {
-                    priceInUSD = price.value;
-                } else {
-                    const rate = await getCachedExchangeRate(price.currency, Currency.USD);
-                    if (rate) {
-                        priceInUSD = price.value * rate;
-                    }
-                }
-                bookedAccommodationCostsUSD[item.cityId] = (bookedAccommodationCostsUSD[item.cityId] || 0) + priceInUSD;
-            }
-        }
-
-        // Add trip-wide one-time costs 
+        // Add trip-wide one-time costs first (e.g., international flights)
         TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
             if (!totalsByCategory[item.conceptKey]) {
                 totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
@@ -150,6 +133,7 @@ const HomePage: React.FC = () => {
             const [min, max] = parseRange(item.value);
             totalsByCategory[item.conceptKey].min += min;
             totalsByCategory[item.conceptKey].max += max;
+            oneTimeCostsAdded.add(item.conceptKey);
         });
 
         for (const city of CITIES) {
@@ -158,11 +142,6 @@ const HomePage: React.FC = () => {
             const cityBudget = savedBudgets[city.id] || city.budgetItems;
 
             cityBudget.forEach((item: BudgetItem) => {
-                // If accommodation is booked for this city, skip the estimated budget item.
-                if (item.conceptKey === 'budget_concept_accommodation' && bookedAccommodationCostsUSD[city.id]) {
-                    return; 
-                }
-
                 if (!totalsByCategory[item.conceptKey]) {
                     totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
                 }
@@ -172,25 +151,15 @@ const HomePage: React.FC = () => {
                     totalsByCategory[item.conceptKey].min += min * days;
                     totalsByCategory[item.conceptKey].max += max * days;
                 } else {
-                    // This logic for one-time costs per city is complex, assuming simple add for now
-                    totalsByCategory[item.conceptKey].min += min;
-                    totalsByCategory[item.conceptKey].max += max;
+                    if (!oneTimeCostsAdded.has(item.conceptKey)) {
+                        totalsByCategory[item.conceptKey].min += min;
+                        totalsByCategory[item.conceptKey].max += max;
+                        oneTimeCostsAdded.add(item.conceptKey);
+                    }
                 }
             });
         }
         
-        // Add the actual booked accommodation costs to the total.
-        if (Object.keys(bookedAccommodationCostsUSD).length > 0) {
-            if (!totalsByCategory['budget_concept_accommodation']) {
-                totalsByCategory['budget_concept_accommodation'] = { min: 0, max: 0 };
-            }
-            for (const cityId in bookedAccommodationCostsUSD) {
-                const cost = bookedAccommodationCostsUSD[cityId];
-                totalsByCategory['budget_concept_accommodation'].min += cost;
-                totalsByCategory['budget_concept_accommodation'].max += cost;
-            }
-        }
-
         let totalMinUSD = 0;
         let totalMaxUSD = 0;
         Object.values(totalsByCategory).forEach(category => {

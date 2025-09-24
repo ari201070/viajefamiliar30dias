@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem } from '../../types.ts';
 import { v4 as uuidv4 } from 'uuid';
@@ -99,51 +99,49 @@ const FamilyPhotoAlbum: React.FC = () => {
     setOpenSections(prev => ({ ...prev, [cityId]: !prev[cityId] }));
   };
   
-  // FIX: Rewrote file upload handler using async/await to improve type safety and resolve compiler errors.
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const readFileAsDataURL = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-    
-    const fileList = Array.from(files);
-
-    if (fileList.length === 1) {
-      const src = await readFileAsDataURL(fileList[0]);
-      setCurrentPhoto({
-        id: uuidv4(),
-        src,
-        caption: '',
-        originalLang: language,
-        dateTaken: new Date().toISOString().split('T')[0],
-        tripDay: 1,
-        cityId: CITIES[0].id
-      });
-      setIsModalOpen(true);
-    } else {
-      const photoPromises = fileList.map(async (file) => {
-        const src = await readFileAsDataURL(file);
-        return {
+    if (files.length === 1) {
+      // --- Original single file upload logic ---
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCurrentPhoto({
           id: uuidv4(),
-          src,
+          src: event.target?.result as string,
           caption: '',
           originalLang: language,
+          dateTaken: new Date().toISOString().split('T')[0],
+          tripDay: 1,
+          cityId: CITIES[0].id
+        });
+        setIsModalOpen(true);
+      };
+      reader.readAsDataURL(files[0]);
+    } else {
+      // --- NEW: Batch file upload logic ---
+      const newBatchPhotos: Partial<PhotoItem>[] = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          newBatchPhotos.push({
+            id: uuidv4(),
+            src: event.target?.result as string,
+            caption: '',
+            originalLang: language,
+          });
+          // When the last file is read, open the modal
+          if (newBatchPhotos.length === files.length) {
+            setBatchPhotos(newBatchPhotos);
+            setIsBatchModalOpen(true);
+          }
         };
+        reader.readAsDataURL(file);
       });
-      const newBatchPhotos = await Promise.all(photoPromises);
-      setBatchPhotos(newBatchPhotos);
-      setIsBatchModalOpen(true);
     }
      e.target.value = ''; // Reset file input
   };
-
 
   const handleEditPhoto = (photo: PhotoItem) => {
     setCurrentPhoto(photo);
@@ -185,13 +183,11 @@ const FamilyPhotoAlbum: React.FC = () => {
     }
   };
   
-  // FIX: Improved type safety by replacing 'any' with specific types, preventing potential type pollution.
-  const handleModalInputChange = (field: keyof PhotoItem, value: string | number | undefined) => {
+  const handleModalInputChange = (field: keyof PhotoItem, value: any) => {
     if (currentPhoto) {
       setCurrentPhoto({ ...currentPhoto, [field]: value });
     }
   };
-
 
   // --- NEW: Handlers for batch modal ---
   const handleBatchDetailsChange = (field: keyof typeof batchDetails, value: any) => {
@@ -320,11 +316,7 @@ const FamilyPhotoAlbum: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                            <label htmlFor="tripDay" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_trip_day')}</label>
-                           {/* FIX: Improved onChange handler to prevent NaN values from being stored. */}
-                           <input type="number" id="tripDay" min="1" value={currentPhoto.tripDay || ''} onChange={(e) => {
-                                const num = parseInt(e.target.value, 10);
-                                handleModalInputChange('tripDay', isNaN(num) ? undefined : num);
-                           }} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500" />
+                           <input type="number" id="tripDay" min="1" value={currentPhoto.tripDay || ''} onChange={(e) => handleModalInputChange('tripDay', parseInt(e.target.value, 10))} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                         <div>
                            <label htmlFor="dateTaken" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_date_taken')}</label>

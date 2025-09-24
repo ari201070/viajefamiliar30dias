@@ -135,7 +135,6 @@ export interface PhotoItem {
 export type BookingItem = {
   id: string;
   type: 'hotel' | 'bus' | 'transfer';
-  cityId?: string;
   titleKey: string;
   descriptionKey: string;
   data: HotelData | BusData | TransferData;

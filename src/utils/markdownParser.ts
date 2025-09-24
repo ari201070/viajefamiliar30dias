@@ -106,13 +106,6 @@ export const stripMarkdown = (markdown: string): string => {
 
   let text = markdown;
   
-  // Remove images, keeping alt text
-  text = text.replace(/!\[(.*?)\]\(.*?\)/g, '$1');
-  
-  // Remove links, keeping link text, and also remove raw bracketed URLs
-  text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1');
-  text = text.replace(/\[https?:\/\/[^\]]+\]/g, ''); // E.g. [https://example.com]
-
   // Remove headers
   text = text.replace(/^#{1,6}\s+/gm, '');
 
@@ -121,6 +114,12 @@ export const stripMarkdown = (markdown: string): string => {
 
   // Remove blockquotes
   text = text.replace(/^\s*>\s?/gm, '');
+
+  // Remove images, keeping alt text
+  text = text.replace(/!\[(.*?)\]\(.*?\)/g, '$1');
+  
+  // Remove links, keeping link text
+  text = text.replace(/\[(.*?)\]\(.*?\)/g, '$1');
 
   // Remove bold, italic, strikethrough (order is important)
   text = text.replace(/\*\*(.*?)\*\*/g, '$1');
@@ -142,9 +141,6 @@ export const stripMarkdown = (markdown: string): string => {
   // A simple way to handle tables for speech: remove pipes and separator lines
   text = text.replace(/\|/g, ' ');
   text = text.replace(/^[-|\s]+$/gm, '');
-
-  // Remove extra formatting characters like quotes
-  text = text.replace(/"/g, '');
 
   // Remove extra newlines and trim
   text = text.replace(/\n{2,}/g, '\n').trim();

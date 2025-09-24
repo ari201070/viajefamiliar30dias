@@ -321,10 +321,10 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
         className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700"
       >
         {messages.map(msg => {
-          const displayText = msg.translations?.[language] || msg.text;
           const showTranslateButton = msg.role === 'model' && msg.originalLang !== language && !msg.translations?.[language];
           const targetLangName = t(`language_name_${language}`);
-          
+          const originalLangName = t(`language_name_${msg.originalLang}`);
+
           return (
             <div key={msg.id} className={`flex flex-col items-start ${msg.role === 'user' ? 'items-end' : ''}`}>
               <div className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
@@ -342,7 +342,13 @@ const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
                   ? 'bg-indigo-500 text-white rounded-br-lg' 
                   : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-lg'
                 }`}>
-                  {displayText}
+                  {msg.text}
+                  {msg.translations?.[language] && (
+                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
+                      <p className="text-xs font-semibold opacity-75 mb-1">{t('ai_translated_from_label', { lang: originalLangName })}</p>
+                      <p>{msg.translations[language]}</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
