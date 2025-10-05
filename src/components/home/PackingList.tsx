@@ -1,183 +1,106 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { PackingItem } from '../../types.ts';
-import { v4 as uuidv4 } from 'uuid';
-import { firebaseSyncService } from '../../services/firebaseSyncService.ts';
-import { isFirebaseConfigured } from '../../services/firebaseConfig.ts';
+import React, { useState, useEffect, FC } from 'react';
+import { useAppContext } from '../../context/AppContext.ts';
+import { PackingItem, Language } from '../../types.ts';
 
-const PackingList: React.FC = () => {
-  const { t, language, user } = useAppContext();
-  const [packingItems, setPackingItems] = useState<PackingItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [newItemText, setNewItemText] = useState('');
-  const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
+const PackingList: FC = () => {
+    const { t, language } = useAppContext();
+    const [items, setItems] = useState<PackingItem[]>([]);
+    const [newItemText, setNewItemText] = useState('');
+    const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
-  useEffect(() => {
-    setIsLoading(true);
-    if (user && isFirebaseConfigured) {
-      // Use real-time listener for instant sync across devices.
-      const unsubscribe = firebaseSyncService.listenToPackingList((items) => {
-        setPackingItems(items);
-        setIsLoading(false);
-      });
-      // Cleanup subscription on component unmount
-      return () => unsubscribe();
-    } else {
-      // Fallback to local storage if Firebase is not used
-      try {
-          const saved = localStorage.getItem('packingList');
-          setPackingItems(saved ? JSON.parse(saved) : []);
-      } catch (e) {
-          console.error("Failed to load packing list from localStorage", e);
-          setPackingItems([]);
-      }
-      setIsLoading(false);
-    }
-  }, [user]);
-  
-  const saveList = useCallback(async (items: PackingItem[]) => {
-      if (user && isFirebaseConfigured) {
-        // Save to the shared family list.
-        await firebaseSyncService.savePackingList(items);
-      } else {
-        try {
-            localStorage.setItem('packingList', JSON.stringify(items));
-        } catch (e) {
-            console.error("Failed to save packing list to localStorage", e);
+    useEffect(() => {
+        const savedList = localStorage.getItem('packingList');
+        if (savedList) {
+            setItems(JSON.parse(savedList));
         }
-      }
-  }, [user]);
+    }, []);
+    
+    useEffect(() => {
+        localStorage.setItem('packingList', JSON.stringify(items));
+    }, [items]);
 
-  const handleAddPackingItem = () => {
-    if (newItemText.trim() === '') return;
-    const newItem: PackingItem = {
-      id: uuidv4(),
-      text: newItemText.trim(),
-      type: newItemType,
-      originalLang: language,
-      checked: false,
+    const handleAddItem = () => {
+        if (newItemText.trim() === '') return;
+        const newItem: PackingItem = {
+            id: Date.now().toString(),
+            text: newItemText,
+            type: newItemType,
+            originalLang: language,
+            checked: false,
+        };
+        setItems([...items, newItem]);
+        setNewItemText('');
     };
     
-    const updatedItems = [...packingItems, newItem];
-    // The listener will handle updating the state upon successful save.
-    saveList(updatedItems);
-    setNewItemText('');
-  };
+    const toggleItemChecked = (id: string) => {
+        setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+    };
 
-  const handleRemovePackingItem = (id: string) => {
-    const updatedItems = packingItems.filter(item => item.id !== id);
-    saveList(updatedItems);
-  };
-  
-  const handleTogglePackingItem = (id: string) => {
-    const updatedItems = packingItems.map(item =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-    );
-    saveList(updatedItems);
-  };
-  
-  const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+    const deleteItem = (id: string) => {
+        setItems(items.filter(item => item.id !== id));
+    };
 
-  const renderList = (type: 'essential' | 'optional') => {
-    if (isLoading) {
-      return (
-        <div className="text-center py-10 text-gray-500 dark:text-slate-400">
-          <i className="fas fa-spinner fa-spin text-3xl"></i>
-        </div>
-      );
-    }
-    const items = packingItems.filter(item => item.type === type);
-    if (items.length === 0) {
-      return (
-        <div className="text-center py-10 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <i className="fas fa-suitcase-rolling text-4xl mb-3 text-gray-400 dark:text-slate-500"></i>
-          <p>{t('packing_list_empty')}</p>
-        </div>
-      );
-    }
+    const renderList = (type: 'essential' | 'optional') => {
+        const filteredItems = items.filter(item => item.type === type);
+        if(filteredItems.length === 0) {
+            return <p className="text-sm text-gray-500 dark:text-slate-400 italic">{t('packing_list_empty')}</p>
+        }
+        return (
+            <ul className="space-y-2">
+                {filteredItems.map(item => (
+                    <li key={item.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700/50 rounded-md">
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={item.checked}
+                                onChange={() => toggleItemChecked(item.id)}
+                                className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className={`ml-3 ${item.checked ? 'line-through text-gray-500' : 'text-gray-800 dark:text-slate-200'}`}>{item.text}</span>
+                        </div>
+                        <button onClick={() => deleteItem(item.id)} className="text-red-500 hover:text-red-700">
+                            <i className="fas fa-trash-alt"></i>
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
     return (
-      <ul className="space-y-2">
-        {items.map(item => (
-          <li
-            key={item.id}
-            className="flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg shadow-sm group transition-all duration-300"
-          >
-            <div
-              className="flex items-center flex-grow cursor-pointer"
-              onClick={() => handleTogglePackingItem(item.id)}
-            >
-              <input
-                type="checkbox"
-                checked={item.checked}
-                onChange={() => handleTogglePackingItem(item.id)}
-                className="h-5 w-5 rounded border-gray-400 dark:border-slate-500 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-600 dark:checked:bg-indigo-500 dark:checked:border-indigo-500 mr-4 flex-shrink-0"
-                aria-labelledby={`item-text-${item.id}`}
-              />
-              <span
-                id={`item-text-${item.id}`}
-                className={`text-gray-800 dark:text-slate-200 break-all transition-all ${
-                  item.checked ? 'line-through text-gray-400 dark:text-slate-500' : ''
-                }`}
-              >
-                {item.text}
-              </span>
+        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
+                 <i className="fas fa-suitcase-rolling mr-3 text-indigo-600 dark:text-indigo-400" />
+                {t('packing_title')}
+            </h2>
+            <div className="flex flex-wrap gap-2 mb-6">
+                <input
+                    type="text"
+                    value={newItemText}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    placeholder={t('packing_placeholder')}
+                    className="flex-grow p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700"
+                />
+                <select value={newItemType} onChange={e => setNewItemType(e.target.value as any)} className="p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700">
+                    <option value="essential">{t('packing_essential')}</option>
+                    <option value="optional">{t('packing_optional')}</option>
+                </select>
+                <button onClick={handleAddItem} className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">
+                    {t('packing_add')}
+                </button>
             </div>
-            <button
-              onClick={() => handleRemovePackingItem(item.id)}
-              className="text-red-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 ml-4 flex-shrink-0"
-              aria-label={`Remove ${item.text}`}
-            >
-              <i className="fas fa-trash-alt"></i>
-            </button>
-          </li>
-        ))}
-      </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 className="text-xl font-semibold mb-3 text-gray-700 dark:text-slate-300">{t('packing_essential')}</h3>
+                    {renderList('essential')}
+                </div>
+                <div>
+                    <h3 className="text-xl font-semibold mb-3 text-gray-700 dark:text-slate-300">{t('packing_optional')}</h3>
+                    {renderList('optional')}
+                </div>
+            </div>
+        </section>
     );
-  };
-  
-  return (
-    <section className={cardClasses}>
-      <h2 className={`${sectionTitleClasses} flex items-center`}>
-        <i className="fas fa-suitcase-rolling mr-3 text-indigo-600 dark:text-indigo-400"></i>
-        {t('packing_title')}
-      </h2>
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-        <input
-          type="text"
-          value={newItemText}
-          onChange={(e) => setNewItemText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddPackingItem()}
-          placeholder={t('packing_placeholder')}
-          className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
-        />
-        <select
-          value={newItemType}
-          onChange={(e) => setNewItemType(e.target.value as 'essential' | 'optional')}
-          className="p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700"
-        >
-          <option value="essential">{t('packing_essential')}</option>
-          <option value="optional">{t('packing_optional')}</option>
-        </select>
-        <button
-          onClick={handleAddPackingItem}
-          className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105"
-        >
-          <i className="fas fa-plus mr-2"></i>{t('packing_add')}
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h4 className="text-xl font-semibold text-gray-700 dark:text-slate-300 mb-3">{t('packing_essential')}</h4>
-          {renderList('essential')}
-        </div>
-        <div>
-          <h4 className="text-xl font-semibold text-gray-700 dark:text-slate-300 mb-3">{t('packing_optional')}</h4>
-          {renderList('optional')}
-        </div>
-      </div>
-    </section>
-  );
 };
 
 export default PackingList;

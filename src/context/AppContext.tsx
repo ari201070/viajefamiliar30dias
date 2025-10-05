@@ -1,10 +1,9 @@
 import { createContext, useContext } from 'react';
-// FIX: Removed incorrect import of User type. It's now handled within AppContextType from types.ts
-import { AppContextType } from '../types.ts';
+import { AppContextType } from '../types';
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const useAppContext = () => {
+export const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');

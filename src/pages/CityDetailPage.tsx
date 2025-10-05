@@ -1,27 +1,24 @@
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext.tsx';
-import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.ts';
-import InteractiveMap from '../components/InteractiveMap.tsx';
-import BudgetTable from '../components/BudgetTable.tsx';
-import { AIResponseType } from '../types.ts';
-import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.ts';
-import { findEventsWithGoogleSearch } from '../services/apiService.ts';
-import AIChatBox from '../components/AIChatBox.tsx';
+import { useAppContext } from '../context/AppContext';
+import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants';
+import InteractiveMap from '../components/InteractiveMap';
+import BudgetTable from '../components/BudgetTable';
+import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser';
+import { findEventsWithGoogleSearch } from '../services/apiService';
+import AIChatBox from '../components/AIChatBox';
+import { AIResponseType, Language } from '../types';
 
-const CityDetailPage: React.FC = () => {
+const CityDetailPage: FC = () => {
   const { cityId } = useParams<{ cityId: string }>();
   const { t, language } = useAppContext();
 
   const city = CITIES.find(c => c.id === cityId);
 
   const [eventsAiResponse, setEventsAiResponse] = useState<AIResponseType | null>(null);
-  const [isEventsAiLoading, setIsEventsAiLoading] = useState(false);
+  const [isEventsAiLoading, setIsEventsAiLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // Reset AI states ONLY when city changes, not on language change
     setEventsAiResponse(null);
     setIsEventsAiLoading(false);
   }, [cityId]);
@@ -53,7 +50,7 @@ const CityDetailPage: React.FC = () => {
             text: text || t('ai_event_finder_error'),
             sources: sources,
             lang: language,
-            originalBasePromptKey: '', // Not needed for this specific feature
+            originalBasePromptKey: '', 
             originalUserInput: ''
         });
     } catch (error) {
@@ -75,7 +72,7 @@ const CityDetailPage: React.FC = () => {
     
     if (!content || content === contentKey) return null;
 
-    let contentNode: React.ReactNode;
+    let contentNode;
 
     if (content.trim().startsWith('- ')) {
       const listItems = content.split('\n').filter(item => item.trim().startsWith('- '));
@@ -98,7 +95,7 @@ const CityDetailPage: React.FC = () => {
             acc.push(<h3 key={`sub-${index}`} className="text-xl font-semibold text-gray-800 dark:text-slate-200 mt-4 mb-2">{t(subtitleKey)}</h3>);
           }
         } else if (part.trim().startsWith('|')) { 
-          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, (k) => t(k), language)}</div>);
+          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, (k: string) => t(k), language as Language)}</div>);
         } else if (part.trim()) { 
           acc.push(<p key={`text-${index}`} className={`${detailTextClasses} mb-3 whitespace-pre-line`}>{part}</p>);
         }
@@ -111,7 +108,7 @@ const CityDetailPage: React.FC = () => {
     return (
       <section className={detailCardClasses}>
         <h2 className={detailSectionTitleClasses}>
-          <i className={`fas ${iconClass} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+          <i className={`fas ${iconClass} mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
           {title}
         </h2>
         {contentNode}
@@ -139,7 +136,7 @@ const CityDetailPage: React.FC = () => {
     return (
       <section className={detailCardClasses}>
         <h2 className={detailSectionTitleClasses}>
-          <i className={`fas ${iconClass} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+          <i className={`fas ${iconClass} mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
           {title}
         </h2>
         {isMainTextValid && (
@@ -152,7 +149,7 @@ const CityDetailPage: React.FC = () => {
             rel="noopener noreferrer"
             className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm"
             >
-            {displayText} <i className="fas fa-external-link-alt ml-1"></i>
+            {displayText} <i className="fas fa-external-link-alt ml-1" />
             </a>
         )}
       </section>
@@ -166,7 +163,6 @@ const CityDetailPage: React.FC = () => {
           {t(city.nameKey)}
         </h1>
       </header>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 space-y-8">
           <section className={detailCardClasses}>
@@ -178,15 +174,12 @@ const CityDetailPage: React.FC = () => {
             />
             <p className={`${detailTextClasses} text-lg whitespace-pre-line`}>{t(city.descriptionKey)}</p>
           </section>
-
           {renderSection('dates_duration', `${city.id}_dates_duration`, 'fa-calendar-alt')}
           {renderSection('must_see', `${city.id}_must_see`, 'fa-star')}
           {renderSection('activities_recommended', city.activitiesKey, 'fa-hiking')}
-
-          {/* AI Event Finder Section */}
           <section className={detailCardClasses}>
             <h2 className={detailSectionTitleClasses}>
-              <i className={`fas fa-calendar-star mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+              <i className={`fas fa-calendar-star mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
               {t('section_title_ai_event_finder')}
             </h2>
             <p className={`${detailTextClasses} mb-4`}>
@@ -198,9 +191,9 @@ const CityDetailPage: React.FC = () => {
               className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2.5 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center mb-3"
             >
               {isEventsAiLoading ? (
-                <><i className="fas fa-spinner fa-spin mr-2"></i> {t('generating')}</>
+                <><i className="fas fa-spinner fa-spin mr-2" /> {t('generating')}</>
               ) : (
-                <><i className="fas fa-search-location mr-2"></i> {t('ai_event_finder_button')}</>
+                <><i className="fas fa-search-location mr-2" /> {t('ai_event_finder_button')}</>
               )}
             </button>
             {eventsAiResponse && (
@@ -211,10 +204,10 @@ const CityDetailPage: React.FC = () => {
                     <h4 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2">{t('ai_event_finder_sources_title')}</h4>
                     <ul className="space-y-1">
                       {eventsAiResponse.sources.map((source, index) => (
-                        source.web && (
+                        source.web && source.web.uri && (
                           <li key={index} className="text-xs">
                             <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400 break-all">
-                              <i className="fas fa-link fa-xs mr-1.5"></i>
+                              <i className="fas fa-link fa-xs mr-1.5" />
                               {source.web.title || source.web.uri}
                             </a>
                           </li>
@@ -226,24 +219,19 @@ const CityDetailPage: React.FC = () => {
               </div>
             )}
           </section>
-
           {renderSection('gastronomy_highlight', `${city.id}_gastronomy_highlight`, 'fa-utensils')}
           {renderSection('accommodation_examples', city.accommodationKey, 'fa-bed')}
           {renderSection('coordinates', `${city.id}_coordinates`, 'fa-map-pin')}
           {renderSection('family_tips', `${city.id}_family_tips`, 'fa-users')}
           {renderSection('cultural_tips', `${city.id}_cultural_tips`, 'fa-landmark')}
-          
           <section className={detailCardClasses}>
              <h2 className={detailSectionTitleClasses}>
-                <i className={`fas fa-wallet mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+                <i className={`fas fa-wallet mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
                 {t('section_title_budget_table')}
              </h2>
              <BudgetTable cityId={city.id} defaultBudgetItems={city.budgetItems} />
           </section>
-
           {renderLinkSection('city_map', 'map_link_text', 'map_link_url', 'fa-map')}
-
-          {/* AI Chat Sections */}
           {AI_PROMPT_CONFIGS.map(config => (
               <AIChatBox 
                 key={config.promptKeySuffix} 
@@ -252,20 +240,18 @@ const CityDetailPage: React.FC = () => {
                 chatId={`${city.id}_${config.promptKeySuffix}`}
               />
           ))}
-
         </div>
-
         <aside className="lg:col-span-1 space-y-8 sticky top-24">
            <section className={detailCardClasses}>
             <h2 className={detailSectionTitleClasses}>
-                <i className={`fas fa-map-marked-alt mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
+                <i className={`fas fa-map-marked-alt mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
                 {t('mapaInteractivoTitulo')}
             </h2>
-            <InteractiveMap 
+            <InteractiveMap
               cities={[city]} 
               selectedCityCoords={city.coords} 
               pointsOfInterest={city.pointsOfInterest}
-              zoomLevel={13} 
+              zoomLevel={13}
             />
           </section>
         </aside>

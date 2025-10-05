@@ -1,93 +1,81 @@
-import React, { useState } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
+import React, { useState, FC } from 'react';
+import { useAppContext } from '../../context/AppContext.ts';
+import { CURRENCIES } from '../../constants.ts';
 import { Currency } from '../../types.ts';
-import { convertCurrency as fetchConvertedCurrency } from '../../services/apiService.ts';
+import { convertCurrency } from '../../services/apiService.ts';
 
-const CurrencyConverter: React.FC = () => {
-  const { t, language } = useAppContext();
-  const [amountToConvert, setAmountToConvert] = useState<string>('');
-  const [fromCurrency, setFromCurrency] = useState<Currency>(Currency.ARS);
-  const [toCurrency, setToCurrency] = useState<Currency>(Currency.USD);
-  const [conversionResult, setConversionResult] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+const CurrencyConverter: FC = () => {
+    const { t } = useAppContext();
+    const [amount, setAmount] = useState('100');
+    const [fromCurrency, setFromCurrency] = useState<Currency>(Currency.USD);
+    const [toCurrency, setToCurrency] = useState<Currency>(Currency.ARS);
+    const [result, setResult] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-  const handleCurrencyConversion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!amountToConvert || parseFloat(amountToConvert) <= 0) {
-      setConversionResult(t('error') + ': ' + (language === 'he' ? 'הזן סכום חוקי' : 'Enter a valid amount'));
-      return;
-    }
-    setIsLoading(true);
-    setConversionResult('');
-    const numericAmount = parseFloat(amountToConvert);
-    const result = await fetchConvertedCurrency(numericAmount, fromCurrency, toCurrency);
-    setIsLoading(false);
-    if (result !== null) {
-      setConversionResult(`${numericAmount.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR')} ${fromCurrency} = ${result.toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${toCurrency}`);
-    } else {
-      setConversionResult(t('error') + ': ' + (language === 'he' ? 'לא ניתן היה לבצע המרה' : 'Conversion failed'));
-    }
-  };
-  
-  const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+    const handleConvert = async () => {
+        const numAmount = parseFloat(amount);
+        if (isNaN(numAmount)) {
+            setResult(t('error'));
+            return;
+        }
+        setIsLoading(true);
+        setResult(null);
+        const convertedAmount = await convertCurrency(numAmount, fromCurrency, toCurrency);
+        if (convertedAmount !== null) {
+            setResult(`${toCurrency} ${convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+        } else {
+            setResult(t('error'));
+        }
+        setIsLoading(false);
+    };
 
-  return (
-    <section className={cardClasses}>
-      <h2 className={`${sectionTitleClasses} flex items-center`}><i className="fas fa-coins mr-3 text-indigo-600 dark:text-indigo-400"></i>{t('conversorTitulo')}</h2>
-      <form onSubmit={handleCurrencyConversion} className="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:gap-4">
-        <div className="flex-grow">
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">{t('montoPlaceholder')}</label>
-          <input
-            type="number"
-            id="amount"
-            step="0.01"
-            min="0"
-            value={amountToConvert}
-            onChange={(e) => setAmountToConvert(e.target.value)}
-            placeholder={t('montoPlaceholder')}
-            required
-            className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="fromCurrency" className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">{t('desde')}</label>
-          <select
-            id="fromCurrency"
-            value={fromCurrency}
-            onChange={(e) => setFromCurrency(e.target.value as Currency)}
-            className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700"
-          >
-            {Object.values(Currency).map(curr => <option key={curr} value={curr}>{curr}</option>)}
-          </select>
-        </div>
-        <div className="self-end pb-3 text-2xl text-gray-500 dark:text-slate-500 hidden sm:block">→</div>
-        <div>
-          <label htmlFor="toCurrency" className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">{t('hasta')}</label>
-          <select
-            id="toCurrency"
-            value={toCurrency}
-            onChange={(e) => setToCurrency(e.target.value as Currency)}
-            className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700"
-          >
-            {Object.values(Currency).map(curr => <option key={curr} value={curr}>{curr}</option>)}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-50"
-        >
-          {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <><i className="fas fa-exchange-alt mr-2"></i>{t('convertirBtn')}</>}
-        </button>
-      </form>
-      {(conversionResult || isLoading) && (
-        <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-700 rounded-lg shadow text-center font-semibold text-lg text-gray-700 dark:text-slate-200 min-h-[56px] flex items-center justify-center">
-          {isLoading ? <i className="fas fa-spinner fa-spin text-2xl text-indigo-600 dark:text-indigo-400"></i> : conversionResult}
-        </div>
-      )}
-    </section>
-  );
+    return (
+        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
+                <i className="fas fa-exchange-alt mr-3 text-indigo-600 dark:text-indigo-400" />
+                {t('conversorTitulo')}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div className="flex flex-col">
+                    <label htmlFor="amount" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('montoPlaceholder')}</label>
+                    <input
+                        id="amount"
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder={t('montoPlaceholder')}
+                        className="p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700"
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <div>
+                         <label htmlFor="from" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('desde')}</label>
+                         <select id="from" value={fromCurrency} onChange={e => setFromCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
+                             {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                         </select>
+                    </div>
+                    <div>
+                        <label htmlFor="to" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('hasta')}</label>
+                        <select id="to" value={toCurrency} onChange={e => setToCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
+                            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                        </select>
+                    </div>
+                </div>
+            </div>
+             <button
+                onClick={handleConvert}
+                disabled={isLoading}
+                className="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-50"
+            >
+                {isLoading ? <i className="fas fa-spinner fa-spin"></i> : t('convertirBtn')}
+            </button>
+            {result && (
+                <div className="mt-6 p-4 bg-gray-100 dark:bg-slate-700 rounded-lg text-center text-xl font-bold text-gray-800 dark:text-slate-100">
+                    {result}
+                </div>
+            )}
+        </section>
+    );
 };
 
 export default CurrencyConverter;

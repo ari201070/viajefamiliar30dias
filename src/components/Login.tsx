@@ -1,40 +1,47 @@
-import React from 'react';
+import React, { useState, FC } from 'react';
 import { authService } from '../services/authService.ts';
-import { isFirebaseConfigured } from '../services/firebaseConfig.ts';
-import { useAppContext } from '../context/AppContext.tsx';
-import type { User } from '../types.ts';
+import { useAppContext } from '../context/AppContext.ts';
 
-
-const Login: React.FC = () => {
-  const { setUser } = useAppContext();
+const Login: FC = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { t } = useAppContext();
 
   const handleLogin = async () => {
-    if (isFirebaseConfigured) {
-        await authService.signInWithGoogle();
-        // The onAuthChange listener in App.tsx will handle the state change.
-    } else {
-        // In local/offline mode, set a mock user to proceed.
-        setUser({
-            uid: 'local-user',
-            displayName: 'Ariel Flier (Local)',
-        } as User);
+    setIsLoading(true);
+    setError(null);
+    const result = await authService.signInWithGoogle();
+    if (!result.success) {
+      setError(result.error?.message || t('login_error_generic'));
     }
+    setIsLoading(false);
+    // On success, the onAuthChange listener in App.tsx will handle the state update
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gray-100 dark:bg-slate-900 p-4">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all hover:scale-105 duration-300">
-            <i className="fas fa-route text-6xl text-indigo-500 mb-5 animate-pulse"></i>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-slate-200 mb-2">Viaje Familiar por Argentina</h1>
-            <p className="text-gray-600 dark:text-slate-400 mb-8">Por favor, inicia sesión para acceder al itinerario.</p>
-            <button
-                onClick={handleLogin}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all transform hover:scale-105 flex items-center justify-center text-lg"
-            >
-                <i className="fab fa-google text-xl mr-3"></i>
-                Iniciar sesión con Google
-            </button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-slate-900">
+      <div className="max-w-md w-full bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl text-center">
+        <div className="mb-8">
+            <i className="fas fa-plane-departure text-6xl text-indigo-600 dark:text-indigo-400"></i>
         </div>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">{t('tituloPrincipal')}</h1>
+        <p className="text-gray-600 dark:text-slate-400 mb-8">{t('bienvenidaPrincipal')}</p>
+        <button
+          onClick={handleLogin}
+          disabled={isLoading}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center"
+        >
+          {isLoading ? (
+            <i className="fas fa-spinner fa-spin text-xl"></i>
+          ) : (
+            <>
+              <i className="fab fa-google text-xl mr-3"></i>
+              Iniciar sesión con Google
+            </>
+          )}
+        </button>
+        {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      </div>
     </div>
   );
 };

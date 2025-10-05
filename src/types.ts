@@ -1,18 +1,12 @@
 import type firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
 
+// User type from Firebase Auth
 export type User = firebase.User;
 
+// --- Enums ---
 export enum Language {
   ES = 'es',
   HE = 'he',
-}
-
-export enum Currency {
-  ARS = 'ARS',
-  USD = 'USD',
-  EUR = 'EUR',
-  ILS = 'ILS',
 }
 
 export enum Theme {
@@ -20,195 +14,56 @@ export enum Theme {
   DARK = 'dark',
 }
 
-export interface PointOfInterest {
-  id: string;
-  nameKey: string;
-  coords: [number, number];
-  descriptionKey?: string;
+export enum Currency {
+  USD = 'USD',
+  ARS = 'ARS',
+  EUR = 'EUR',
+  ILS = 'ILS',
 }
 
-export interface BudgetItem {
-  conceptKey: string; // e.g., 'budget_concept_accommodation'
-  value: string;      // e.g., '50-120' - The value is stored directly here
-  isPerDay: boolean;  // To help with calculations
-}
-
-export interface City {
-  id: string;
-  nameKey: string; // Translation key for the name
-  coords: [number, number];
-  image: string; // Path to image, e.g., /docs/imagenes/buenosaires.jpg
-  descriptionKey: string;
-  activitiesKey: string;
-  accommodationKey: string;
-  budgetItems: BudgetItem[]; // Replaces budgetKey
-  pointsOfInterest?: PointOfInterest[]; // Optional array of POIs
-}
-
-export interface Day {
-  id: number;
-  dayNumber: number;
-  cityId: string; // links to a City
-  titleKey: string;
-  descriptionKey: string;
-  image: string;
-}
-
-export interface TranslationSet {
-  [key:string]: string;
-}
-
-export interface Translations {
-  [Language.ES]: TranslationSet;
-  [Language.HE]: TranslationSet;
-}
-
-export type FirebaseStatus = 'unknown' | 'connecting' | 'connected' | 'error';
-
+// --- App Context ---
 export interface AppContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
-  t: (key: string, replacements?: Record<string, string>) => string;
+  t: (key: string, options?: any) => string;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  isOnline: boolean;
   user: User | null;
   setUser: (user: User | null) => void;
+  hasPendingPackingListChanges: boolean;
+  setHasPendingPackingListChanges: (hasChanges: boolean) => void;
+  pendingPhotos: PhotoItem[];
+  setPendingPhotos: (photos: PhotoItem[]) => void;
 }
 
-export interface PolygonRateResponse {
-  status?: string;
-  request_id?: string;
-  ticker?: string;
-  results?: { c: number }[]; 
-  error?: string;
-}
 
-export interface TransportLeg {
-  id: string;
-  fromKey: string;
-  toKey: string;
-  meanKey: string;
-  timeKey: string;
-  priceKey: string; 
-  company: string;
-  basePriceARS: number;
-  companyUrlKey?: string; // Optional: translation key for the company's URL
-}
-
-export interface AIPromptContent {
-  titleKey: string;
+// --- City and Points of Interest ---
+export interface PointOfInterest {
+  nameKey: string;
   descriptionKey: string;
-  buttonKey: string;
-  promptKeySuffix: string; // e.g., 'ai_prompt_menu' -> cityId + promptKeySuffix
-  icon: string; // FontAwesome icon class
-  userInputPlaceholderKey: string; // Placeholder for the user input textarea
+  coords: [number, number];
 }
 
-export interface ChatMessage {
+export interface City {
   id: string;
-  role: 'user' | 'model';
-  text: string;
-  originalLang: Language;
-  translations?: Partial<Record<Language, string>>;
-}
-
-export interface PackingItem {
-  id: string;
-  text: string;
-  type: 'essential' | 'optional';
-  originalLang: Language;
-  checked: boolean;
-}
-
-export interface PhotoItem {
-  id: string;
-  src: string; // base64 data URL or public URL
-  caption: string;
-  originalLang: Language;
-  cityId?: string;
-  tripDay?: number;
-  dateTaken?: string; // YYYY-MM-DD format
-}
-
-export type BookingItem = {
-  id: string;
-  type: 'hotel' | 'bus' | 'transfer';
-  titleKey: string;
+  nameKey: string;
   descriptionKey: string;
-  data: HotelData | BusData | TransferData;
-};
-
-export interface Price {
-    value: number;
-    currency: Currency;
+  image: string;
+  coords: [number, number];
+  budgetItems: BudgetItem[];
+  pointsOfInterest: PointOfInterest[];
+  activitiesKey: string;
+  accommodationKey: string;
 }
 
-export interface HotelData {
-    confirmation: string;
-    pin: string;
-    checkIn: string; // YYYY-MM-DD
-    checkOut: string; // YYYY-MM-DD
-    nights: number;
-    guests: string;
-    price: Price;
-    address: string;
-    phone: string;
-};
-
-export interface BusPassenger {
-  name: string;
-  seat: string;
-  type: string;
-};
-
-export interface BusData {
-  from: string;
-  to: string;
-  departure: string; // ISO DateTime string
-  arrival: string; // ISO DateTime string
-  duration: string;
-  passengers: BusPassenger[];
-  price: Price;
-  company: string;
-};
-
-export interface TransferData {
-    from: string;
-    to: string;
-    date: string; // YYYY-MM-DD
-    duration: string;
-    price: Price;
-};
-
-
-// Types for Grounding / Google Search Tool
-export interface WebChunk {
-  web: {
-    uri: string;
-    title: string;
-  };
-}
-
-export type GroundingChunk = WebChunk; // Can be extended if other chunk types are used
-
-export interface AIResponseType {
-  text: string;
-  lang: Language;
-  originalBasePromptKey: string;
-  originalUserInput: string;
-  sources?: GroundingChunk[];
-}
-
-export interface EditableBudgetItem {
-  id: string; // uuid for stable keys
-  concept: string; // e.g., "Estadía en Buenos Aires" or "Transporte: BUE -> ROS"
-  details: string; // e.g., "4 días" or "Bus"
-  dates: string; // e.g., "27/09 - 30/09"
-  estimatedCost: number; // Stored in ARS for consistency
-  actualCost: number | null; // User-editable
-  notes: string; // User-editable
+// --- Budget ---
+export interface BudgetItem {
+  conceptKey: string;
+  value: string; // Can be a single number or a range like "100-150"
+  isPerDay: boolean;
 }
 
 export interface BudgetDetails {
@@ -217,7 +72,112 @@ export interface BudgetDetails {
   isCalculating: boolean;
 }
 
-// --- Weather Types ---
+// --- AI and Chat ---
+export interface AIPromptContent {
+  icon: string;
+  titleKey: string;
+  descriptionKey: string;
+  userInputPlaceholderKey: string;
+  promptKeySuffix: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  originalLang: Language;
+  translations: Record<string, string>;
+}
+
+export interface GroundingChunk {
+    web?: {
+      uri?: string;
+      title?: string;
+    };
+}
+
+export interface AIResponseType {
+  text: string;
+  sources?: GroundingChunk[];
+  lang: Language;
+  originalBasePromptKey: string;
+  originalUserInput: string;
+}
+
+
+// --- Transportation & Reservations ---
+export interface Price {
+  value: number;
+  currency: Currency;
+}
+
+export interface TransportLeg {
+  id: string;
+  fromKey: string;
+  toKey: string;
+  meanKey: string;
+  timeKey: string;
+  basePriceARS: Price | number;
+  company: string;
+}
+
+export interface HotelData {
+  name: string;
+  checkIn: string;
+  checkOut: string;
+  guests: string;
+  confirmation: string;
+  pin: string;
+  price: Price;
+}
+
+export interface BusData {
+    company: string;
+    departure: string;
+    arrival: string;
+    duration: string;
+    passengers: { name: string; seat: string }[];
+    price: Price;
+}
+
+export interface TransferData {
+    from: string;
+    to: string;
+    date: string;
+    duration: string;
+    price: Price;
+}
+
+export interface BookingItem {
+  id: string;
+  type: 'hotel' | 'bus' | 'transfer';
+  titleKey: string;
+  descriptionKey: string;
+  data: HotelData | BusData | TransferData;
+}
+
+
+// --- Packing List ---
+export interface PackingItem {
+  id: string;
+  text: string;
+  type: 'essential' | 'optional';
+  originalLang: Language;
+  checked: boolean;
+}
+
+// --- Photo Album ---
+export interface PhotoItem {
+  id: string;
+  src: string;
+  caption: string;
+  originalLang: Language;
+  dateTaken: string;
+  tripDay: number;
+  cityId: string;
+}
+
+// --- Weather ---
 export interface CurrentWeather {
     temp: number;
     feels_like: number;

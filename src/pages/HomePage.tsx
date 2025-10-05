@@ -1,26 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import CityCard from '../components/CityCard.tsx';
-import InteractiveMap from '../components/InteractiveMap.tsx';
-// FIX: Import AI_PROMPT_CONFIGS to be used for rendering AI chat components.
-import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
-import { Currency, BudgetItem, Price } from '../types.ts';
-import { getCachedExchangeRate } from '../services/apiService.ts';
-import BudgetSummary from '../components/home/BudgetSummary.tsx';
-import TransportTable from '../components/home/TransportTable.tsx';
-import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
-import PackingList from '../components/home/PackingList.tsx';
-import AIChatBox from '../components/AIChatBox.tsx';
-import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
-import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
-import FlightTickets from '../components/home/FlightTickets.tsx';
-import WeatherForecast from '../components/home/WeatherForecast.tsx';
-import Reservations from '../components/home/Reservations.tsx';
-import { BudgetDetails } from '../types.ts';
+import React, { useState, useEffect, useCallback, FC } from 'react';
+import { useAppContext } from '../context/AppContext';
+import CityCard from '../components/CityCard';
+import InteractiveMap from '../components/InteractiveMap';
+import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants';
+import { Currency, Price, BudgetDetails } from '../types';
+import { getCachedExchangeRate } from '../services/apiService';
+import BudgetSummary from '../components/home/BudgetSummary';
+import TransportTable from '../components/home/TransportTable';
+import ItineraryAnalysis from '../components/home/ItineraryAnalysis';
+import PackingList from '../components/home/PackingList';
+import AIChatBox from '../components/AIChatBox';
+import CurrencyConverter from '../components/home/CurrencyConverter';
+import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum';
+import WeatherForecast from '../components/home/WeatherForecast';
+import Reservations from '../components/home/Reservations';
+import FlightTickets from '../components/home/FlightTickets';
 
 
 // --- Helper Functions for Budget Calculation ---
-const parseRange = (rangeStr: string): [number, number] => {
+const parseRange = (rangeStr: string | undefined): [number, number] => {
   if (!rangeStr || typeof rangeStr !== 'string') return [0, 0];
   const parts = rangeStr.split('-').map(s => parseFloat(s.trim()));
   if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
@@ -32,12 +30,11 @@ const parseRange = (rangeStr: string): [number, number] => {
   return [0, 0];
 };
 
-const getDaysFromDurationString = (durationStr: string): number => {
+const getDaysFromDurationString = (durationStr: string | undefined): number => {
   if (!durationStr) return 0;
   
   let totalDays = 0;
 
-  // This regex finds all occurrences of a number followed by "día", "días", or "ימים"
   const regex = /(\d+)\s*(días?|ימים)/g;
   const matches = durationStr.matchAll(regex);
   
@@ -45,7 +42,6 @@ const getDaysFromDurationString = (durationStr: string): number => {
     totalDays += parseInt(match[1], 10);
   }
 
-  // Handle Hebrew specific word for "two days" (יומיים), which doesn't have a digit.
   if (durationStr.includes('יומיים')) {
     totalDays += 2;
   }
@@ -54,21 +50,22 @@ const getDaysFromDurationString = (durationStr: string): number => {
 };
 
 
-const HomePage: React.FC = () => {
+const HomePage: FC = () => {
   const { t, language, currency: globalCurrency } = useAppContext();
 
-  // State and logic that needs to be shared or is at the page level
   const [exchangeRates, setExchangeRates] = useState<Record<string, number | null>>({});
   const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({
     total: t('budget_summary_calculating'),
     breakdown: {},
     isCalculating: true,
   });
+  const [isReservationsOpen, setIsReservationsOpen] = useState(false);
+  const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
   // --- Price Conversion & Formatting Logic ---
   const updateAllExchangeRates = useCallback(async () => {
     const newRates: Record<string, number | null> = {};
-    const baseCurrencies = [Currency.ARS, Currency.USD]; // All our prices are based in these
+    const baseCurrencies = [Currency.ARS, Currency.USD]; 
     const allCurrencies = Object.values(Currency);
 
     for (const base of baseCurrencies) {
@@ -78,7 +75,7 @@ const HomePage: React.FC = () => {
                 continue;
             };
             const key = `${base}_${target}`;
-            if (!newRates[key]) { // Avoid re-fetching
+            if (!newRates[key]) { 
                 const rate = await getCachedExchangeRate(base, target);
                 newRates[key] = rate;
             }
@@ -91,8 +88,7 @@ const HomePage: React.FC = () => {
     updateAllExchangeRates();
   }, [updateAllExchangeRates]);
 
-  const getFormattedPrice = useCallback((priceInput: { value: number; currency: Currency } | number) => {
-    // Standardize input to be a Price object, assuming ARS for raw numbers
+  const getFormattedPrice = useCallback((priceInput: Price | number): string => {
     const price: Price = typeof priceInput === 'number'
         ? { value: priceInput, currency: Currency.ARS }
         : priceInput;
@@ -121,11 +117,10 @@ const HomePage: React.FC = () => {
     });
     
     try {
-        const totalsByCategory: Record<string, { min: number, max: number }> = {};
-        const oneTimeCostsAdded = new Set<string>(); // To track one-time costs
+        const totalsByCategory: Record<string, { min: number; max: number }> = {};
+        const oneTimeCostsAdded = new Set<string>();
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
 
-        // Add trip-wide one-time costs first (e.g., international flights)
         TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
             if (!totalsByCategory[item.conceptKey]) {
                 totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
@@ -141,7 +136,7 @@ const HomePage: React.FC = () => {
             const days = getDaysFromDurationString(durationStr);
             const cityBudget = savedBudgets[city.id] || city.budgetItems;
 
-            cityBudget.forEach((item: BudgetItem) => {
+            cityBudget.forEach((item: any) => {
                 if (!totalsByCategory[item.conceptKey]) {
                     totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
                 }
@@ -222,8 +217,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     calculateTripBudget();
     const handleStorageChange = (event: StorageEvent | Event) => {
-      // Listen for custom event trigger as well
-      if ((event as StorageEvent).key === 'customBudgets' || event.type === 'storage') {
+      if ('key' in event && event.key === 'customBudgets' || event.type === 'storage') {
         calculateTripBudget();
       }
     };
@@ -231,7 +225,9 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [calculateTripBudget]);
 
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover-shadow-slate-700 transition-shadow duration-300";
+  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+  const collapsibleHeaderClasses = "cursor-pointer p-4 rounded-lg flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md";
+
 
   return (
     <div className="space-y-12">
@@ -240,52 +236,64 @@ const HomePage: React.FC = () => {
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
 
-      <FlightTickets />
+      <section>
+        <div onClick={() => setIsTicketsOpen(!isTicketsOpen)} className={collapsibleHeaderClasses}>
+            <h2 className="text-xl font-bold flex items-center">
+                <i className="fas fa-plane-departure mr-3"></i>
+                {t('flight_tickets_title')}
+            </h2>
+            <i className={`fas fa-chevron-down transform transition-transform ${isTicketsOpen ? 'rotate-180' : ''}`}></i>
+        </div>
+        {isTicketsOpen && (
+            <div className="animate-fade-in mt-[-10px] pt-12 p-6 bg-white dark:bg-slate-800 rounded-b-xl shadow-lg">
+                 <FlightTickets getFormattedPrice={getFormattedPrice} />
+            </div>
+        )}
+      </section>
 
-      <Reservations getFormattedPrice={getFormattedPrice} />
+       <section>
+          <div onClick={() => setIsReservationsOpen(!isReservationsOpen)} className={collapsibleHeaderClasses}>
+              <h2 className="text-xl font-bold flex items-center">
+                  <i className="fas fa-concierge-bell mr-3"></i>
+                  {t('reservations_title')}
+              </h2>
+              <i className={`fas fa-chevron-down transform transition-transform ${isReservationsOpen ? 'rotate-180' : ''}`}></i>
+          </div>
+          {isReservationsOpen && (
+              <div className="animate-fade-in mt-[-10px] pt-12 p-6 bg-white dark:bg-slate-800 rounded-b-xl shadow-lg">
+                  <Reservations getFormattedPrice={getFormattedPrice} />
+              </div>
+          )}
+      </section>
 
-      {/* City Cards */}
       <section>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {CITIES.map(city => (
-            <CityCard key={city.id} city={city} />
-          ))}
+          {CITIES.map(city => <CityCard key={city.id} city={city} />)}
         </div>
       </section>
-      
       <BudgetSummary budgetDetails={budgetDetails} />
-
       <WeatherForecast />
-
-      {/* Interactive Map */}
       <section className={cardClasses}>
         <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
-          <i className="fas fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400"></i>
+          <i className="fas fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400" />
           {t('mapaInteractivoTitulo')}
         </h2>
         <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
         <InteractiveMap cities={CITIES} />
       </section>
-      
       <TransportTable getFormattedPrice={getFormattedPrice} />
-
       <ItineraryAnalysis />
-      
       <FamilyPhotoAlbum />
-
       <PackingList />
-
-      {/* AI Chatbots Section */}
       <section className="space-y-12">
-        {AI_PROMPT_CONFIGS.map(config => (
-           <AIChatBox 
+        {AI_PROMPT_CONFIGS.map(config =>
+           <AIChatBox
               key={config.promptKeySuffix} 
               config={config} 
               chatId={`homepage_${config.promptKeySuffix}`}
             />
-        ))}
+        )}
       </section>
-      
       <CurrencyConverter />
     </div>
   );

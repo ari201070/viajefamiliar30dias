@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
+// FIX: Corrected import path to use the TypeScript context file consistent with the rest of the app.
+import { useAppContext } from '../../context/AppContext';
 import { askGemini } from '../../services/apiService.ts';
 
 const GeneralAIQuery: React.FC = () => {

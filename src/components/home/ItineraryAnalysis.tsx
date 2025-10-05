@@ -1,49 +1,58 @@
-import React from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
+import React, { FC } from 'react';
+import { useAppContext } from '../../context/AppContext.ts';
+import { CITIES } from '../../constants.ts';
 
-const ItineraryAnalysis: React.FC = () => {
-  const { t } = useAppContext();
-  const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+const ItineraryAnalysis: FC = () => {
+    const { t } = useAppContext();
 
-  // FIX: Created a static list of itinerary legs to ensure all steps are displayed correctly.
-  const itineraryLegs = [
-    { nameKey: 'buenosaires_name', durationKey: 'buenosaires_dates_duration' },
-    { nameKey: 'rosario_name', durationKey: 'rosario_dates_duration' },
-    { nameKey: 'bariloche_name', durationKey: 'bariloche_dates_duration' },
-    { nameKey: 'mendoza_name', durationKey: 'mendoza_dates_duration' },
-    { nameKey: 'jujuy_name', durationKey: 'jujuy_dates_duration' },
-    { nameKey: 'iguazu_name', durationKey: 'iguazu_dates_duration' },
-    { nameKey: 'esteros_ibera_name', durationKey: 'esteros_ibera_dates_duration' },
-    { nameKey: 'corrientes_name', durationKey: 'corrientes_dates_duration' },
-    { nameKey: 'buenosaires_name', durationKey: 'buenosaires_final_stay_dates_duration' },
-  ];
+    const optimizationTips = [
+        t('itinerary_optimization_tip_1'),
+        t('itinerary_optimization_tip_2'),
+        t('itinerary_optimization_tip_3'),
+        t('itinerary_optimization_tip_4'),
+        t('itinerary_optimization_tip_5'),
+        t('itinerary_optimization_tip_6'),
+    ];
 
-  return (
-    <section className={cardClasses}>
-      <h2 className={`${sectionTitleClasses} flex items-center`}><i className="fas fa-clipboard-list mr-3 text-indigo-600 dark:text-indigo-400"></i>{t('itinerary_program_title')}</h2>
-      
-      <div className="mb-8 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <h3 className="text-xl font-semibold text-indigo-700 dark:text-indigo-400 mb-3">{t('itinerary_program_current_plan_title')}</h3>
-          <ul className="list-disc list-inside space-y-2 pl-5">
-              {itineraryLegs.map((leg, index) => (
-                  <li key={`${leg.durationKey}-${index}`} className="text-gray-700 dark:text-slate-300 whitespace-pre-line">
-                      <span className="font-medium text-gray-900 dark:text-slate-100">{t(leg.nameKey)}:</span> {t(leg.durationKey)}
-                  </li>
-              ))}
-          </ul>
-      </div>
+    const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50";
+    const titleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center";
 
-      <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <h3 className="text-xl font-semibold text-indigo-700 dark:text-indigo-400 mb-3">{t('itinerary_program_optimization_tips_title')}</h3>
-          <ul className="list-disc list-inside space-y-2 pl-5">
-              {[1, 2, 3, 4, 5, 6].map(tipNum => (
-                  <li key={tipNum} className="text-gray-700 dark:text-slate-300">{t(`itinerary_optimization_tip_${tipNum}`)}</li>
-              ))}
-          </ul>
-      </div>
-    </section>
-  );
+    return (
+        <section className={cardClasses}>
+            <h2 className={titleClasses}>
+                 <i className="fas fa-route mr-3 text-indigo-600 dark:text-indigo-400" />
+                {t('itinerary_program_title')}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-slate-300">{t('itinerary_program_current_plan_title')}</h3>
+                    <ol className="relative border-l border-gray-200 dark:border-slate-600">
+                        {CITIES.map((city, index) => (
+                             <li key={city.id} className="mb-6 ml-6">
+                                <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-slate-800 dark:bg-blue-900">
+                                    <i className="fas fa-map-marker-alt text-blue-800 dark:text-blue-300 text-xs"></i>
+                                </span>
+                                <h4 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">{t(city.nameKey)}</h4>
+                                <time className="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-slate-500">{t(`${city.id}_dates_duration`).split('\n')[1].replace(/- \*\*Fechas\*\*:\s*/, '').trim()}</time>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+                <div>
+                    <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-slate-300">{t('itinerary_program_optimization_tips_title')}</h3>
+                    <ul className="space-y-3">
+                        {optimizationTips.map((tip, index) => (
+                            <li key={index} className="flex items-start">
+                                <i className="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span className="text-gray-600 dark:text-slate-400">{tip}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </section>
+    );
 };
 
 export default ItineraryAnalysis;

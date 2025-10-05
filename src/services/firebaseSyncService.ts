@@ -1,25 +1,6 @@
 import { PhotoItem, PackingItem } from '../types.ts';
 import { db, storage } from './firebaseConfig.ts';
-// FIX: Imports are no longer needed as we use the compat library's namespaced methods.
-/*
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  writeBatch,
-  getDoc,
-  orderBy,
-  query,
-} from 'firebase/firestore';
-import {
-  ref,
-  uploadString,
-  getDownloadURL,
-  deleteObject,
-} from 'firebase/storage';
-*/
+import type firebase from 'firebase/compat/app';
 
 // --- SERVICE FOR FIREBASE REAL-TIME SYNC ---
 // This service centralizes data management for synced features.
@@ -37,7 +18,6 @@ if (!db || !storage) {
   console.warn("Firebase is not initialized. Sync features will be disabled.");
 }
 
-// FIX: Switched to a shared data model for the family trip instead of per-user data.
 const SHARED_TRIP_ID = 'main_family_trip_v1';
 const getSharedTripDoc = () => db?.collection('trips').doc(SHARED_TRIP_ID);
 const getPhotosCollection = () => getSharedTripDoc()?.collection('photos');
@@ -47,13 +27,12 @@ const getPhotoStorageRef = (photoId: string) => storage?.ref(`trips/${SHARED_TRI
 
 export const firebaseSyncService = {
   // --- Photo Album Methods ---
-  listenToPhotos(callback: (photos: PhotoItem[]) => void): () => void {
+  listenToPhotos(callback: (snapshot: firebase.firestore.QuerySnapshot) => void): () => void {
     const photosCollection = getPhotosCollection();
     if (!photosCollection) return () => {};
     try {
       const unsubscribe = photosCollection.orderBy('dateTaken', 'desc').onSnapshot(snapshot => {
-        const photos = snapshot.docs.map(doc => doc.data() as PhotoItem);
-        callback(photos);
+        callback(snapshot);
       }, (error) => handleFirebaseError(error, "listenToPhotos"));
       return unsubscribe;
     } catch (e) {
@@ -135,15 +114,14 @@ export const firebaseSyncService = {
   },
 
   // --- Packing List Methods ---
-  listenToPackingList(callback: (items: PackingItem[]) => void): () => void {
+  listenToPackingList(callback: (snapshot: firebase.firestore.DocumentSnapshot) => void): () => void {
     const packingListDoc = getPackingListDoc();
     if (!packingListDoc) return () => {};
     try {
         const unsubscribe = packingListDoc.onSnapshot(docSnap => {
-            callback(docSnap.exists ? docSnap.data()?.items || [] : []);
+            callback(docSnap);
         }, (error) => {
             handleFirebaseError(error, "listenToPackingList");
-            callback([]); // return empty list on error
         });
         return unsubscribe;
     } catch(e) {

@@ -1,146 +1,121 @@
-import React, { useState } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
+import React, { FC } from 'react';
+import { useAppContext } from '../../context/AppContext';
+import { Price, Currency } from '../../types';
 
-const passengerData = [
-  { name: 'ARIEL RUBEN FLIER', type: 'MR/ADT', ticket: '0712999441525' },
-  { name: 'SHOSHANA FLIER', type: 'MS/ADT', ticket: '0712999441526' },
-  { name: 'LIRAN FLIER', type: 'MR/ADT', ticket: '0712999441527' },
-  { name: 'HILA FLIER', type: 'MS/ADT', ticket: '0712999441528' },
-];
+interface FlightTicketsProps {
+    getFormattedPrice: (price: Price | number) => string;
+}
 
-const outboundFlight = {
-  title: 'Tel Aviv (TLV) → Buenos Aires (EZE)',
-  legs: [
-    { airline: 'Ethiopian Airlines', number: 'ET405', from: 'Tel Aviv (TLV)', to: 'Addis Ababa (ADD)', departure: '26/09/2025, 01:00', arrival: '26/09/2025, 05:10', duration: '4h 10m' },
-    { airline: 'Ethiopian Airlines', number: 'ET506', from: 'Addis Ababa (ADD)', to: 'Buenos Aires (EZE)', departure: '26/09/2025, 09:50', arrival: '26/09/2025, 20:25', duration: '16h 35m' },
-  ],
-  connection: '4h 40m',
-};
+const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
+    const { t, language } = useAppContext();
 
-const returnFlight = {
-  title: 'Buenos Aires (EZE) → Tel Aviv (TLV)',
-  legs: [
-    { airline: 'Ethiopian Airlines', number: 'ET507', from: 'Buenos Aires (EZE)', to: 'Addis Ababa (ADD)', departure: '28/10/2025, 21:30', arrival: '29/10/2025, 19:30', duration: '16h 00m' },
-    { airline: 'Ethiopian Airlines', number: 'ET404', from: 'Addis Ababa (ADD)', to: 'Tel Aviv (TLV)', departure: '29/10/2025, 23:50', arrival: '30/10/2025, 03:00', duration: '4h 10m' },
-  ],
-  connection: '4h 20m',
-};
+    const flightData = {
+        airline: "El Al Israel Airlines",
+        confirmation: "ELAL-XYZ789",
+        price: { value: 6500, currency: Currency.USD },
+        passengers: ["Ariel Flier", "Shoshana Flier", "Liran Flier", "Hila Flier"],
+        outbound: {
+            flightNo: "LY582",
+            from: "Tel Aviv (TLV)",
+            to: "Buenos Aires (EZE)",
+            departure: "2025-09-25T23:55:00Z",
+            arrival: "2025-09-26T09:30:00Z",
+            duration: "15h 35m",
+        },
+        inbound: {
+            flightNo: "LY583",
+            from: "Buenos Aires (EZE)",
+            to: "Tel Aviv (TLV)",
+            departure: "2025-10-28T15:00:00Z",
+            arrival: "2025-10-29T11:00:00Z",
+            duration: "14h 00m",
+        }
+    };
 
+    const formatFlightDateTime = (dateString: string) => {
+        const options: Intl.DateTimeFormatOptions = {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        };
+        return new Date(dateString).toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', options);
+    };
 
-const FlightTickets: React.FC = () => {
-  const { t } = useAppContext();
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
-
-  const FlightLeg: React.FC<{ leg: typeof outboundFlight.legs[0] }> = ({ leg }) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-      <div className="md:col-span-1">
-        <p className="font-semibold text-gray-800 dark:text-slate-200">{leg.airline} {leg.number}</p>
-        <p className="text-sm text-gray-500 dark:text-slate-400">{leg.from} → {leg.to}</p>
-      </div>
-      <div className="md:col-span-2 grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t('flight_tickets_departure')}</p>
-          <p className="text-gray-900 dark:text-slate-100">{leg.departure}</p>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t('flight_tickets_arrival')}</p>
-          <p className="text-gray-900 dark:text-slate-100">{leg.arrival}</p>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <section className={cardClasses}>
-      <div 
-        className="flex items-center justify-between cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-        aria-expanded={isExpanded}
-      >
-        <h2 className={`${sectionTitleClasses} mb-0 pb-0 border-none flex items-center`}>
-          <i className="fas fa-plane-departure mr-3 text-indigo-600 dark:text-indigo-400"></i>
-          {t('flight_tickets_title')}
-        </h2>
-        <i className={`fas fa-chevron-down text-indigo-500 transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}></i>
-      </div>
-
-      {isExpanded && (
-        <div className="mt-6 space-y-8 animate-fade-in">
-          {/* Booking Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t('flight_tickets_reservation')}</p>
-              <p className="text-lg font-semibold text-gray-800 dark:text-slate-200">25248</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t('flight_tickets_airline_ref')}</p>
-              <p className="text-lg font-semibold text-gray-800 dark:text-slate-200">QTAJPJ</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t('flight_tickets_status')}</p>
-              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{t('flight_tickets_approved')}</p>
-            </div>
-          </div>
-          
-          {/* Passengers */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-slate-300 mb-3">{t('flight_tickets_passengers')}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {passengerData.map(p => (
-                <div key={p.ticket} className="p-3 bg-gray-100 dark:bg-slate-700 rounded-md">
-                  <p className="font-semibold text-gray-800 dark:text-slate-200">{p.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Ticket: {p.ticket}</p>
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-700/50">
+                <div>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-slate-200">{flightData.airline}</h3>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{t('flight_tickets_confirmation')}: <span className="font-mono">{flightData.confirmation}</span></p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Flights */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-slate-300 mb-4">{t('flight_tickets_flights')}</h3>
-            <div className="space-y-6">
-              {/* Outbound */}
-              <div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg">
-                <h4 className="text-lg font-bold text-indigo-700 dark:text-indigo-400 mb-4">{outboundFlight.title}</h4>
-                <div className="space-y-4">
-                  <FlightLeg leg={outboundFlight.legs[0]} />
-                  <div className="text-center text-sm font-semibold text-gray-500 dark:text-slate-400 py-2 border-y border-dashed border-gray-300 dark:border-slate-600">
-                    <i className="fas fa-clock mr-2"></i>{t('flight_tickets_connection_time')}: {outboundFlight.connection}
-                  </div>
-                  <FlightLeg leg={outboundFlight.legs[1]} />
+                <div className="text-right mt-2 sm:mt-0">
+                    <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-300">{getFormattedPrice(flightData.price)}</span>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('flight_tickets_total_price')}</p>
                 </div>
-              </div>
+            </div>
 
-              {/* Return */}
-              <div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg">
-                 <h4 className="text-lg font-bold text-indigo-700 dark:text-indigo-400 mb-4">{returnFlight.title}</h4>
-                <div className="space-y-4">
-                  <FlightLeg leg={returnFlight.legs[0]} />
-                   <div className="text-center text-sm font-semibold text-gray-500 dark:text-slate-400 py-2 border-y border-dashed border-gray-300 dark:border-slate-600">
-                    <i className="fas fa-clock mr-2"></i>{t('flight_tickets_connection_time')}: {returnFlight.connection}
-                  </div>
-                  <FlightLeg leg={returnFlight.legs[1]} />
+            {/* Outbound Flight */}
+            <div>
+                <h4 className="font-semibold text-gray-700 dark:text-slate-300 mb-2 flex items-center"><i className="fas fa-plane-departure mr-2 text-blue-500"></i> {t('flight_tickets_outbound')}</h4>
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-inner border dark:border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                        <div className="text-center md:text-left">
+                            <p className="font-bold text-lg">{flightData.outbound.from}</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.outbound.departure)}</p>
+                        </div>
+                        <div className="text-center">
+                            <i className="fas fa-long-arrow-alt-right text-2xl text-gray-400 dark:text-slate-500"></i>
+                            <p className="text-xs font-mono">{flightData.outbound.flightNo}</p>
+                            <p className="text-xs">{flightData.outbound.duration}</p>
+                        </div>
+                        <div className="text-center md:text-right">
+                            <p className="font-bold text-lg">{flightData.outbound.to}</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.outbound.arrival)}</p>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-          
-          {/* Baggage */}
-          <div>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-slate-300 mb-3">{t('flight_tickets_baggage_allowance')}</h3>
-            <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg space-y-2">
-                <p className="text-gray-800 dark:text-slate-200"><i className="fas fa-suitcase-rolling w-5 mr-2 text-indigo-500 dark:text-indigo-400"></i>{t('flight_tickets_carry_on')}</p>
-                <p className="text-gray-800 dark:text-slate-200"><i className="fas fa-suitcase w-5 mr-2 text-indigo-500 dark:text-indigo-400"></i>{t('flight_tickets_checked_bags')}</p>
-            </div>
-          </div>
 
+            {/* Inbound Flight */}
+            <div>
+                <h4 className="font-semibold text-gray-700 dark:text-slate-300 mb-2 flex items-center"><i className="fas fa-plane-arrival mr-2 text-green-500"></i> {t('flight_tickets_inbound')}</h4>
+                 <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-inner border dark:border-slate-700">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                         <div className="text-center md:text-left">
+                            <p className="font-bold text-lg">{flightData.inbound.from}</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.inbound.departure)}</p>
+                        </div>
+                        <div className="text-center">
+                            <i className="fas fa-long-arrow-alt-right text-2xl text-gray-400 dark:text-slate-500"></i>
+                            <p className="text-xs font-mono">{flightData.inbound.flightNo}</p>
+                            <p className="text-xs">{flightData.inbound.duration}</p>
+                        </div>
+                         <div className="text-center md:text-right">
+                            <p className="font-bold text-lg">{flightData.inbound.to}</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.inbound.arrival)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 className="font-semibold text-gray-700 dark:text-slate-300 mb-2">{t('reservations_bus_passengers')}</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+                    {flightData.passengers.map(name => (
+                        <div key={name} className="p-2 bg-gray-100 dark:bg-slate-700 rounded text-center">{name}</div>
+                    ))}
+                </div>
+            </div>
+            
+            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <i className="fas fa-ticket-alt mr-2"></i>
+                {t('flight_tickets_view_button')}
+            </button>
         </div>
-      )}
-    </section>
-  );
+    );
 };
 
 export default FlightTickets;

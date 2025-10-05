@@ -1,8 +1,9 @@
 {
-  "name": "viaje-familiar-serverless",
+  "name": "viaje-familiar-react",
   "version": "1.0.0",
-  "description": "Serverless functions for the Argentina Family Trip app",
+  "description": "Itinerario interactivo para un viaje familiar a Argentina.",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,18 +12,18 @@
   "dependencies": {
     "@google/genai": "^1.5.1",
     "firebase": "^10.12.3",
-    "node-fetch": "^2.7.0",
+    "i18next": "^25.5.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^15.7.3",
     "react-router-dom": "^7.6.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "typescript": "^5.5.4",
-    "vite": "^5.3.5"
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3"
   }
 }

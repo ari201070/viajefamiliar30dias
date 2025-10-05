@@ -1,4 +1,3 @@
-// FIX: Use firebase compat to resolve module errors.
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import { auth } from './firebaseConfig.ts';
@@ -7,22 +6,20 @@ import type { User } from '../types.ts';
 const provider = new firebase.auth.GoogleAuthProvider();
 
 export const authService = {
-  signInWithGoogle: async (): Promise<User | null> => {
+  signInWithGoogle: async (): Promise<{ success: boolean; error?: any }> => {
     if (!auth) {
-        console.error("Firebase Auth is not initialized.");
-        return null;
+        const error = { message: "Firebase Auth is not initialized." };
+        console.error(error.message);
+        return { success: false, error };
     }
     try {
-      // FIX: Use compat API for signInWithPopup.
-      const result = await auth.signInWithPopup(provider);
-      return result.user;
-    } catch (error) {
-      console.error("Error during Google sign-in:", error);
-      // Handle specific errors like popup closed by user
-      if ((error as any).code === 'auth/popup-closed-by-user') {
-        // User closed the popup, do nothing.
-      }
-      return null;
+        await auth.signInWithPopup(provider);
+        // The onAuthChange listener in App.tsx will handle the user state update on success.
+        return { success: true };
+    } catch (error: any) {
+        // This will catch errors like the user closing the popup or environment issues.
+        console.error("Google Sign-In with popup failed:", error);
+        return { success: false, error };
     }
   },
 
@@ -32,7 +29,6 @@ export const authService = {
         return;
     }
     try {
-      // FIX: Use compat API for signOut.
       await auth.signOut();
     } catch (error) {
       console.error("Error signing out:", error);
@@ -46,7 +42,6 @@ export const authService = {
       return () => {};
     }
     // This sets up the listener and returns the unsubscribe function provided by Firebase
-    // FIX: Use compat API for onAuthStateChanged.
     return auth.onAuthStateChanged(callback);
   },
 };

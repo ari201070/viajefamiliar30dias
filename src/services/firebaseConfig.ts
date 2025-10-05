@@ -1,4 +1,3 @@
-// FIX: Switch to compat imports to fix module resolution errors.
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
@@ -6,7 +5,6 @@ import 'firebase/compat/storage';
 
 import { firebaseCredentials } from '../firebaseCredentials.ts';
 
-// FIX: Update types to match compat library objects.
 let app: firebase.app.App | null = null;
 let db: firebase.firestore.Firestore | null = null;
 let storage: firebase.storage.Storage | null = null;
@@ -16,13 +14,26 @@ export let isFirebaseConfigured = false;
 // Check if the credentials have been replaced from the placeholder values.
 if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
   try {
-    // FIX: Use compat initialization.
     if (!firebase.apps.length) {
       app = firebase.initializeApp(firebaseCredentials);
     } else {
       app = firebase.app();
     }
     db = firebase.firestore();
+    
+    // Enable offline persistence to improve resilience against network issues.
+    // synchronizeTabs allows for a consistent offline state across multiple tabs.
+    db.enablePersistence({ synchronizeTabs: true })
+      .catch((err) => {
+        if (err.code === 'failed-precondition') {
+          // This can happen if multiple tabs are open.
+          console.warn('Firebase persistence failed: multiple tabs open.');
+        } else if (err.code === 'unimplemented') {
+          // The browser does not support all features required for persistence.
+          console.warn('Firebase persistence not supported in this browser.');
+        }
+      });
+
     storage = firebase.storage();
     auth = firebase.auth();
     isFirebaseConfigured = true;

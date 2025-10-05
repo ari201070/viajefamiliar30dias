@@ -1,97 +1,65 @@
-
-import React, { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, FC } from 'react';
+import { useAppContext } from '../context/AppContext.ts';
 import { City, PointOfInterest } from '../types.ts';
-import { useAppContext } from '../context/AppContext.tsx';
 
-declare var L: any; // Declare L from Leaflet CDN
+declare const L: any; // Use 'any' for Leaflet since we're loading it from a CDN
 
 interface InteractiveMapProps {
-  cities: City[]; // Can be a single city in an array for detail page
-  selectedCityCoords?: [number, number];
-  pointsOfInterest?: PointOfInterest[];
-  zoomLevel?: number;
+    cities: City[];
+    selectedCityCoords?: [number, number];
+    pointsOfInterest?: PointOfInterest[];
+    zoomLevel?: number;
 }
 
-const InteractiveMap: React.FC<InteractiveMapProps> = ({ cities, selectedCityCoords, pointsOfInterest, zoomLevel }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const poiMarkersRef = useRef<any[]>([]);
-  const cityMarkersRef = useRef<any[]>([]);
-  const { t, language } = useAppContext();
-  const navigate = useNavigate();
+const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, pointsOfInterest, zoomLevel = 5 }) => {
+    const mapRef = useRef<HTMLDivElement>(null);
+    const mapInstance = useRef<any>(null);
+    const { t } = useAppContext();
 
-  useEffect(() => {
-    if (mapRef.current && typeof L !== 'undefined' && !mapInstanceRef.current) {
-      let initialCoords: [number, number] = [-34.5, -63]; // Default to Argentina center
-      let initialZoom = zoomLevel || 4.2;
-
-      if (selectedCityCoords) {
-        initialCoords = selectedCityCoords;
-        initialZoom = zoomLevel || (pointsOfInterest && pointsOfInterest.length > 0 ? 13 : 8);
-      } else if (cities.length > 0) {
-        // Calculate the center of all cities for the homepage view
-        const avgLat = cities.reduce((sum, city) => sum + city.coords[0], 0) / cities.length;
-        const avgLng = cities.reduce((sum, city) => sum + city.coords[1], 0) / cities.length;
-        initialCoords = [avgLat, avgLng];
-      }
-      
-      mapInstanceRef.current = L.map(mapRef.current).setView(initialCoords, initialZoom);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(mapInstanceRef.current);
-    }
-
-    // Add/Update city markers
-    if (mapInstanceRef.current && cities) {
-        cityMarkersRef.current.forEach(marker => mapInstanceRef.current.removeLayer(marker));
-        cityMarkersRef.current = [];
-        cities.forEach(city => {
-            const marker = L.marker(city.coords).addTo(mapInstanceRef.current);
-
-            // Navigate on click
-            marker.on('click', () => {
-              navigate(`/city/${city.id}`);
-            });
-
-            // Show city name on hover
-            marker.bindTooltip(t(city.nameKey));
-
-            cityMarkersRef.current.push(marker);
-        });
-    }
-    
-    // Add/Update POI markers
-    if (mapInstanceRef.current && pointsOfInterest) {
-        poiMarkersRef.current.forEach(marker => mapInstanceRef.current.removeLayer(marker));
-        poiMarkersRef.current = [];
-        pointsOfInterest.forEach(poi => {
-            const marker = L.marker(poi.coords, {icon: L.icon({
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            })}).addTo(mapInstanceRef.current)
-              .bindPopup(`<b>${t(poi.nameKey)}</b><br>${poi.descriptionKey ? t(poi.descriptionKey) : ''}`);
-            poiMarkersRef.current.push(marker);
-        });
-    }
-
-    if (mapInstanceRef.current) {
-        if (pointsOfInterest && pointsOfInterest.length > 0) {
-            const poiBounds = L.latLngBounds(pointsOfInterest.map(poi => poi.coords));
-            mapInstanceRef.current.fitBounds(poiBounds, { padding: [50, 50], maxZoom: 15 });
-        } else if (selectedCityCoords) {
-            mapInstanceRef.current.setView(selectedCityCoords, zoomLevel || 12, { animate: true });
+    useEffect(() => {
+        if (mapRef.current && !mapInstance.current) {
+            const centerCoords: [number, number] = selectedCityCoords || [-40, -64]; // Center of Argentina approx.
+            
+            mapInstance.current = L.map(mapRef.current).setView(centerCoords, zoomLevel);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(mapInstance.current);
         }
-    }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cities, selectedCityCoords, pointsOfInterest, t, language, zoomLevel, navigate]);
+        // Clear existing markers before adding new ones
+        mapInstance.current.eachLayer((layer: any) => {
+            if (layer instanceof L.Marker) {
+                mapInstance.current.removeLayer(layer);
+            }
+        });
 
-  return <div ref={mapRef} className="w-full leaflet-container shadow-lg rounded-lg"></div>;
+        // Add city markers
+        cities.forEach(city => {
+            L.marker(city.coords).addTo(mapInstance.current)
+                .bindPopup(`<b>${t(city.nameKey)}</b>`);
+        });
+
+        // Add points of interest markers for detail view
+        if (pointsOfInterest) {
+            pointsOfInterest.forEach(poi => {
+                 L.circleMarker(poi.coords, {
+                    color: 'red',
+                    radius: 8,
+                    fillOpacity: 0.7
+                 }).addTo(mapInstance.current)
+                .bindPopup(`<b>${t(poi.nameKey)}</b><br>${t(poi.descriptionKey)}`);
+            });
+        }
+        
+        // Pan and zoom if selected city changes
+        if(selectedCityCoords) {
+             mapInstance.current.setView(selectedCityCoords, zoomLevel);
+        }
+
+
+    }, [cities, selectedCityCoords, pointsOfInterest, zoomLevel, t]);
+
+    return <div ref={mapRef} className="leaflet-container" />;
 };
 
 export default InteractiveMap;
