@@ -1,12 +1,7 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { BudgetDetails } from '../../types.ts';
+import React from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
 
-interface BudgetSummaryProps {
-    budgetDetails: BudgetDetails;
-}
-
-const BudgetSummary: FC<BudgetSummaryProps> = ({ budgetDetails }) => {
+const BudgetSummary = ({ budgetDetails }) => {
     const { t } = useAppContext();
     const { total, breakdown, isCalculating } = budgetDetails;
 

@@ -1,24 +1,14 @@
-import React, { useEffect, useRef, FC } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { City, PointOfInterest } from '../types.ts';
+import React, { useEffect, useRef } from 'react';
+import { useAppContext } from '../context/AppContext.jsx';
 
-declare const L: any; // Use 'any' for Leaflet since we're loading it from a CDN
-
-interface InteractiveMapProps {
-    cities: City[];
-    selectedCityCoords?: [number, number];
-    pointsOfInterest?: PointOfInterest[];
-    zoomLevel?: number;
-}
-
-const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, pointsOfInterest, zoomLevel = 5 }) => {
-    const mapRef = useRef<HTMLDivElement>(null);
-    const mapInstance = useRef<any>(null);
+const InteractiveMap = ({ cities, selectedCityCoords, pointsOfInterest, zoomLevel = 5 }) => {
+    const mapRef = useRef(null);
+    const mapInstance = useRef(null);
     const { t } = useAppContext();
 
     useEffect(() => {
         if (mapRef.current && !mapInstance.current) {
-            const centerCoords: [number, number] = selectedCityCoords || [-40, -64]; // Center of Argentina approx.
+            const centerCoords = selectedCityCoords || [-40, -64]; // Center of Argentina approx.
             
             mapInstance.current = L.map(mapRef.current).setView(centerCoords, zoomLevel);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -27,7 +17,7 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
         }
 
         // Clear existing markers before adding new ones
-        mapInstance.current.eachLayer((layer: any) => {
+        mapInstance.current.eachLayer((layer) => {
             if (layer instanceof L.Marker) {
                 mapInstance.current.removeLayer(layer);
             }

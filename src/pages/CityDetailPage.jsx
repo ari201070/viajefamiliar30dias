@@ -1,22 +1,21 @@
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext.tsx';
-import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.ts';
+import { useAppContext } from '../context/AppContext.jsx';
+import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.js';
 import InteractiveMap from '../components/InteractiveMap';
 import BudgetTable from '../components/BudgetTable';
-import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.ts';
-import { findEventsWithGoogleSearch } from '../services/apiService.ts';
+import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.js';
+import { findEventsWithGoogleSearch } from '../services/apiService.js';
 import AIChatBox from '../components/AIChatBox';
-import { AIResponseType, Language } from '../types.ts';
 
-const CityDetailPage: FC = () => {
-  const { cityId } = useParams<{ cityId: string }>();
+const CityDetailPage = () => {
+  const { cityId } = useParams();
   const { t, language } = useAppContext();
 
   const city = CITIES.find(c => c.id === cityId);
 
-  const [eventsAiResponse, setEventsAiResponse] = useState<AIResponseType | null>(null);
-  const [isEventsAiLoading, setIsEventsAiLoading] = useState<boolean>(false);
+  const [eventsAiResponse, setEventsAiResponse] = useState(null);
+  const [isEventsAiLoading, setIsEventsAiLoading] = useState(false);
 
   useEffect(() => {
     setEventsAiResponse(null);
@@ -27,7 +26,7 @@ const CityDetailPage: FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = (e) => {
     e.currentTarget.src = DEFAULT_CITY_IMAGE;
   };
   
@@ -66,7 +65,7 @@ const CityDetailPage: FC = () => {
   };
 
 
-  const renderSection = (titleKeySuffix: string, contentKey: string, iconClass: string) => {
+  const renderSection = (titleKeySuffix, contentKey, iconClass) => {
     const title = t(`section_title_${titleKeySuffix}`);
     let content = t(contentKey);
     
@@ -87,7 +86,7 @@ const CityDetailPage: FC = () => {
       );
     } else if (titleKeySuffix === 'gastronomy_highlight') {
       const sections = content.split(/\n###\s*(.+?)\n/); 
-      contentNode = sections.reduce<React.ReactNode[]>((acc, part, index) => {
+      contentNode = sections.reduce((acc, part, index) => {
         if (index % 2 === 1) { 
           const subtitleKey = part.toLowerCase().includes(t('gastronomy_restaurants_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_restaurants_subtitle' : 
                               part.toLowerCase().includes(t('gastronomy_cafes_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_cafes_subtitle' : '';
@@ -95,7 +94,7 @@ const CityDetailPage: FC = () => {
             acc.push(<h3 key={`sub-${index}`} className="text-xl font-semibold text-gray-800 dark:text-slate-200 mt-4 mb-2">{t(subtitleKey)}</h3>);
           }
         } else if (part.trim().startsWith('|')) { 
-          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, (k: string) => t(k), language as Language)}</div>);
+          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, (k) => t(k), language)}</div>);
         } else if (part.trim()) { 
           acc.push(<p key={`text-${index}`} className={`${detailTextClasses} mb-3 whitespace-pre-line`}>{part}</p>);
         }
@@ -116,7 +115,7 @@ const CityDetailPage: FC = () => {
     );
   };
   
-  const renderLinkSection = (titleKeySuffix: string, textKeySuffix: string, urlKeySuffix: string, iconClass: string) => {
+  const renderLinkSection = (titleKeySuffix, textKeySuffix, urlKeySuffix, iconClass) => {
     const title = t(`section_title_${titleKeySuffix}`);
     const linkText = t(`${city.id}_${textKeySuffix}`);
     const linkUrl = t(`${city.id}_${urlKeySuffix}`);

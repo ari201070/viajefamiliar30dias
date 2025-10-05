@@ -1,13 +1,8 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { TRANSPORT_DATA } from '../../constants.ts';
-import { Price } from '../../types.ts';
+import React from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { TRANSPORT_DATA } from '../../constants.js';
 
-interface TransportTableProps {
-    getFormattedPrice: (price: Price | number) => string;
-}
-
-const TransportTable: FC<TransportTableProps> = ({ getFormattedPrice }) => {
+const TransportTable = ({ getFormattedPrice }) => {
     const { t } = useAppContext();
 
     const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50";

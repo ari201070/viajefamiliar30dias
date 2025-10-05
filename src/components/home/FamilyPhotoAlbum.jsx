@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useRef, FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { PhotoItem, Language } from '../../types.ts';
-import { CITIES } from '../../constants.ts';
-import { dbService } from '../../services/dbService.ts'; // Using local DB for now
+import React, { useState, useEffect, useRef } from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { CITIES } from '../../constants.js';
+import { dbService } from '../../services/dbService.js'; // Using local DB for now
 
-const FamilyPhotoAlbum: FC = () => {
+const FamilyPhotoAlbum = () => {
     const { t, language } = useAppContext();
-    const [photos, setPhotos] = useState<PhotoItem[]>([]);
+    const [photos, setPhotos] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [photoDetails, setPhotoDetails] = useState<Partial<PhotoItem>[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [photoDetails, setPhotoDetails] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         const loadPhotos = async () => {
@@ -23,7 +22,7 @@ const FamilyPhotoAlbum: FC = () => {
         loadPhotos();
     }, []);
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (event) => {
         if (event.target.files) {
             const files = Array.from(event.target.files);
             setSelectedFiles(files);
@@ -32,7 +31,7 @@ const FamilyPhotoAlbum: FC = () => {
         }
     };
     
-    const handleDetailChange = (index: number, field: keyof PhotoItem, value: any) => {
+    const handleDetailChange = (index, field, value) => {
         const newDetails = [...photoDetails];
         newDetails[index] = { ...newDetails[index], [field]: value };
         setPhotoDetails(newDetails);
@@ -45,14 +44,13 @@ const FamilyPhotoAlbum: FC = () => {
 
     const handleSavePhotos = async () => {
         setIsLoading(true);
-        const newPhotos: PhotoItem[] = await Promise.all(selectedFiles.map((file, index) => {
-            // FIX: Correctly typed the Promise to resolve with `PhotoItem`, satisfying the type requirements for `Promise.all`.
-            return new Promise<PhotoItem>((resolve) => {
+        const newPhotos = await Promise.all(selectedFiles.map((file, index) => {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const newPhoto: PhotoItem = {
+                    const newPhoto = {
                         id: `${Date.now()}-${index}`,
-                        src: e.target?.result as string,
+                        src: e.target?.result,
                         caption: photoDetails[index]?.caption || '',
                         originalLang: language,
                         dateTaken: photoDetails[index]?.dateTaken || new Date().toISOString(),
@@ -75,7 +73,7 @@ const FamilyPhotoAlbum: FC = () => {
         setIsLoading(false);
     };
     
-    const handleDeletePhoto = async (id: string) => {
+    const handleDeletePhoto = async (id) => {
         if(window.confirm(t('photo_album_confirm_delete'))) {
             await dbService.deletePhoto(id);
             setPhotos(photos.filter(p => p.id !== id));

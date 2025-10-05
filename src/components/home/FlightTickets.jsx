@@ -1,12 +1,8 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { Price, Currency } from '../../types';
+import React from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { Currency } from '../../constants.js';
 
-interface FlightTicketsProps {
-    getFormattedPrice: (price: Price | number) => string;
-}
-
-const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
+const FlightTickets = ({ getFormattedPrice }) => {
     const { t, language } = useAppContext();
 
     const flightData = {
@@ -32,8 +28,8 @@ const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
         }
     };
 
-    const formatFlightDateTime = (dateString: string) => {
-        const options: Intl.DateTimeFormatOptions = {
+    const formatFlightDateTime = (dateString) => {
+        const options = {
             weekday: 'short',
             year: 'numeric',
             month: 'short',

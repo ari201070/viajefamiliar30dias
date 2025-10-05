@@ -1,9 +1,9 @@
-import React, { useState, FC } from 'react';
-import { authService } from '../services/authService.ts';
-import { useAppContext } from '../context/AppContext.tsx';
+import React, { useState } from 'react';
+import { authService } from '../services/authService.js';
+import { useAppContext } from '../context/AppContext.jsx';
 
-const Login: FC = () => {
-  const [error, setError] = useState<string | null>(null);
+const Login = () => {
+  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useAppContext();
 
@@ -15,7 +15,7 @@ const Login: FC = () => {
       setError(result.error?.message || t('login_error_generic'));
     }
     setIsLoading(false);
-    // On success, the onAuthChange listener in App.tsx will handle the state update
+    // On success, the onAuthChange listener in App.jsx will handle the state update
   };
 
   return (

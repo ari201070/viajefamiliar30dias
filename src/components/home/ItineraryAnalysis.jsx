@@ -1,8 +1,8 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { CITIES } from '../../constants.ts';
+import React from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { CITIES } from '../../constants.js';
 
-const ItineraryAnalysis: FC = () => {
+const ItineraryAnalysis = () => {
     const { t } = useAppContext();
 
     const optimizationTips = [

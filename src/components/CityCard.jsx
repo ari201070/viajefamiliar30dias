@@ -1,16 +1,11 @@
-import React, { FC } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { City } from '../types.ts';
-import { useAppContext } from '../context/AppContext.tsx';
-import { DEFAULT_CITY_IMAGE } from '../constants.ts';
+import { useAppContext } from '../context/AppContext.jsx';
+import { DEFAULT_CITY_IMAGE } from '../constants.js';
 
-interface CityCardProps {
-    city: City;
-}
-
-const CityCard: FC<CityCardProps> = ({ city }) => {
+const CityCard = ({ city }) => {
     const { t } = useAppContext();
-    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const handleImageError = (e) => {
         e.currentTarget.src = DEFAULT_CITY_IMAGE;
     };
 

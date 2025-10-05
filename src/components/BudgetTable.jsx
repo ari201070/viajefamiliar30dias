@@ -1,15 +1,9 @@
-import React, { useState, useEffect, FC } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { BudgetItem, Currency } from '../types.ts';
+import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext.jsx';
 
-interface BudgetTableProps {
-    cityId: string;
-    defaultBudgetItems: BudgetItem[];
-}
-
-const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
-    const { t, currency } = useAppContext();
-    const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
+const BudgetTable = ({ cityId, defaultBudgetItems }) => {
+    const { t } = useAppContext();
+    const [budgetItems, setBudgetItems] = useState([]);
     const [isSaved, setIsSaved] = useState(false);
 
     useEffect(() => {
@@ -17,7 +11,7 @@ const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
         setBudgetItems(savedBudgets[cityId] || defaultBudgetItems);
     }, [cityId, defaultBudgetItems]);
 
-    const handleValueChange = (index: number, value: string) => {
+    const handleValueChange = (index, value) => {
         const updatedItems = [...budgetItems];
         updatedItems[index] = { ...updatedItems[index], value };
         setBudgetItems(updatedItems);

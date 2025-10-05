@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Corrected import path to use the TypeScript context file consistent with the rest of the app.
-import { useAppContext } from '../../context/AppContext.tsx';
+import { useAppContext } from '../../context/AppContext.jsx';
 
-type SyncStatus = 'idle' | 'pending' | 'syncing' | 'synced';
-
-const CloudSyncInfo: React.FC = () => {
+const CloudSyncInfo = () => {
   const { t, language } = useAppContext();
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
-  const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('lastSyncedTime'));
+  const [syncStatus, setSyncStatus] = useState('idle');
+  const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('lastSyncedTime'));
 
   useEffect(() => {
     const handleDataChange = () => {

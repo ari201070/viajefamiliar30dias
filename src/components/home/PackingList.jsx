@@ -1,12 +1,11 @@
-import React, { useState, useEffect, FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { PackingItem, Language } from '../../types.ts';
+import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
 
-const PackingList: FC = () => {
+const PackingList = () => {
     const { t, language } = useAppContext();
-    const [items, setItems] = useState<PackingItem[]>([]);
+    const [items, setItems] = useState([]);
     const [newItemText, setNewItemText] = useState('');
-    const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
+    const [newItemType, setNewItemType] = useState('essential');
 
     useEffect(() => {
         const savedList = localStorage.getItem('packingList');
@@ -21,7 +20,7 @@ const PackingList: FC = () => {
 
     const handleAddItem = () => {
         if (newItemText.trim() === '') return;
-        const newItem: PackingItem = {
+        const newItem = {
             id: Date.now().toString(),
             text: newItemText,
             type: newItemType,
@@ -32,15 +31,15 @@ const PackingList: FC = () => {
         setNewItemText('');
     };
     
-    const toggleItemChecked = (id: string) => {
+    const toggleItemChecked = (id) => {
         setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
     };
 
-    const deleteItem = (id: string) => {
+    const deleteItem = (id) => {
         setItems(items.filter(item => item.id !== id));
     };
 
-    const renderList = (type: 'essential' | 'optional') => {
+    const renderList = (type) => {
         const filteredItems = items.filter(item => item.type === type);
         if(filteredItems.length === 0) {
             return <p className="text-sm text-gray-500 dark:text-slate-400 italic">{t('packing_list_empty')}</p>
@@ -81,7 +80,7 @@ const PackingList: FC = () => {
                     placeholder={t('packing_placeholder')}
                     className="flex-grow p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700"
                 />
-                <select value={newItemType} onChange={e => setNewItemType(e.target.value as any)} className="p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700">
+                <select value={newItemType} onChange={e => setNewItemType(e.target.value)} className="p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700">
                     <option value="essential">{t('packing_essential')}</option>
                     <option value="optional">{t('packing_optional')}</option>
                 </select>

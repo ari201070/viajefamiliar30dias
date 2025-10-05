@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, FC } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAppContext } from '../context/AppContext.jsx';
 import CityCard from '../components/CityCard';
 import InteractiveMap from '../components/InteractiveMap';
-import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
-import { Currency, Price, BudgetDetails } from '../types';
-import { getCachedExchangeRate } from '../services/apiService.ts';
+import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS, Currency } from '../constants.js';
+import { getCachedExchangeRate } from '../services/apiService.js';
 import BudgetSummary from '../components/home/BudgetSummary';
 import TransportTable from '../components/home/TransportTable';
 import ItineraryAnalysis from '../components/home/ItineraryAnalysis';
@@ -18,7 +17,7 @@ import FlightTickets from '../components/home/FlightTickets';
 
 
 // --- Helper Functions for Budget Calculation ---
-const parseRange = (rangeStr: string | undefined): [number, number] => {
+const parseRange = (rangeStr) => {
   if (!rangeStr || typeof rangeStr !== 'string') return [0, 0];
   const parts = rangeStr.split('-').map(s => parseFloat(s.trim()));
   if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
@@ -30,7 +29,7 @@ const parseRange = (rangeStr: string | undefined): [number, number] => {
   return [0, 0];
 };
 
-const getDaysFromDurationString = (durationStr: string | undefined): number => {
+const getDaysFromDurationString = (durationStr) => {
   if (!durationStr) return 0;
   
   let totalDays = 0;
@@ -50,11 +49,11 @@ const getDaysFromDurationString = (durationStr: string | undefined): number => {
 };
 
 
-const HomePage: FC = () => {
+const HomePage = () => {
   const { t, language, currency: globalCurrency } = useAppContext();
 
-  const [exchangeRates, setExchangeRates] = useState<Record<string, number | null>>({});
-  const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({
+  const [exchangeRates, setExchangeRates] = useState({});
+  const [budgetDetails, setBudgetDetails] = useState({
     total: t('budget_summary_calculating'),
     breakdown: {},
     isCalculating: true,
@@ -64,7 +63,7 @@ const HomePage: FC = () => {
 
   // --- Price Conversion & Formatting Logic ---
   const updateAllExchangeRates = useCallback(async () => {
-    const newRates: Record<string, number | null> = {};
+    const newRates = {};
     const baseCurrencies = [Currency.ARS, Currency.USD]; 
     const allCurrencies = Object.values(Currency);
 
@@ -88,8 +87,8 @@ const HomePage: FC = () => {
     updateAllExchangeRates();
   }, [updateAllExchangeRates]);
 
-  const getFormattedPrice = useCallback((priceInput: Price | number): string => {
-    const price: Price = typeof priceInput === 'number'
+  const getFormattedPrice = useCallback((priceInput) => {
+    const price = typeof priceInput === 'number'
         ? { value: priceInput, currency: Currency.ARS }
         : priceInput;
 
@@ -117,8 +116,8 @@ const HomePage: FC = () => {
     });
     
     try {
-        const totalsByCategory: Record<string, { min: number; max: number }> = {};
-        const oneTimeCostsAdded = new Set<string>();
+        const totalsByCategory = {};
+        const oneTimeCostsAdded = new Set();
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
 
         TRIP_WIDE_BUDGET_ITEMS.forEach(item => {
@@ -136,7 +135,7 @@ const HomePage: FC = () => {
             const days = getDaysFromDurationString(durationStr);
             const cityBudget = savedBudgets[city.id] || city.budgetItems;
 
-            cityBudget.forEach((item: any) => {
+            cityBudget.forEach((item) => {
                 if (!totalsByCategory[item.conceptKey]) {
                     totalsByCategory[item.conceptKey] = { min: 0, max: 0 };
                 }
@@ -165,7 +164,7 @@ const HomePage: FC = () => {
         const rate = await getCachedExchangeRate(Currency.USD, globalCurrency);
 
         if (rate !== null) {
-            const formattedBreakdown: Record<string, string> = {};
+            const formattedBreakdown = {};
             const locale = language === 'he' ? 'he-IL' : 'es-AR';
             const formattingOptions = { maximumFractionDigits: 0 };
 
@@ -216,8 +215,8 @@ const HomePage: FC = () => {
 
   useEffect(() => {
     calculateTripBudget();
-    const handleStorageChange = (event: StorageEvent | Event) => {
-      if ('key' in event && event.key === 'customBudgets' || event.type === 'storage') {
+    const handleStorageChange = (event) => {
+      if (event.key === 'customBudgets' || event.type === 'storage') {
         calculateTripBudget();
       }
     };

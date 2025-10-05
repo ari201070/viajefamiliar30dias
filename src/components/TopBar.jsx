@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect, FC } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext.tsx';
-import { LANGUAGES, CURRENCIES } from '../constants.ts';
-import { Language, Theme } from '../types.ts';
-import { authService } from '../services/authService.ts';
-import CloudSyncInfo from './home/CloudSyncInfo.tsx';
+import { useAppContext } from '../context/AppContext.jsx';
+import { LANGUAGES, CURRENCIES, Theme } from '../constants.js';
+import { authService } from '../services/authService.js';
+import CloudSyncInfo from './home/CloudSyncInfo.jsx';
 
-const TopBar: FC = () => {
+const TopBar = () => {
   const {
     language, setLanguage,
     currency, setCurrency,
@@ -16,10 +15,10 @@ const TopBar: FC = () => {
   } = useAppContext();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef(null);
 
-  const handleLanguageChange = (langCode: string) => {
-    setLanguage(langCode as Language);
+  const handleLanguageChange = (langCode) => {
+    setLanguage(langCode);
     setIsMenuOpen(false);
   };
 
@@ -29,8 +28,8 @@ const TopBar: FC = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
       }
     };
@@ -89,7 +88,7 @@ const TopBar: FC = () => {
                     <p className="text-sm text-gray-700 dark:text-slate-200">{t('moneda')}</p>
                     <select
                       value={currency}
-                      onChange={(e) => setCurrency(e.target.value as any)}
+                      onChange={(e) => setCurrency(e.target.value)}
                       className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                     >
                       {CURRENCIES.map(curr => <option key={curr.code} value={curr.code}>{curr.name}</option>)}

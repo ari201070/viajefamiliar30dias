@@ -1,33 +1,28 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
+import React from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
 import { BOOKING_DATA } from '../../constants';
-import { Price, HotelData, BusData } from '../../types';
 
-interface ReservationsProps {
-    getFormattedPrice: (price: Price | number) => string;
-}
-
-const Reservations: FC<ReservationsProps> = ({ getFormattedPrice }) => {
+const Reservations = ({ getFormattedPrice }) => {
     const { t, language } = useAppContext();
 
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString(language === 'he' ? 'he-IL' : 'es-AR', {
             weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
         });
     };
     
-    const formatDateTime = (dateString: string) => {
+    const formatDateTime = (dateString) => {
          return new Date(dateString).toLocaleString(language === 'he' ? 'he-IL' : 'es-AR', {
             dateStyle: 'short', timeStyle: 'short'
         });
     };
 
-    const renderBookingCard = (booking: typeof BOOKING_DATA[0]) => {
+    const renderBookingCard = (booking) => {
         const data = booking.data;
         let details;
 
         if (booking.type === 'hotel') {
-            const hotelData = data as HotelData;
+            const hotelData = data;
             details = (
                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <span><i className="fas fa-sign-in-alt mr-2 text-green-500"></i>{t('reservations_hotel_checkin')}:</span> <span className="font-semibold">{formatDate(hotelData.checkIn)}</span>
@@ -37,7 +32,7 @@ const Reservations: FC<ReservationsProps> = ({ getFormattedPrice }) => {
                  </div>
             );
         } else if (booking.type === 'bus') {
-            const busData = data as BusData;
+            const busData = data;
             details = (
                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <span><i className="fas fa-arrow-up mr-2 text-blue-500"></i>{t('reservations_bus_departure')}:</span> <span className="font-semibold">{formatDateTime(busData.departure)}</span>

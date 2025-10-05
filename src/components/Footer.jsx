@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
+import React from 'react';
+import { useAppContext } from '../context/AppContext.jsx';
 
-const Footer: FC = () => {
+const Footer = () => {
     const { t } = useAppContext();
     return (
         <footer className="bg-white dark:bg-slate-800 shadow-inner mt-12">

@@ -1,15 +1,14 @@
-import React, { useState, FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { CURRENCIES } from '../../constants.ts';
-import { Currency } from '../../types.ts';
-import { convertCurrency } from '../../services/apiService.ts';
+import React, { useState } from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { CURRENCIES, Currency } from '../../constants.js';
+import { convertCurrency } from '../../services/apiService.js';
 
-const CurrencyConverter: FC = () => {
+const CurrencyConverter = () => {
     const { t } = useAppContext();
     const [amount, setAmount] = useState('100');
-    const [fromCurrency, setFromCurrency] = useState<Currency>(Currency.USD);
-    const [toCurrency, setToCurrency] = useState<Currency>(Currency.ARS);
-    const [result, setResult] = useState<string | null>(null);
+    const [fromCurrency, setFromCurrency] = useState(Currency.USD);
+    const [toCurrency, setToCurrency] = useState(Currency.ARS);
+    const [result, setResult] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleConvert = async () => {
@@ -50,13 +49,13 @@ const CurrencyConverter: FC = () => {
                 <div className="grid grid-cols-2 gap-2">
                     <div>
                          <label htmlFor="from" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('desde')}</label>
-                         <select id="from" value={fromCurrency} onChange={e => setFromCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
+                         <select id="from" value={fromCurrency} onChange={e => setFromCurrency(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
                              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                          </select>
                     </div>
                     <div>
                         <label htmlFor="to" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('hasta')}</label>
-                        <select id="to" value={toCurrency} onChange={e => setToCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
+                        <select id="to" value={toCurrency} onChange={e => setToCurrency(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
                             {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                         </select>
                     </div>

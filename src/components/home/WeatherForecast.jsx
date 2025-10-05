@@ -1,15 +1,14 @@
-import React, { useState, useEffect, FC } from 'react';
-import { useAppContext } from '../../context/AppContext.tsx';
-import { CITIES } from '../../constants.ts';
-import { WeatherData } from '../../types.ts';
-import { getWeatherForecast } from '../../services/apiService.ts';
+import React, { useState, useEffect } from 'react';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { CITIES } from '../../constants.js';
+import { getWeatherForecast } from '../../services/apiService.js';
 
-const WeatherForecast: FC = () => {
+const WeatherForecast = () => {
     const { t, language } = useAppContext();
     const [selectedCityId, setSelectedCityId] = useState(CITIES[0].id);
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+    const [weatherData, setWeatherData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchWeather = async () => {

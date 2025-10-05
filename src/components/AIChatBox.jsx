@@ -1,22 +1,16 @@
-import React, { useState, useEffect, useRef, FC } from 'react';
-import { useAppContext } from '../context/AppContext.tsx';
-import { AIPromptContent, City, ChatMessage, Language, AIResponseType } from '../types.ts';
-import { sendMessageInChat, translateText } from '../services/apiService.ts';
-import { parseMarkdownLinks } from '../utils/markdownParser.ts';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAppContext } from '../context/AppContext.jsx';
+import { Language } from '../constants.js';
+import { sendMessageInChat, translateText } from '../services/apiService.js';
+import { parseMarkdownLinks } from '../utils/markdownParser.js';
 
-interface AIChatBoxProps {
-    config: AIPromptContent;
-    city?: City;
-    chatId: string; // Unique ID for storing chat history
-}
-
-const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
+const AIChatBox = ({ config, city, chatId }) => {
     const { t, language } = useAppContext();
-    const [history, setHistory] = useState<ChatMessage[]>([]);
+    const [history, setHistory] = useState([]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef(null);
 
     const title = t(config.titleKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') });
     const description = t(config.descriptionKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') });
@@ -48,7 +42,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     const handleSendMessage = async () => {
         if (userInput.trim() === '' || isLoading) return;
 
-        const newUserMessage: ChatMessage = {
+        const newUserMessage = {
             id: Date.now().toString(),
             role: 'user',
             text: userInput,
@@ -64,7 +58,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
 
         try {
             const responseText = await sendMessageInChat(basePrompt, history, userInput, language);
-            const newModelMessage: ChatMessage = {
+            const newModelMessage = {
                 id: (Date.now() + 1).toString(),
                 role: 'model',
                 text: responseText,
@@ -73,7 +67,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
             };
             setHistory(prev => [...prev, newModelMessage]);
         } catch (error) {
-            const errorMessage: ChatMessage = {
+            const errorMessage = {
                 id: (Date.now() + 1).toString(),
                 role: 'model',
                 text: t('iaError'),
@@ -86,7 +80,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
         }
     };
     
-    const handleTranslate = async (messageId: string, targetLang: Language) => {
+    const handleTranslate = async (messageId, targetLang) => {
         const messageIndex = history.findIndex(m => m.id === messageId);
         if (messageIndex === -1) return;
         
