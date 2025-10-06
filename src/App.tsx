@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useMemo, FC } from 'react';
+import React, { useState, useEffect, useMemo, FC, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import TopBar from './components/TopBar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import CityDetailPage from './pages/CityDetailPage';
 import Login from './components/Login';
 
 import { AppContext } from './context/AppContext';
@@ -14,6 +12,17 @@ import { Language, Theme, Currency, User, PhotoItem } from './types';
 import { authService } from './services/authService';
 import { isFirebaseConfigured } from './services/firebaseConfig';
 import { consoleInterceptor } from './utils/consoleInterceptor';
+
+// Lazy load pages for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const CityDetailPage = lazy(() => import('./pages/CityDetailPage'));
+
+// Simple loading component for Suspense fallback
+const LoadingSpinner: FC = () => (
+  <div className="flex items-center justify-center py-20">
+    <i className="fas fa-spinner fa-spin text-4xl text-indigo-500" />
+  </div>
+);
 
 const ScrollToTop: FC = () => {
   const { pathname } = useLocation();
@@ -182,10 +191,12 @@ const App: FC = () => {
             <ScrollToTop />
             <TopBar />
             <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/city/:cityId" element={<CityDetailPage />} />
-              </Routes>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/city/:cityId" element={<CityDetailPage />} />
+                </Routes>
+              </Suspense>
             </main>
             <Footer />
           </Router>
