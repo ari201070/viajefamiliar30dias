@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useCallback, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
-import CityCard from '../components/CityCard';
-import InteractiveMap from '../components/InteractiveMap';
+import CityCard from '../components/CityCard.tsx';
+import InteractiveMap from '../components/InteractiveMap.tsx';
 import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
-import { Currency, Price, BudgetDetails } from '../types';
+import { Currency, Price, BudgetDetails } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
-import BudgetSummary from '../components/home/BudgetSummary';
-import TransportTable from '../components/home/TransportTable';
-import ItineraryAnalysis from '../components/home/ItineraryAnalysis';
-import PackingList from '../components/home/PackingList';
-import AIChatBox from '../components/AIChatBox';
-import CurrencyConverter from '../components/home/CurrencyConverter';
-import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum';
-import WeatherForecast from '../components/home/WeatherForecast';
-import Reservations from '../components/home/Reservations';
-import FlightTickets from '../components/home/FlightTickets';
+import BudgetSummary from '../components/home/BudgetSummary.tsx';
+import TransportTable from '../components/home/TransportTable.tsx';
+import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
+import PackingList from '../components/home/PackingList.tsx';
+import AIChatBox from '../components/AIChatBox.tsx';
+import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
+import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
+import WeatherForecast from '../components/home/WeatherForecast.tsx';
+import Reservations from '../components/home/Reservations.tsx';
+import FlightTickets from '../components/home/FlightTickets.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---

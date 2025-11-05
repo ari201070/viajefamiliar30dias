@@ -3,19 +3,19 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import TopBar from './components/TopBar';
-import Footer from './components/Footer';
-import Login from './components/Login';
+import TopBar from './components/TopBar.tsx';
+import Footer from './components/Footer.tsx';
+import Login from './components/Login.tsx';
 
-import { AppContext } from './context/AppContext';
-import { Language, Theme, Currency, User, PhotoItem } from './types';
-import { authService } from './services/authService';
-import { isFirebaseConfigured } from './services/firebaseConfig';
-import { consoleInterceptor } from './utils/consoleInterceptor';
+import { AppContext } from './context/AppContext.tsx';
+import { Language, Theme, Currency, User, PhotoItem } from './types.ts';
+import { authService } from './services/authService.ts';
+import { isFirebaseConfigured } from './services/firebaseConfig.ts';
+import { consoleInterceptor } from './utils/consoleInterceptor.ts';
 
 // Lazy load pages for code splitting
-const HomePage = lazy(() => import('./pages/HomePage'));
-const CityDetailPage = lazy(() => import('./pages/CityDetailPage'));
+const HomePage = lazy(() => import('./pages/HomePage.tsx'));
+const CityDetailPage = lazy(() => import('./pages/CityDetailPage.tsx'));
 
 // Simple loading component for Suspense fallback
 const LoadingSpinner: FC = () => (

@@ -2,11 +2,11 @@ import React, { useState, useEffect, FC } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.tsx';
 import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.ts';
-import InteractiveMap from '../components/InteractiveMap';
-import BudgetTable from '../components/BudgetTable';
+import InteractiveMap from '../components/InteractiveMap.tsx';
+import BudgetTable from '../components/BudgetTable.tsx';
 import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.ts';
 import { findEventsWithGoogleSearch } from '../services/apiService.ts';
-import AIChatBox from '../components/AIChatBox';
+import AIChatBox from '../components/AIChatBox.tsx';
 import { AIResponseType, Language } from '../types.ts';
 
 const CityDetailPage: FC = () => {
