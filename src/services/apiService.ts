@@ -1,15 +1,16 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { firebaseCredentials } from '../firebaseCredentials.ts';
 import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types';
 import { CITIES } from '../constants';
 
 // --- API INITIALIZATION ---
 let ai: GoogleGenAI | null = null;
 
-// The API key MUST be obtained from the environment variable for security and compatibility.
-if (process.env.API_KEY) {
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// The API key is obtained from the shared firebaseCredentials file for simplified deployment.
+if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.apiKey !== "REPLACE_WITH_YOUR_API_KEY") {
+    ai = new GoogleGenAI({ apiKey: firebaseCredentials.apiKey });
 } else {
-    console.warn("Gemini API key is not configured in environment variables (process.env.API_KEY). AI features will be disabled.");
+    console.warn("Gemini API key is not configured in src/firebaseCredentials.ts. AI features will be disabled.");
 }
 
 // Helper function to check for AI availability
