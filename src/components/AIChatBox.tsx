@@ -1,348 +1,167 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-// FIX: Changed import path for useAppContext to the correct context file.
+import React, { useState, useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
-import { AIPromptContent, City, ChatMessage, Language } from '../types.ts';
+import { AIPromptContent, City, ChatMessage, Language, AIResponseType } from '../types.ts';
 import { sendMessageInChat, translateText } from '../services/apiService.ts';
-import { v4 as uuidv4 } from 'uuid';
-import { stripMarkdown } from '../utils/markdownParser.ts';
+import { parseMarkdownLinks } from '../utils/markdownParser.ts';
 
 interface AIChatBoxProps {
-  config: AIPromptContent;
-  // FIX: Made city optional and added chatId to support general (non-city-specific) chat instances.
-  city?: City;
-  chatId: string;
+    config: AIPromptContent;
+    city?: City;
+    chatId: string; // Unique ID for storing chat history
 }
 
-// Check for browser support for Web Speech API
-const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-const isSpeechSupported = SpeechRecognition && window.speechSynthesis;
+const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
+    const { t, language } = useAppContext();
+    const [history, setHistory] = useState<ChatMessage[]>([]);
+    const [userInput, setUserInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
+    const title = t(config.titleKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') });
+    const description = t(config.descriptionKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') });
+    const placeholder = t(config.userInputPlaceholderKey);
+    const basePrompt = t(city ? `${city.id}${config.promptKeySuffix}` : `homepage${config.promptKeySuffix}`, {
+      familyInfo: t('family_info_for_ai'),
+    });
 
-const AIChatBox: React.FC<AIChatBoxProps> = ({ config, city, chatId }) => {
-  const { t, language } = useAppContext();
-  const chatHistoryRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
-  // FIX: Used the new chatId prop to create a unique storage key.
-  const storageKey = `chatHistory_${chatId}`;
-
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load chat history from localStorage", e);
-      return [];
-    }
-  });
-
-  const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
-  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
-
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(messages));
-    } catch (e) {
-      console.error("Failed to save chat history to localStorage", e);
-    }
-    if (chatHistoryRef.current) {
-      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
-    }
-  }, [messages, storageKey]);
-
-  // --- Speech Recognition (Voice Input) Logic ---
-  const setupRecognition = useCallback(() => {
-    if (!isSpeechSupported) return;
-    
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = language === Language.HE ? 'he-IL' : 'es-AR';
-
-    recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
+    // Load history from localStorage on mount
+    useEffect(() => {
+        const savedHistory = localStorage.getItem(`chatHistory_${chatId}`);
+        if (savedHistory) {
+            setHistory(JSON.parse(savedHistory));
         }
-      }
-      setUserInput(finalTranscript + interimTranscript);
-    };
+    }, [chatId]);
 
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
+    // Save history to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem(`chatHistory_${chatId}`, JSON.stringify(history));
+    }, [history, chatId]);
     
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
-      setIsRecording(false);
-    };
-
-    recognitionRef.current = recognition;
-  }, [language]);
-
-  useEffect(() => {
-    setupRecognition();
-  }, [setupRecognition]);
-
-  const handleToggleRecording = () => {
-    if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
-    } else {
-      recognitionRef.current?.start();
-      setIsRecording(true);
-    }
-  };
-
-
-  // --- Speech Synthesis (Text to Voice) Logic ---
-  const handleSpeak = (message: ChatMessage) => {
-    if (speakingMessageId === message.id) {
-        window.speechSynthesis.cancel();
-        setSpeakingMessageId(null);
-        return;
-    }
-    const rawText = message.translations?.[language] || message.text;
-    const textToSpeak = stripMarkdown(rawText);
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = language === Language.HE ? 'he-IL' : 'es-AR';
-    utterance.onstart = () => setSpeakingMessageId(message.id);
-    utterance.onend = () => setSpeakingMessageId(null);
-    utterance.onerror = () => setSpeakingMessageId(null);
-
-    window.speechSynthesis.cancel(); // Stop any previous speech
-    window.speechSynthesis.speak(utterance);
-  };
-
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedInput = userInput.trim();
-    if (trimmedInput === '' || isLoading) return;
-
-    if (isRecording) {
-        recognitionRef.current?.stop();
-        setIsRecording(false);
-    }
-    if (speakingMessageId) {
-        window.speechSynthesis.cancel();
-        setSpeakingMessageId(null);
-    }
-
-    const userMessage: ChatMessage = {
-      id: uuidv4(),
-      role: 'user',
-      text: trimmedInput,
-      originalLang: language,
-      translations: {},
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setUserInput('');
-    setIsLoading(true);
-
-    // FIX: Conditionally construct systemInstruction based on whether a city is provided.
-    let systemInstruction: string;
-    if (city) {
-        const basePromptKey = `${city.id}${config.promptKeySuffix}`;
-        systemInstruction = t(basePromptKey, { cityName: t(city.nameKey) });
-        if (systemInstruction === basePromptKey) {
-            const genericPromptKey = `generic${basePromptKey.substring(city.id.length)}`;
-            systemInstruction = t(genericPromptKey, { cityName: t(city.nameKey) });
+    // Auto-scroll to bottom of chat
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-    } else {
-        const promptKey = config.promptKeySuffix.replace(/^_/, '');
-        systemInstruction = t(promptKey);
-    }
+    }, [history]);
 
-    try {
-      const responseText = await sendMessageInChat(systemInstruction, messages, trimmedInput, language);
-      const aiMessage: ChatMessage = {
-        id: uuidv4(),
-        role: 'model',
-        text: responseText,
-        originalLang: language,
-        translations: {},
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      const errorMessage: ChatMessage = {
-        id: uuidv4(),
-        role: 'model',
-        text: t('iaError'),
-        originalLang: language,
-        translations: {},
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleTranslate = async (messageId: string) => {
-    const messageToTranslate = messages.find(m => m.id === messageId);
-    if (!messageToTranslate) return;
+    const handleSendMessage = async () => {
+        if (userInput.trim() === '' || isLoading) return;
 
-    setTranslatingId(messageId);
-    try {
-        const translatedText = await translateText(messageToTranslate.text, language);
-        setMessages(currentMessages =>
-            currentMessages.map(m => {
-                if (m.id === messageId) {
-                    return {
-                        ...m,
-                        translations: {
-                            ...m.translations,
-                            [language]: translatedText,
-                        },
-                    };
-                }
-                return m;
-            })
-        );
-    } catch (error) {
-        console.error("Translation failed", error);
-        // Optionally show an error message to the user
-    } finally {
-        setTranslatingId(null);
-    }
-};
+        const newUserMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            text: userInput,
+            originalLang: language,
+            translations: {}
+        };
 
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg dark:shadow-slate-700/50 hover:shadow-xl dark:hover:shadow-slate-700 transition-shadow duration-300 ease-in-out flex flex-col";
-  const sectionTitleClasses = "text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 pb-2 border-b border-indigo-200 dark:border-slate-600 flex items-center";
-  const detailTextClasses = "text-gray-700 dark:text-slate-300 leading-relaxed";
+        setHistory(prev => [...prev, newUserMessage]);
+        setUserInput('');
+        setIsLoading(true);
 
-  return (
-    <section className={cardClasses} style={{ minHeight: '500px' }}>
-      <h2 className={sectionTitleClasses}>
-        <i className={`fas ${config.icon} mr-3 text-xl text-indigo-500 dark:text-indigo-400`}></i>
-        {t(config.titleKey)}
-      </h2>
-      <p className={`${detailTextClasses} mb-4 flex-shrink-0`}>
-        {/* FIX: Conditionally render description text to avoid errors when city is not present. */}
-        {city ? t(config.descriptionKey, { cityName: t(city.nameKey) }) : t(config.descriptionKey)}
-      </p>
-      
-      <div 
-        ref={chatHistoryRef} 
-        className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700"
-      >
-        {messages.map(msg => {
-          const showTranslateButton = msg.role === 'model' && msg.originalLang !== language && !msg.translations?.[language];
-          const targetLangName = t(`language_name_${language}`);
-          const originalLangName = t(`language_name_${msg.originalLang}`);
+        const fullPrompt = `${basePrompt}\n\nUser question: "${userInput}"`;
 
-          return (
-            <div key={msg.id} className={`flex flex-col items-start ${msg.role === 'user' ? 'items-end' : ''}`}>
-              <div className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
-                {msg.role === 'model' && isSpeechSupported && (
-                    <button 
-                        onClick={() => handleSpeak(msg)}
-                        className={`text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mt-2 ${speakingMessageId === msg.id ? 'text-indigo-600' : ''}`}
-                        aria-label={speakingMessageId === msg.id ? 'Stop speaking' : 'Speak message'}
-                    >
-                        <i className={`fas ${speakingMessageId === msg.id ? 'fa-stop-circle' : 'fa-volume-up'}`}></i>
-                    </button>
-                )}
-                <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl shadow-sm whitespace-pre-wrap ${
-                  msg.role === 'user' 
-                  ? 'bg-indigo-500 text-white rounded-br-lg' 
-                  : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-lg'
-                }`}>
-                  {msg.text}
-                  {msg.translations?.[language] && (
-                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
-                      <p className="text-xs font-semibold opacity-75 mb-1">{t('ai_translated_from_label', { lang: originalLangName })}</p>
-                      <p>{msg.translations[language]}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {showTranslateButton && (
-                 <button 
-                    onClick={() => handleTranslate(msg.id)}
-                    disabled={translatingId === msg.id}
-                    className="mt-1.5 ml-8 text-xs text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 disabled:cursor-wait"
-                 >
-                    {translatingId === msg.id ? (
-                      <i className="fas fa-spinner fa-spin"></i>
-                    ) : (
-                      <>
-                        <i className="fas fa-language mr-1"></i>
-                        {t('ai_translate_button_text', { lang: targetLangName })}
-                      </>
-                    )}
-                 </button>
-              )}
+        try {
+            const responseText = await sendMessageInChat(basePrompt, history, userInput, language);
+            const newModelMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'model',
+                text: responseText,
+                originalLang: language,
+                translations: {}
+            };
+            setHistory(prev => [...prev, newModelMessage]);
+        } catch (error) {
+            const errorMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'model',
+                text: t('iaError'),
+                originalLang: language,
+                translations: {}
+            };
+            setHistory(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleTranslate = async (messageId: string, targetLang: Language) => {
+        const messageIndex = history.findIndex(m => m.id === messageId);
+        if (messageIndex === -1) return;
+        
+        const message = history[messageIndex];
+        // If translation already exists, don't re-translate
+        if(message.translations[targetLang]) return;
+
+        const translatedText = await translateText(message.text, targetLang);
+        
+        const updatedHistory = [...history];
+        updatedHistory[messageIndex].translations[targetLang] = translatedText;
+        setHistory(updatedHistory);
+    };
+
+    const handleNewConversation = () => {
+        setHistory([]);
+        localStorage.removeItem(`chatHistory_${chatId}`);
+    };
+
+
+    return (
+        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
+            <div onClick={() => setIsExpanded(!isExpanded)} className="cursor-pointer">
+                <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-2 flex items-center justify-between">
+                    <span><i className={`fas ${config.icon} mr-3 text-indigo-600 dark:text-indigo-400`}></i>{title}</span>
+                    <i className={`fas fa-chevron-down transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}></i>
+                </h2>
+                <p className={`text-gray-600 dark:text-slate-400 transition-all duration-300 ${isExpanded ? 'mb-6' : 'mb-0'}`}>{description}</p>
             </div>
-          )
-        })}
-        {isLoading && (
-            <div className="flex justify-start">
-                <div className="px-4 py-2 rounded-2xl shadow-sm bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-bl-lg">
-                    <div className="flex items-center justify-center space-x-1">
-                        <span className="w-2 h-2 bg-gray-500 dark:bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></span>
-                        <span className="w-2 h-2 bg-gray-500 dark:bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                        <span className="w-2 h-2 bg-gray-500 dark:bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></span>
+            
+            {isExpanded && (
+                <div className="animate-fade-in">
+                    <div ref={chatContainerRef} className="h-80 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg mb-4 border border-gray-200 dark:border-slate-700 space-y-4">
+                        {history.map(msg => (
+                           <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                                {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-robot text-white"></i></div>}
+                                <div className={`max-w-md p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200'}`}>
+                                    <div className="whitespace-pre-wrap">{parseMarkdownLinks(msg.text)}</div>
+                                    {msg.role === 'model' && msg.text !== t('iaError') && (
+                                       <button onClick={() => handleTranslate(msg.id, language === 'es' ? Language.HE : Language.ES)} className="text-xs mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
+                                           {t('ai_translate_button_text', { lang: t(`language_name_${language === 'es' ? 'he' : 'es'}`) })}
+                                       </button>
+                                    )}
+                                    {msg.translations[language] && (
+                                        <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
+                                            <p className="text-xs italic text-gray-500 dark:text-slate-400 mb-1">{t('ai_translated_from_label', { lang: t(`language_name_${msg.originalLang}`) })}</p>
+                                            <p className="whitespace-pre-wrap">{msg.translations[language]}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-user text-white"></i></div>}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                            placeholder={placeholder}
+                            disabled={isLoading}
+                            className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500"
+                        />
+                        <button onClick={handleSendMessage} disabled={isLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-5 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-paper-plane"></i>}
+                        </button>
+                        <button onClick={handleNewConversation} title={t('ai_chat_new_conversation')} className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-800 dark:text-gray-100 font-bold py-3 px-4 rounded-lg transition-colors duration-150">
+                            <i className="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-        )}
-      </div>
-
-      <form onSubmit={handleSendMessage} className="flex-shrink-0 flex items-center gap-3">
-        <textarea
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(e);
-              }
-          }}
-          placeholder={t('ai_chat_input_placeholder')}
-          rows={1}
-          className="flex-grow p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none"
-          disabled={isLoading}
-          style={{ minHeight: '50px' }}
-        />
-        {isSpeechSupported && (
-          <button
-            type="button"
-            onClick={handleToggleRecording}
-            className={`transition-colors text-white font-semibold py-3 px-5 rounded-lg shadow-md h-[50px] w-[60px] flex items-center justify-center ${
-              isRecording 
-              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-              : 'bg-sky-500 hover:bg-sky-600'
-            }`}
-            aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-          >
-            <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone-alt'} text-xl`}></i>
-          </button>
-        )}
-        <button
-          type="submit"
-          disabled={isLoading || userInput.trim() === ''}
-          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-5 rounded-lg shadow-md transition-all transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 h-[50px] w-[60px] flex items-center justify-center"
-          aria-label={t('ai_chat_send_button')}
-        >
-          {isLoading ? (
-            <i className="fas fa-spinner fa-spin text-xl"></i>
-          ) : (
-            <i className="fas fa-paper-plane text-xl"></i>
-          )}
-        </button>
-      </form>
-    </section>
-  );
+            )}
+        </section>
+    );
 };
 
 export default AIChatBox;

@@ -1,28 +1,19 @@
 import React, { useState, useEffect } from 'react';
+// FIX: Corrected import path to use the TypeScript context file consistent with the rest of the app.
 import { useAppContext } from '../../context/AppContext.tsx';
+
+type SyncStatus = 'idle' | 'pending' | 'syncing' | 'synced';
 
 const CloudSyncInfo: React.FC = () => {
   const { t, language } = useAppContext();
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced'>('idle');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('lastSyncedTime'));
 
   useEffect(() => {
-    const triggerSync = () => {
-      setSyncStatus('syncing');
-      setTimeout(() => {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString(language === 'he' ? 'he-IL' : 'es-AR', { hour: '2-digit', minute: '2-digit' });
-        localStorage.setItem('lastSyncedTime', timeString);
-        setLastSynced(timeString);
-        setSyncStatus('synced');
-        setTimeout(() => setSyncStatus('idle'), 2500); // Revert to idle after 2.5 seconds
-      }, 1500); // Simulate sync for 1.5 seconds
-    };
-
     const handleDataChange = () => {
-      // Avoid triggering sync repeatedly in a short time
-      if (syncStatus !== 'syncing') {
-          triggerSync();
+      // If idle or already synced, move to pending state. Don't interrupt if already pending or syncing.
+      if (syncStatus === 'idle' || syncStatus === 'synced') {
+          setSyncStatus('pending');
       }
     };
     
@@ -33,27 +24,61 @@ const CloudSyncInfo: React.FC = () => {
     return () => {
       window.removeEventListener('storage', handleDataChange);
     };
-  }, [language, syncStatus]);
+  }, [syncStatus]);
+
+  const handleSync = () => {
+      if (syncStatus !== 'pending') return;
+
+      setSyncStatus('syncing');
+      // Simulate sync network request
+      setTimeout(() => {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString(language === 'he' ? 'he-IL' : 'es-AR', { hour: '2-digit', minute: '2-digit' });
+        localStorage.setItem('lastSyncedTime', timeString);
+        setLastSynced(timeString);
+        setSyncStatus('synced');
+        // Revert to idle after showing success message
+        setTimeout(() => setSyncStatus('idle'), 3000);
+      }, 1500);
+  };
+
 
   const getStatusInfo = () => {
     switch (syncStatus) {
+      case 'pending':
+        return { icon: 'fa-cloud-upload-alt', text: t('sync_status_pending'), color: 'text-yellow-600 dark:text-yellow-400', showButton: true };
       case 'syncing':
-        return { icon: 'fa-sync fa-spin', text: t('sync_status_syncing'), color: 'text-blue-500 dark:text-blue-400' };
+        return { icon: 'fa-sync fa-spin', text: t('sync_status_syncing'), color: 'text-blue-500 dark:text-blue-400', showButton: false };
       case 'synced':
-        return { icon: 'fa-check-circle', text: t('sync_status_synced'), color: 'text-green-500 dark:text-green-400' };
+        return { icon: 'fa-check-circle', text: t('sync_status_synced'), color: 'text-green-500 dark:text-green-400', showButton: false };
       case 'idle':
       default:
-        return { icon: 'fa-cloud', text: lastSynced ? `${t('sync_status_last_sync')} ${lastSynced}` : t('sync_status_ready'), color: 'text-gray-500 dark:text-slate-400' };
+        return { icon: 'fa-cloud', text: lastSynced ? `${t('sync_status_last_sync')} ${lastSynced}` : t('sync_status_ready'), color: 'text-gray-500 dark:text-slate-400', showButton: false };
     }
   };
   
-  const { icon, text, color } = getStatusInfo();
+  const { icon, text, color, showButton } = getStatusInfo();
 
   return (
-    <div className="flex items-center justify-center gap-2 p-2 mb-8 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 text-sm shadow-inner">
-      <i className={`fas ${icon} ${color}`}></i>
-      <span className={`${color} font-medium`}>{text}</span>
-    </div>
+    <section className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <i className={`fas ${icon} ${color} text-xl`}></i>
+          <span className={`${color} font-semibold text-sm`}>{text}</span>
+        </div>
+        {showButton && (
+          <button
+            onClick={handleSync}
+            disabled={syncStatus === 'syncing'}
+            className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            <i className="fas fa-sync-alt mr-2"></i>
+            {t('sync_button_now')}
+          </button>
+        )}
+      </div>
+      <p className="text-xs text-center sm:text-left text-gray-500 dark:text-slate-500 mt-2">{t('sync_explanation_text')}</p>
+    </section>
   );
 };
 

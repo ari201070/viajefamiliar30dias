@@ -84,7 +84,7 @@ export const dbService = {
         const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
         const store = transaction.objectStore(PHOTO_STORE_NAME);
         
-        photos.forEach(photo => store.add(photo));
+        photos.forEach(photo => store.put(photo));
 
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject('Error adding batch of photos');

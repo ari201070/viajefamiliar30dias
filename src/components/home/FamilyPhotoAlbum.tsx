@@ -1,277 +1,168 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { PhotoItem } from '../../types.ts';
-import { v4 as uuidv4 } from 'uuid';
+import { PhotoItem, Language } from '../../types.ts';
 import { CITIES } from '../../constants.ts';
-import { dbService } from '../../services/dbService.ts';
+import { dbService } from '../../services/dbService.ts'; // Using local DB for now
 
-const FamilyPhotoAlbum: React.FC = () => {
-  const { t, language } = useAppContext();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [photos, setPhotos] = useState<PhotoItem[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+const FamilyPhotoAlbum: FC = () => {
+    const { t, language } = useAppContext();
+    const [photos, setPhotos] = useState<PhotoItem[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [photoDetails, setPhotoDetails] = useState<Partial<PhotoItem>[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getInitialPhotos = useCallback(() => {
-    return CITIES.slice(0, 5).map((city, index) => ({
-      id: `placeholder-${city.id}`,
-      src: city.image,
-      caption: t('photo_album_placeholder_caption', { cityName: t(city.nameKey) }),
-      originalLang: language,
-      cityId: city.id,
-      tripDay: index * 5 + 1, // Approximate trip day
-      dateTaken: new Date(2025, 8, 26 + index * 5).toISOString().split('T')[0] // Approximate date
-    }));
-  }, [t, language]);
-  
-  const loadPhotos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const photosFromDB = await dbService.getPhotos();
-      
-      const hasSeeded = localStorage.getItem('photosSeeded') === 'true';
+    useEffect(() => {
+        const loadPhotos = async () => {
+            setIsLoading(true);
+            const loadedPhotos = await dbService.getPhotos();
+            setPhotos(loadedPhotos);
+            setIsLoading(false);
+        };
+        loadPhotos();
+    }, []);
 
-      if (photosFromDB.length === 0 && !hasSeeded) {
-          const initialPhotos = getInitialPhotos();
-          await dbService.addPhotosBatch(initialPhotos);
-          setPhotos(initialPhotos);
-          localStorage.setItem('photosSeeded', 'true');
-      } else {
-        setPhotos(photosFromDB);
-      }
-    } catch (error) {
-        console.error("Failed to load photos from IndexedDB", error);
-        setPhotos([]); // Set to empty array on error
-    } finally {
-        setIsLoading(false);
-    }
-  }, [getInitialPhotos]);
-
-  useEffect(() => {
-    loadPhotos();
-  }, [loadPhotos]);
-
-  const groupedPhotos = useMemo(() => {
-    if (!photos) return {};
-    const groups: Record<string, PhotoItem[]> = {};
-    photos.forEach(photo => {
-      const cityId = photo.cityId || 'unclassified';
-      if (!groups[cityId]) {
-        groups[cityId] = [];
-      }
-      groups[cityId].push(photo);
-    });
-
-    // Sort cities based on CITIES array order, with 'unclassified' at the end
-    const cityOrder = CITIES.map(c => c.id);
-    const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
-        if (a === 'unclassified') return 1;
-        if (b === 'unclassified') return -1;
-        const indexA = cityOrder.indexOf(a);
-        const indexB = cityOrder.indexOf(b);
-        if (indexA === -1) return 1;
-        if (indexB === -1) return -1;
-        return indexA - indexB;
-    });
-
-    const sortedGroups: Record<string, PhotoItem[]> = {};
-    sortedGroupKeys.forEach(key => {
-        sortedGroups[key] = groups[key];
-    });
-
-    return sortedGroups;
-  }, [photos]);
-
-  useEffect(() => {
-    setOpenSections(prevOpenSections => {
-        const newOpenState = { ...prevOpenSections };
-        let stateChanged = false;
-        Object.keys(groupedPhotos).forEach(cityId => {
-            if (newOpenState[cityId] === undefined) {
-              newOpenState[cityId] = false; // Default new sections to closed
-              stateChanged = true;
-            }
-        });
-        return stateChanged ? newOpenState : prevOpenSections;
-    });
-  }, [groupedPhotos]);
-
-  const toggleSection = (cityId: string) => {
-    setOpenSections(prev => ({ ...prev, [cityId]: !prev[cityId] }));
-  };
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentPhoto, setCurrentPhoto] = useState<Partial<PhotoItem> | null>(null);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCurrentPhoto({
-          id: uuidv4(),
-          src: event.target?.result as string,
-          caption: '',
-          originalLang: language,
-          dateTaken: new Date().toISOString().split('T')[0], // Default to today
-          tripDay: 1,
-          cityId: CITIES[0].id
-        });
-        setIsModalOpen(true);
-      };
-      reader.readAsDataURL(file);
-       e.target.value = ''; // Reset input to allow same file upload again
-    }
-  };
-
-  const handleEditPhoto = (photo: PhotoItem) => {
-    setCurrentPhoto(photo);
-    setIsModalOpen(true);
-  };
-  
-  const handleSavePhoto = async () => {
-    if (!currentPhoto || !currentPhoto.id) return;
-    
-    try {
-        await dbService.savePhoto(currentPhoto as PhotoItem);
-        window.dispatchEvent(new Event('storage')); // Trigger cloud sync indicator
-        setIsModalOpen(false);
-        setCurrentPhoto(null);
-        await loadPhotos(); // Reload photos from DB to update UI
-    } catch(error) {
-        console.error("Failed to save photo", error);
-    }
-  };
-
-  const handleRemovePhoto = async (id: string) => {
-    if (window.confirm(t('photo_album_confirm_delete'))) {
-        try {
-            await dbService.deletePhoto(id);
-            window.dispatchEvent(new Event('storage'));
-            await loadPhotos(); // Reload photos from DB
-        } catch(error) {
-            console.error("Failed to delete photo", error);
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            const files = Array.from(event.target.files);
+            setSelectedFiles(files);
+            setPhotoDetails(files.map(() => ({ cityId: CITIES[0].id, tripDay: 1, dateTaken: new Date().toISOString().split('T')[0] })));
+            setIsModalOpen(true);
         }
-    }
-  };
-  
-  const handleModalInputChange = (field: keyof PhotoItem, value: any) => {
-    if (currentPhoto) {
-      setCurrentPhoto({ ...currentPhoto, [field]: value });
-    }
-  };
+    };
+    
+    const handleDetailChange = (index: number, field: keyof PhotoItem, value: any) => {
+        const newDetails = [...photoDetails];
+        newDetails[index] = { ...newDetails[index], [field]: value };
+        setPhotoDetails(newDetails);
+    };
 
-  const sectionTitleClasses = "text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600";
-  const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
+    const applyToAll = () => {
+        const firstDetails = photoDetails[0];
+        setPhotoDetails(photoDetails.map(() => ({...firstDetails})));
+    };
 
-  return (
-    <section className={cardClasses}>
-      <h2 className={`${sectionTitleClasses} flex items-center justify-between`}>
-        <div className="flex items-center">
-          <i className="fas fa-camera-retro mr-3 text-indigo-600 dark:text-indigo-400"></i>
-          {t('photo_album_title')}
-        </div>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 text-sm"
-        >
-          <i className="fas fa-plus mr-2"></i>{t('photo_album_add_button')}
-        </button>
-        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
-      </h2>
-      <p className="text-gray-600 dark:text-slate-400 mb-6">{t('photo_album_description')}</p>
+    const handleSavePhotos = async () => {
+        setIsLoading(true);
+        const newPhotos: PhotoItem[] = await Promise.all(selectedFiles.map((file, index) => {
+            // FIX: Correctly typed the Promise to resolve with `PhotoItem`, satisfying the type requirements for `Promise.all`.
+            return new Promise<PhotoItem>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const newPhoto: PhotoItem = {
+                        id: `${Date.now()}-${index}`,
+                        src: e.target?.result as string,
+                        caption: photoDetails[index]?.caption || '',
+                        originalLang: language,
+                        dateTaken: photoDetails[index]?.dateTaken || new Date().toISOString(),
+                        tripDay: photoDetails[index]?.tripDay || 1,
+                        cityId: photoDetails[index]?.cityId || 'unclassified',
+                    };
+                    resolve(newPhoto);
+                };
+                reader.readAsDataURL(file);
+            });
+        }));
 
-      {isLoading || photos === null ? (
-        <div className="text-center py-16 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <i className="fas fa-spinner fa-spin text-4xl mb-4 text-indigo-500"></i>
-          <p>{t('loading')}</p>
-        </div>
-      ) : photos.length === 0 ? (
-        <div className="text-center py-16 text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-          <i className="fas fa-images text-5xl mb-4 text-gray-400 dark:text-slate-500"></i>
-          <p>{t('photo_album_empty')}</p>
-        </div>
-      ) : (
-        <div className="mt-6 space-y-8">
-          {Object.entries(groupedPhotos).map(([cityId, cityPhotos]) => {
-            const city = CITIES.find(c => c.id === cityId);
-            const sectionTitle = city ? t(city.nameKey) : t('photo_album_unclassified');
-            const sectionIsOpen = openSections[cityId] ?? false;
+        await dbService.addPhotosBatch(newPhotos);
+        const allPhotos = await dbService.getPhotos();
+        setPhotos(allPhotos);
+
+        setIsModalOpen(false);
+        setSelectedFiles([]);
+        setPhotoDetails([]);
+        setIsLoading(false);
+    };
+    
+    const handleDeletePhoto = async (id: string) => {
+        if(window.confirm(t('photo_album_confirm_delete'))) {
+            await dbService.deletePhoto(id);
+            setPhotos(photos.filter(p => p.id !== id));
+        }
+    };
+
+    return (
+        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-2 flex items-center">
+                 <i className="fas fa-camera-retro mr-3 text-indigo-600 dark:text-indigo-400" />
+                {t('photo_album_title')}
+            </h2>
+            <p className="text-gray-600 dark:text-slate-400 mb-6">{t('photo_album_description')}</p>
             
-            return (
-              <div key={cityId}>
-                <button
-                  onClick={() => toggleSection(cityId)}
-                  className="w-full flex justify-between items-center text-left p-3 bg-gray-100 dark:bg-slate-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                  aria-expanded={sectionIsOpen}
-                >
-                  <h3 className="text-xl font-semibold text-indigo-700 dark:text-indigo-400">{sectionTitle} ({cityPhotos.length})</h3>
-                  <i className={`fas fa-chevron-down text-indigo-500 transform transition-transform duration-300 ${sectionIsOpen ? 'rotate-180' : ''}`}></i>
-                </button>
-                
-                {sectionIsOpen && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                    {cityPhotos.map(photo => (
-                      <div key={photo.id} className="aspect-square relative group overflow-hidden rounded-lg shadow-md bg-gray-200 dark:bg-slate-700">
-                        <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 text-white">
-                          <div className="text-xs flex items-center gap-3">
-                              {photo.tripDay && <span>{t('photo_album_trip_day')} {photo.tripDay}</span>}
-                              {photo.dateTaken && <span>{new Date(photo.dateTaken).toLocaleDateString(language)}</span>}
-                          </div>
-                          <p className="text-sm mt-1">{photo.caption}</p>
+            <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md mb-6"
+            >
+                <i className="fas fa-plus-circle mr-2"></i>{t('photo_album_add_button')}
+            </button>
+            <input
+                type="file"
+                multiple
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileSelect}
+            />
+
+            {isLoading && <div className="text-center p-8"><i className="fas fa-spinner fa-spin text-3xl text-indigo-500"></i></div>}
+            
+            {!isLoading && photos.length === 0 && (
+                <p className="text-center text-gray-500 dark:text-slate-400 py-8">{t('photo_album_empty')}</p>
+            )}
+
+            {!isLoading && photos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {photos.map(photo => (
+                        <div key={photo.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                            <img src={photo.src} alt={photo.caption} className="w-full h-48 object-cover" />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex flex-col justify-end p-3">
+                                <p className="text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">{photo.caption}</p>
+                                <button onClick={() => handleDeletePhoto(photo.id)} className="absolute top-2 right-2 text-white opacity-0 group-hover:opacity-100 bg-red-600/70 rounded-full w-7 h-7 flex items-center justify-center">
+                                    <i className="fas fa-trash-alt fa-xs"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <button onClick={() => handleEditPhoto(photo)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-blue-600 hover:bg-white" aria-label={t('photo_album_edit_caption_label')}><i className="fas fa-pencil-alt"></i></button>
-                          <button onClick={() => handleRemovePhoto(photo.id)} className="w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-red-600 hover:bg-white" aria-label={t('photo_album_delete_photo_label')}><i className="fas fa-trash"></i></button>
-                        </div>
-                      </div>
                     ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-      
-      {isModalOpen && currentPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" aria-modal="true" role="dialog">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-lg m-4 max-h-[90vh] overflow-y-auto">
-                <h3 className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4">{t('photo_album_add_details_title')}</h3>
-                <img src={currentPhoto.src} alt="Preview" className="w-full rounded-md mb-4 max-h-64 object-contain bg-gray-100 dark:bg-slate-700" />
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="cityId" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_city')}</label>
-                        <select id="cityId" value={currentPhoto.cityId} onChange={(e) => handleModalInputChange('cityId', e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500">
-                            {CITIES.map(city => <option key={city.id} value={city.id}>{t(city.nameKey)}</option>)}
-                        </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                           <label htmlFor="tripDay" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_trip_day')}</label>
-                           <input type="number" id="tripDay" min="1" value={currentPhoto.tripDay || ''} onChange={(e) => handleModalInputChange('tripDay', parseInt(e.target.value, 10))} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500" />
-                        </div>
-                        <div>
-                           <label htmlFor="dateTaken" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_date_taken')}</label>
-                           <input type="date" id="dateTaken" value={currentPhoto.dateTaken || ''} onChange={(e) => handleModalInputChange('dateTaken', e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500" />
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="caption" className="block text-sm font-medium text-gray-700 dark:text-slate-300">{t('photo_album_caption')}</label>
-                        <textarea id="caption" rows={3} value={currentPhoto.caption} onChange={(e) => handleModalInputChange('caption', e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                    </div>
                 </div>
-                <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium bg-gray-200 dark:bg-slate-600 text-gray-800 dark:text-slate-200 rounded-md hover:bg-gray-300 dark:hover:bg-slate-500">{t('photo_album_cancel_button')}</button>
-                    <button onClick={handleSavePhoto} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">{t('photo_album_save_button')}</button>
-                </div>
-            </div>
-        </div>
-      )}
-    </section>
-  );
+            )}
+
+            {isModalOpen && (
+                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]">
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold mb-4">{t(selectedFiles.length > 1 ? 'photo_album_add_details_batch_title' : 'photo_album_add_details_title', {count: selectedFiles.length})}</h3>
+                        
+                        {selectedFiles.length > 1 && (
+                            <button onClick={applyToAll} className="mb-4 text-sm bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 py-1 px-3 rounded-full">{t('photo_album_apply_to_all')}</button>
+                        )}
+
+                        <div className="space-y-4">
+                            {selectedFiles.map((file, index) => (
+                                <div key={index} className="flex flex-col md:flex-row gap-4 p-3 border dark:border-slate-700 rounded-md">
+                                    <img src={URL.createObjectURL(file)} alt="preview" className="w-24 h-24 object-cover rounded-md flex-shrink-0"/>
+                                    <div className="flex-grow space-y-2">
+                                        <input type="text" placeholder={t('photo_album_caption')} value={photoDetails[index]?.caption || ''} onChange={e => handleDetailChange(index, 'caption', e.target.value)} className="w-full p-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-700"/>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                             <select value={photoDetails[index]?.cityId} onChange={e => handleDetailChange(index, 'cityId', e.target.value)} className="w-full p-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-700">
+                                                {CITIES.map(c => <option key={c.id} value={c.id}>{t(c.nameKey)}</option>)}
+                                                <option value="unclassified">{t('photo_album_unclassified')}</option>
+                                            </select>
+                                            <input type="number" placeholder={t('photo_album_trip_day')} value={photoDetails[index]?.tripDay || ''} onChange={e => handleDetailChange(index, 'tripDay', parseInt(e.target.value))} className="w-full p-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-700" min="1" max="32"/>
+                                            <input type="date" value={photoDetails[index]?.dateTaken || ''} onChange={e => handleDetailChange(index, 'dateTaken', e.target.value)} className="w-full p-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-700"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-end gap-4 mt-6">
+                            <button onClick={() => setIsModalOpen(false)} className="bg-gray-200 dark:bg-slate-600 px-4 py-2 rounded">{t('photo_album_cancel_button')}</button>
+                            <button onClick={handleSavePhotos} className="bg-green-500 text-white px-4 py-2 rounded">{t(selectedFiles.length > 1 ? 'photo_album_save_all_button' : 'photo_album_save_button')}</button>
+                        </div>
+                    </div>
+                 </div>
+            )}
+        </section>
+    );
 };
 
 export default FamilyPhotoAlbum;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// FIX: Corrected import path to use the TypeScript context file consistent with the rest of the app.
 import { useAppContext } from '../../context/AppContext.tsx';
 import { askGemini } from '../../services/apiService.ts';
 

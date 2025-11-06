@@ -1,4 +1,4 @@
-const CACHE_NAME = 'argentina-familia-cache-v3'; // Incremented version
+const CACHE_NAME = 'argentina-familia-cache-v5'; // Incremented version
 const urlsToCache = [
   './',
   './index.html',

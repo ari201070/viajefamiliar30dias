@@ -1,136 +1,90 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
-import { BudgetItem } from '../types.ts';
+import { BudgetItem, Currency } from '../types.ts';
 
 interface BudgetTableProps {
-  cityId: string;
-  defaultBudgetItems: BudgetItem[];
+    cityId: string;
+    defaultBudgetItems: BudgetItem[];
 }
 
-const BudgetTable: React.FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
-  const { t, language } = useAppContext();
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingValue, setEditingValue] = useState('');
+const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
+    const { t, currency } = useAppContext();
+    const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
+    const [isSaved, setIsSaved] = useState(false);
 
-  const loadBudget = useCallback(() => {
-    try {
-      const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
-      if (savedBudgets[cityId]) {
-        setBudgetItems(savedBudgets[cityId]);
-      } else {
-        setBudgetItems(defaultBudgetItems);
-      }
-    } catch (e) {
-      console.error("Failed to load or parse budget from localStorage", e);
-      setBudgetItems(defaultBudgetItems);
-    }
-  }, [cityId, defaultBudgetItems]);
-  
-  useEffect(() => {
-    loadBudget();
-  }, [loadBudget]);
-  
-  const handleEdit = (index: number, value: string) => {
-    setEditingIndex(index);
-    setEditingValue(value);
-  };
-
-  const handleSave = (index: number) => {
-    if (editingIndex === null) return;
-
-    // Basic validation to ensure format is number or number-number
-    if (!/^\d+(\s*-\s*\d+)?$/.test(editingValue.trim())) {
-      setEditingIndex(null); // Just cancel edit on invalid format
-      return;
-    }
-
-    const updatedItems = [...budgetItems];
-    updatedItems[index].value = editingValue.trim().replace(/\s*-\s*/, '-');
-    setBudgetItems(updatedItems);
-
-    try {
+    useEffect(() => {
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
-        savedBudgets[cityId] = updatedItems;
-        localStorage.setItem('customBudgets', JSON.stringify(savedBudgets));
-        // Trigger a custom event that HomePage can listen to
-        window.dispatchEvent(new Event('storage'));
-    } catch (e) {
-        console.error("Failed to save budget to localStorage", e);
-    }
-    
-    setEditingIndex(null);
-  };
+        setBudgetItems(savedBudgets[cityId] || defaultBudgetItems);
+    }, [cityId, defaultBudgetItems]);
 
-  const handleRestoreDefaults = () => {
-    try {
+    const handleValueChange = (index: number, value: string) => {
+        const updatedItems = [...budgetItems];
+        updatedItems[index] = { ...updatedItems[index], value };
+        setBudgetItems(updatedItems);
+        setIsSaved(false); // Mark as unsaved
+    };
+
+    const saveBudget = () => {
+        const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
+        savedBudgets[cityId] = budgetItems;
+        localStorage.setItem('customBudgets', JSON.stringify(savedBudgets));
+        // Dispatch a storage event so HomePage can recalculate the total budget
+        window.dispatchEvent(new Event('storage'));
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 2000); // Hide message after 2s
+    };
+    
+    const restoreDefaults = () => {
+        setBudgetItems(defaultBudgetItems);
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
         delete savedBudgets[cityId];
         localStorage.setItem('customBudgets', JSON.stringify(savedBudgets));
-        setBudgetItems(defaultBudgetItems);
-        // Trigger storage event for homepage summary to update
         window.dispatchEvent(new Event('storage'));
-    } catch(e) {
-        console.error("Failed to restore budget in localStorage", e);
-    }
-  };
+    };
 
-  return (
-    <div className="overflow-x-auto my-4">
-        <div className="flex justify-end mb-3">
-            <button 
-                onClick={handleRestoreDefaults}
-                className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-700 dark:text-slate-200 font-semibold py-1 px-3 text-xs rounded-lg shadow-sm transition-colors"
-            >
-                <i className="fas fa-undo mr-2"></i>
-                {t('budget_table_restore_defaults')}
-            </button>
+    return (
+        <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                <thead className="bg-gray-50 dark:bg-slate-700">
+                    <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('budget_table_concept')}</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('budget_table_estimated_price_usd')}</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                    {budgetItems.map((item, index) => (
+                        <tr key={index}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{t(item.conceptKey)} {item.isPerDay && `(${t('budget_per_day_suffix')})`}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                <input
+                                    type="text"
+                                    value={item.value}
+                                    onChange={(e) => handleValueChange(index, e.target.value)}
+                                    className="w-full md:w-40 p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., 100-150"
+                                />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <div className="mt-4 flex flex-wrap gap-4 items-center">
+                <button
+                    onClick={saveBudget}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors duration-150"
+                >
+                    <i className="fas fa-save mr-2"></i> Guardar
+                </button>
+                <button
+                    onClick={restoreDefaults}
+                    className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-gray-800 dark:text-gray-100 font-bold py-2 px-4 rounded transition-colors duration-150"
+                >
+                    {t('budget_table_restore_defaults')}
+                </button>
+                 {isSaved && <span className="text-green-600 dark:text-green-400 animate-fade-in"><i className="fas fa-check-circle mr-1"></i>{t('status_budget_saved')}</span>}
+            </div>
         </div>
-      <table className="min-w-full divide-y divide-gray-300 dark:divide-slate-600 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm">
-        <thead className="bg-indigo-50 dark:bg-slate-700">
-          <tr>
-            <th scope="col" className={`px-4 py-3 ${language === 'he' ? 'text-right' : 'text-left'} text-sm font-semibold text-indigo-700 dark:text-indigo-300`}>
-              {t('budget_table_concept')}
-            </th>
-            <th scope="col" className="px-4 py-3 text-center text-sm font-semibold text-indigo-700 dark:text-indigo-300">
-              {t('budget_table_estimated_price_usd')}
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-slate-600 bg-white dark:bg-slate-800">
-          {budgetItems.map((item, index) => (
-            <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors group">
-              <td className={`px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-slate-200 font-medium ${language === 'he' ? 'text-right' : 'text-left'}`}>
-                {t(item.conceptKey)}
-              </td>
-              <td 
-                className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-slate-400 text-center cursor-pointer"
-                onClick={() => handleEdit(index, item.value)}
-              >
-                {editingIndex === index ? (
-                  <input
-                    type="text"
-                    value={editingValue}
-                    onChange={(e) => setEditingValue(e.target.value)}
-                    onBlur={() => handleSave(index)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSave(index)}
-                    autoFocus
-                    className="w-24 text-center border border-indigo-300 dark:border-indigo-500 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-700"
-                  />
-                ) : (
-                  <>
-                    <i className="fas fa-dollar-sign text-gray-400 dark:text-slate-500 mr-1.5"></i>
-                    {item.value}
-                    <i className="fas fa-pencil-alt text-gray-300 dark:text-slate-500 ml-3 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+    );
 };
 
 export default BudgetTable;
