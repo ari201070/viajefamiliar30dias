@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+// Direct import of locale files for robust initialization
+import es from './locales/es.json';
+import he from './locales/he.json';
+
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import Login from './components/Login.tsx';
@@ -56,42 +60,22 @@ const App: FC = () => {
   
   // i18next initialization effect
   useEffect(() => {
-    async function initializeI18n() {
-      try {
-        const [esResponse, heResponse] = await Promise.all([
-          fetch('./src/locales/es.json'),
-          fetch('./src/locales/he.json')
-        ]);
-
-        if (!esResponse.ok || !heResponse.ok) {
-          throw new Error('Failed to fetch locale files');
+    i18n
+      .use(initReactI18next)
+      .init({
+        resources: { 
+          es: { translation: es }, 
+          he: { translation: he } 
+        },
+        lng: localStorage.getItem('language') || 'es',
+        fallbackLng: 'es',
+        interpolation: { escapeValue: false },
+      }, (err) => {
+        if (err) {
+          console.error('i18next init error:', err);
         }
-
-        const es = await esResponse.json();
-        const he = await heResponse.json();
-
-        i18n
-          .use(initReactI18next)
-          .init({
-            resources: { 
-              es: { translation: es }, 
-              he: { translation: he } 
-            },
-            lng: localStorage.getItem('language') || 'es',
-            fallbackLng: 'es',
-            interpolation: { escapeValue: false },
-          }, (err) => {
-            if (err) {
-              console.error('i18next init error:', err);
-            }
-            setI18nInitialized(true);
-          });
-      } catch (error) {
-        console.error('Error initializing i18next:', error);
-        setI18nInitialized(true); 
-      }
-    }
-    initializeI18n();
+        setI18nInitialized(true);
+      });
   }, []);
 
   // Theme management
