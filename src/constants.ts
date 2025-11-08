@@ -16,7 +16,6 @@ export const CURRENCIES = [
 // --- IMAGE CONSTANTS ---
 export const DEFAULT_CITY_IMAGE = './docs/imagenes/argentina_default.jpg';
 
-
 // --- CITIES DATA ---
 // This is the core data structure for the cities in the itinerary.
 export const CITIES: City[] = [
@@ -153,8 +152,8 @@ export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
 // --- TRANSPORT DATA ---
 export const TRANSPORT_DATA: TransportLeg[] = [
   // Example data
-  { id: '1', fromKey: 'buenosaires_name', toKey: 'rosario_name', meanKey: 'transport_mean_bus', timeKey: 'transport_time_4h', basePriceARS: { value: 20000, currency: Currency.ARS }, company: 'Empresa A' },
-  { id: '2', fromKey: 'buenosaires_name', toKey: 'bariloche_name', meanKey: 'transport_mean_plane', timeKey: 'transport_time_2h', basePriceARS: { value: 80000, currency: Currency.ARS }, company: 'Aerolíneas Argentinas' },
+  { id: '1', fromKey: 'buenosaires_name', toKey: 'rosario_name', meanKey: 'transport_mean_bus', timeKey: 'transport_time_4h', basePriceARS: { value: 20000, currency: Currency.ARS }, company: 'Emp[...]' },
+  { id: '2', fromKey: 'buenosaires_name', toKey: 'bariloche_name', meanKey: 'transport_mean_plane', timeKey: 'transport_time_2h', basePriceARS: { value: 80000, currency: Currency.ARS }, company: '[...]' },
 ];
 
 // --- BOOKING DATA ---
@@ -190,3 +189,15 @@ export const BOOKING_DATA: BookingItem[] = [
     }
   }
 ];
+
+// Default export to improve interoperability with bundlers that may resolve .ts -> .js
+export default {
+  LANGUAGES,
+  CURRENCIES,
+  DEFAULT_CITY_IMAGE,
+  CITIES,
+  AI_PROMPT_CONFIGS,
+  TRIP_WIDE_BUDGET_ITEMS,
+  TRANSPORT_DATA,
+  BOOKING_DATA,
+};

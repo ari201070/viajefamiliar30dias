@@ -1,6 +1,6 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types';
-import { CITIES } from '../constants';
+import constants, { CITIES } from '../constants';
 
 // --- API INITIALIZATION ---
 // FIX: Per @google/genai coding guidelines, the GoogleGenAI client must be initialized directly with process.env.API_KEY.
@@ -125,7 +125,7 @@ export async function translateText(textToTranslate: string, language: Language)
     // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
-        const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apologies, or preambles like "Translated from...". Just the translation. The target language is ${targetLanguageName}.`;
+        const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apo[...]
 
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: "gemini-2.5-flash",
