@@ -125,7 +125,8 @@ export async function translateText(textToTranslate: string, language: Language)
     // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
-        const systemInstruction = `You are a machine translation service. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, apo[...]
+        // systemInstruction debe cerrarse correctamente — aquí se especifica el idioma objetivo
+        const systemInstruction = `You are a machine translation service that translates the given text to ${targetLanguageName}. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, or annotations.`;
 
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: "gemini-2.5-flash",
