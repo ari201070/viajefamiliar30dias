@@ -1,27 +1,33 @@
 import React, { useState, useEffect, useMemo, FC, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Direct import of locale files for robust initialization
+// Import locale files
 import es from './locales/es.json';
 import he from './locales/he.json';
 
+// Import components
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import Login from './components/Login.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
 
+// Import context and types
 import { AppContext } from './context/AppContext.tsx';
 import { Language, Theme, Currency, User, PhotoItem } from './types.ts';
+
+// Import services and utils
 import { authService } from './services/authService.ts';
-import { isFirebaseConfigured } from './services/firebaseConfig.ts';
+import { auth, isFirebaseConfigured } from './services/firebaseConfig.ts';
 import { consoleInterceptor } from './utils/consoleInterceptor.ts';
 
-// Lazy load pages for code splitting
+// Lazy load pages
 const HomePage = lazy(() => import('./pages/HomePage.tsx'));
 const CityDetailPage = lazy(() => import('./pages/CityDetailPage.tsx'));
 
-// Simple loading component for Suspense fallback
+// --- Utility Components ---
+
 const LoadingSpinner: FC = () => (
   <div className="flex items-center justify-center py-20">
     <i className="fas fa-spinner fa-spin text-4xl text-indigo-500" />
@@ -36,8 +42,24 @@ const ScrollToTop: FC = () => {
   return null;
 };
 
+// --- Main App Layout for Authenticated Users ---
+
+const MainAppLayout: FC = () => (
+  <div className="app-container bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen flex flex-col font-sans">
+    <TopBar />
+    <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+      <Suspense fallback={<LoadingSpinner />}>
+        <Outlet /> {/* Protected pages render here */}
+      </Suspense>
+    </main>
+    <Footer />
+  </div>
+);
+
+// --- Root App Component ---
+
 const App: FC = () => {
-  // State management
+  // --- State Management ---
   const [language, setLanguage] = useState<Language>(
     (localStorage.getItem('language') as Language) || Language.ES
   );
@@ -51,40 +73,30 @@ const App: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [i18nInitialized, setI18nInitialized] = useState<boolean>(false);
-
-  // States for cross-component status updates
   const [hasPendingPackingListChanges, setHasPendingPackingListChanges] = useState<boolean>(false);
   const [pendingPhotos, setPendingPhotos] = useState<PhotoItem[]>([]);
-  
-  // --- Effects for managing side-effects and listeners ---
-  
-  // i18next initialization effect
+
+  // --- Effects ---
+
   useEffect(() => {
     i18n
       .use(initReactI18next)
       .init({
-        resources: { 
-          es: { translation: es }, 
-          he: { translation: he } 
-        },
+        resources: { es: { translation: es }, he: { translation: he } },
         lng: localStorage.getItem('language') || 'es',
         fallbackLng: 'es',
         interpolation: { escapeValue: false },
       }, (err) => {
-        if (err) {
-          console.error('i18next init error:', err);
-        }
+        if (err) console.error('i18next init error:', err);
         setI18nInitialized(true);
       });
   }, []);
 
-  // Theme management
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === Theme.DARK);
     localStorage.setItem('theme', theme);
   }, [theme]);
-  
-  // Language management
+
   useEffect(() => {
     if (i18nInitialized) {
       i18n.changeLanguage(language);
@@ -93,13 +105,11 @@ const App: FC = () => {
       document.documentElement.dir = language === Language.HE ? 'rtl' : 'ltr';
     }
   }, [language, i18nInitialized]);
-  
-  // Currency management
+
   useEffect(() => {
     localStorage.setItem('currency', currency);
   }, [currency]);
-  
-  // Network status listener
+
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -111,49 +121,32 @@ const App: FC = () => {
     };
   }, []);
 
-  // Authentication state listener
   useEffect(() => {
     consoleInterceptor.start();
-
     const protocol = window.location.protocol;
     const isSupportedAuthEnvironment = ['http:', 'https:', 'chrome-extension:'].includes(protocol);
 
     if (isFirebaseConfigured && isSupportedAuthEnvironment) {
+      auth.getRedirectResult().catch((error) => {
+        console.error("Error getting redirect result:", error);
+      });
       const unsubscribe = authService.onAuthChange(firebaseUser => {
         setUser(firebaseUser);
         setIsAuthLoading(false);
       });
       return () => unsubscribe();
     } else {
-      if (!isSupportedAuthEnvironment) {
-          console.warn("Unsupported auth environment detected. Falling back to local user mode automatically.");
-      } else { 
-          console.warn("Firebase is not configured. Falling back to local user mode automatically.");
-      }
-      setUser({
-        uid: 'local-user-mode',
-        displayName: 'Ariel Flier (Modo Local)',
-      } as User);
+      // Fallback for unsupported environments or if Firebase is not configured
+      setUser({ uid: 'local-user-mode', displayName: 'Ariel Flier (Modo Local)' } as User);
       setIsAuthLoading(false);
     }
   }, []);
-  
+
   // --- Context Provider Value ---
   const appContextValue = useMemo(() => ({
-    language,
-    setLanguage,
-    currency,
-    setCurrency,
+    language, setLanguage, currency, setCurrency, theme, setTheme, isOnline, user, setUser,
     t: (key: string, options?: any): string => String(i18n.t(key, options)),
-    theme,
-    setTheme,
-    isOnline,
-    user,
-    setUser,
-    hasPendingPackingListChanges,
-    setHasPendingPackingListChanges,
-    pendingPhotos,
-    setPendingPhotos,
+    hasPendingPackingListChanges, setHasPendingPackingListChanges, pendingPhotos, setPendingPhotos,
   }), [language, currency, theme, isOnline, user, hasPendingPackingListChanges, pendingPhotos]);
 
   // --- Render Logic ---
@@ -167,25 +160,19 @@ const App: FC = () => {
 
   return (
     <AppContext.Provider value={appContextValue}>
-      <div className={`app-container bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen flex flex-col font-sans`}>
-        {!user ? (
-          <Login />
-        ) : (
-          <Router>
-            <ScrollToTop />
-            <TopBar />
-            <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-              <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/city/:cityId" element={<CityDetailPage />} />
-                </Routes>
-              </Suspense>
-            </main>
-            <Footer />
-          </Router>
-        )}
-      </div>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainAppLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/city/:cityId" element={<CityDetailPage />} />
+            </Route>
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </AppContext.Provider>
   );
 };

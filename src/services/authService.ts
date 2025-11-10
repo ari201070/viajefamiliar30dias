@@ -13,12 +13,13 @@ export const authService = {
         return { success: false, error };
     }
     try {
-        await auth.signInWithPopup(provider);
-        // The onAuthChange listener in App.tsx will handle the user state update on success.
+        await auth.signInWithRedirect(provider);
+        // The user will be redirected to Google's sign-in page.
+        // The result is handled on page load by getRedirectResult in App.tsx.
         return { success: true };
     } catch (error: any) {
         // This will catch errors like the user closing the popup or environment issues.
-        console.error("Google Sign-In with popup failed:", error);
+        console.error("Google Sign-In with redirect failed:", error);
         return { success: false, error };
     }
   },
