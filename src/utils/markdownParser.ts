@@ -2,8 +2,7 @@ import React from 'react';
 import { Language } from '../types.ts';
 
 // Parses simple Markdown links like [text](url)
-export const parseMarkdownLinks = (text: string): React.ReactNode[] => {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+export const parseMarkdownLinks = (text: string): React.ReactNode => {  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match;
@@ -27,8 +26,7 @@ export const parseMarkdownLinks = (text: string): React.ReactNode[] => {
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
-  return parts;
-};
+return (<>{parts}</>);};
 
 // Parses simple Markdown pipe tables
 export const parseMarkdownTable = (
