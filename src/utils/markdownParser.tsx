@@ -26,8 +26,8 @@ export const parseMarkdownLinks = (text: string): React.ReactNode => {  const li
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
-return (<>{parts}</>);};
-
+return <>{parts}</>;
+                                                                      
 // Parses simple Markdown pipe tables
 export const parseMarkdownTable = (
   markdownTable: string,
