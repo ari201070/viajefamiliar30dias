@@ -11,7 +11,7 @@ import he from './locales/he.json';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import Login from './components/Login.tsx';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
+// import ProtectedRoute from './components/ProtectedRoute.tsx'; // <-- Comenta este import
 
 // Import context and types
 import { AppContext } from './context/AppContext.tsx';
@@ -27,7 +27,6 @@ const HomePage = lazy(() => import('./pages/HomePage.tsx'));
 const CityDetailPage = lazy(() => import('./pages/CityDetailPage.tsx'));
 
 // --- Utility Components ---
-
 const LoadingSpinner: FC = () => (
   <div className="flex items-center justify-center py-20">
     <i className="fas fa-spinner fa-spin text-4xl text-indigo-500" />
@@ -42,14 +41,13 @@ const ScrollToTop: FC = () => {
   return null;
 };
 
-// --- Main App Layout for Authenticated Users ---
-
+// --- Main App Layout ---
 const MainAppLayout: FC = () => (
   <div className="app-container bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen flex flex-col font-sans">
     <TopBar />
     <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
       <Suspense fallback={<LoadingSpinner />}>
-        <Outlet /> {/* Protected pages render here */}
+        <Outlet /> {/* Pages render here */}
       </Suspense>
     </main>
     <Footer />
@@ -57,7 +55,6 @@ const MainAppLayout: FC = () => (
 );
 
 // --- Root App Component ---
-
 const App: FC = () => {
   // --- State Management ---
   const [language, setLanguage] = useState<Language>(
@@ -77,7 +74,6 @@ const App: FC = () => {
   const [pendingPhotos, setPendingPhotos] = useState<PhotoItem[]>([]);
 
   // --- Effects ---
-
   useEffect(() => {
     i18n
       .use(initReactI18next)
@@ -125,7 +121,6 @@ const App: FC = () => {
     consoleInterceptor.start();
     const protocol = window.location.protocol;
     const isSupportedAuthEnvironment = ['http:', 'https:', 'chrome-extension:'].includes(protocol);
-
     if (isFirebaseConfigured && isSupportedAuthEnvironment) {
       auth.getRedirectResult().catch((error) => {
         console.error("Error getting redirect result:", error);
@@ -163,13 +158,15 @@ const App: FC = () => {
       <Router>
         <ScrollToTop />
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainAppLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/city/:cityId" element={<CityDetailPage />} />
-            </Route>
+          {/* RUTA PRINCIPAL Y SECUNDARIAS - TODO ES ABIERTO */}
+          <Route element={<MainAppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/city/:cityId" element={<CityDetailPage />} />
+            {/* agrega aquí más páginas abiertas si tienes más */}
           </Route>
+          {/* Puedes dejar login si quieres probarlo a mano */}
+          <Route path="/login" element={<Login />} />
+          {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
