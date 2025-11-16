@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext.tsx';
 import { CITIES, DEFAULT_CITY_IMAGE, AI_PROMPT_CONFIGS } from '../constants.ts';
 import InteractiveMap from '../components/InteractiveMap.tsx';
 import BudgetTable from '../components/BudgetTable.tsx';
-import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser.ts';
+import { parseMarkdownLinks, parseMarkdownTable } from '../utils/markdownParser';
 import { findEventsWithGoogleSearch } from '../services/apiService.ts';
 import AIChatBox from '../components/AIChatBox.tsx';
 import { AIResponseType, Language } from '../types.ts';
