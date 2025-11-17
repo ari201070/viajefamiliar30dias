@@ -1,3 +1,5 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import React, { useState, useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem, Language } from '../../types.ts';
