@@ -28,7 +28,7 @@ export const parseMarkdownLinks = (text: string): React.ReactNode => {  const li
   }
 return <>{parts}</>;
                                                                       
-// Parses simple Markdown pipe tables
+};  // Parses simple Markdown pipe tables
 export const parseMarkdownTable = (
   markdownTable: string,
   t: (key: string) => string, 
