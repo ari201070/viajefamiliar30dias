@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { AIPromptContent, City, ChatMessage, Language, AIResponseType } from '../types.ts';
 import { sendMessageInChat, translateText } from '../services/apiService.ts';
-import { parseMarkdownLinks } from '../utils/markdownParser.ts';
+import { parseMarkdownLinks } from '../utils/markdownParser.tsx';
 
 interface AIChatBoxProps {
     config: AIPromptContent;
