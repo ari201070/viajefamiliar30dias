@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, FC, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, FC, lazy, Suspense, useCallback } from 'react'; // <-- 1. IMPORTAR useCallback
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -137,12 +137,17 @@ const App: FC = () => {
     }
   }, []);
 
-  // --- Context Provider Value ---
+  // --- 2. CREAR UNA VERSIÓN ESTABLE DE LA FUNCIÓN 't' ---
+  const t = useCallback((key: string, options?: any): string => {
+    return String(i18n.t(key, options));
+  }, []); // El array vacío asegura que esta función NUNCA cambie.
+
+  // --- 3. CONSTRUIR EL VALOR DEL CONTEXTO CON LA FUNCIÓN 't' ESTABLE ---
   const appContextValue = useMemo(() => ({
     language, setLanguage, currency, setCurrency, theme, setTheme, isOnline, user, setUser,
-    t: (key: string, options?: any): string => String(i18n.t(key, options)),
+    t, // Usamos la versión estable que creamos arriba
     hasPendingPackingListChanges, setHasPendingPackingListChanges, pendingPhotos, setPendingPhotos,
-  }), [language, currency, theme, isOnline, user, hasPendingPackingListChanges, pendingPhotos]);
+  }), [language, currency, theme, isOnline, user, hasPendingPackingListChanges, pendingPhotos, t]);
 
   // --- Render Logic ---
   if (isAuthLoading || !i18nInitialized) {
