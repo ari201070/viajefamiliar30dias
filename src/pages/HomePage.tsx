@@ -5,16 +5,16 @@ import InteractiveMap from '../components/InteractiveMap.tsx';
 import { CITIES, TRIP_WIDE_BUDGET_ITEMS, AI_PROMPT_CONFIGS } from '../constants.ts';
 import { Currency, Price, BudgetDetails } from '../types.ts';
 import { getCachedExchangeRate } from '../services/apiService.ts';
-import BudgetSummary from '../components/home/BudgetSummary.tsx';
-import TransportTable from '../components/home/TransportTable.tsx';
-import ItineraryAnalysis from '../components/home/ItineraryAnalysis.tsx';
-import PackingList from '../components/home/PackingList.tsx';
+import BudgetSummary from './home/BudgetSummary.tsx';
+import TransportTable from './home/TransportTable.tsx';
+import ItineraryAnalysis from './home/ItineraryAnalysis.tsx';
+import PackingList from './home/PackingList.tsx';
 import AIChatBox from '../components/AIChatBox.tsx';
-import CurrencyConverter from '../components/home/CurrencyConverter.tsx';
-import FamilyPhotoAlbum from '../components/home/FamilyPhotoAlbum.tsx';
-import WeatherForecast from '../components/home/WeatherForecast.tsx';
-import Reservations from '../components/home/Reservations.tsx';
-import FlightTickets from '../components/home/FlightTickets.tsx';
+import CurrencyConverter from './home/CurrencyConverter.tsx';
+import FamilyPhotoAlbum from './home/FamilyPhotoAlbum.tsx';
+import WeatherForecast from './home/WeatherForecast.tsx';
+import Reservations from './home/Reservations.tsx';
+import FlightTickets from './home/FlightTickets.tsx';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -236,14 +236,13 @@ const HomePage: FC = () => {
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
 
-      {/* --- SECCIÓN DE TICKETS DE VUELO --- */}
       <section>
         <div onClick={() => setIsTicketsOpen(!isTicketsOpen)} className={collapsibleHeaderClasses}>
             <h2 className="text-xl font-bold flex items-center">
-                <i className="fas fa-plane-departure mr-3"></i>
+                <i className="fa-solid fa-plane-departure mr-3"></i>
                 {t('flight_tickets_title')}
             </h2>
-            <i className={`fas fa-chevron-down transform transition-transform ${isTicketsOpen ? 'rotate-180' : ''}`}></i>
+            <i className={`fa-solid fa-chevron-down transform transition-transform ${isTicketsOpen ? 'rotate-180' : ''}`}></i>
         </div>
         {isTicketsOpen && (
             <div className="animate-fade-in mt-[-10px] pt-12 p-6 bg-white dark:bg-slate-800 rounded-b-xl shadow-lg">
@@ -252,14 +251,13 @@ const HomePage: FC = () => {
         )}
       </section>
 
-      {/* --- SECCIÓN DE RESERVAS Y DOCUMENTOS --- */}
        <section>
           <div onClick={() => setIsReservationsOpen(!isReservationsOpen)} className={collapsibleHeaderClasses}>
               <h2 className="text-xl font-bold flex items-center">
-                  <i className="fas fa-concierge-bell mr-3"></i>
+                  <i className="fa-solid fa-concierge-bell mr-3"></i>
                   {t('reservations_title')}
               </h2>
-              <i className={`fas fa-chevron-down transform transition-transform ${isReservationsOpen ? 'rotate-180' : ''}`}></i>
+              <i className={`fa-solid fa-chevron-down transform transition-transform ${isReservationsOpen ? 'rotate-180' : ''}`}></i>
           </div>
           {isReservationsOpen && (
               <div className="animate-fade-in mt-[-10px] pt-12 p-6 bg-white dark:bg-slate-800 rounded-b-xl shadow-lg">
@@ -277,7 +275,7 @@ const HomePage: FC = () => {
       <WeatherForecast />
       <section className={cardClasses}>
         <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
-          <i className="fas fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400" />
+          <i className="fa-solid fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400" />
           {t('mapaInteractivoTitulo')}
         </h2>
         <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
