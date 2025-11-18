@@ -1,10 +1,23 @@
+/* src/components/InteractiveMap.tsx */
+
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { City, PointOfInterest } from '../types.ts';
 
-// Define un tipo para las capas de marcadores para poder limpiarlas selectivamente.
+// --- ARREGLO PARA LOS ICONOS ROTOS DE LEAFLET EN VITE ---
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+});
+// --- FIN DEL ARREGLO ---
+
 type MarkerLayers = (L.Marker | L.CircleMarker)[];
 
 interface InteractiveMapProps {
@@ -17,7 +30,7 @@ interface InteractiveMapProps {
 const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, pointsOfInterest, zoomLevel = 5 }) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<L.Map | null>(null);
-    const markersRef = useRef<MarkerLayers>([]); // Usamos una ref para guardar los marcadores
+    const markersRef = useRef<MarkerLayers>([]);
     const { t } = useAppContext();
 
     // EFECTO 1: Se ejecuta UNA SOLA VEZ para crear el mapa.
@@ -32,44 +45,38 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
             }).addTo(mapInstance.current);
         }
 
-        // Función de limpieza: se ejecuta cuando el componente se desmonta.
         return () => {
             if (mapInstance.current) {
                 mapInstance.current.remove();
                 mapInstance.current = null;
             }
         };
-    }, []); // El array vacío [] asegura que esto se ejecute solo una vez.
+    }, []);
 
-    // EFECTO 2: Se ejecuta SOLO cuando la vista seleccionada cambia.
+    // EFECTO 2: Centra la vista cuando las coordenadas cambian.
     useEffect(() => {
         if (mapInstance.current && selectedCityCoords) {
              mapInstance.current.setView(selectedCityCoords, zoomLevel);
         }
     }, [selectedCityCoords, zoomLevel]);
 
-    // EFECTO 3: Se ejecuta SOLO si los datos de los marcadores (ciudades, POIs) cambian.
+    // EFECTO 3: Actualiza los marcadores cuando los datos cambian.
     useEffect(() => {
-        if (!mapInstance.current) return; // No hacer nada si el mapa no está listo.
+        if (!mapInstance.current) return;
 
-        // Limpia los marcadores anteriores
         markersRef.current.forEach(marker => {
-            if (mapInstance.current) {
-                mapInstance.current.removeLayer(marker);
-            }
+            if(mapInstance.current) mapInstance.current.removeLayer(marker);
         });
-        markersRef.current = []; // Resetea la referencia
+        markersRef.current = [];
 
-        // Añade los marcadores de las ciudades
         cities.forEach(city => {
             const marker = L.marker(city.coords).bindPopup(`<b>${t(city.nameKey)}</b>`);
-            if (mapInstance.current) {
+            if(mapInstance.current) {
                 marker.addTo(mapInstance.current);
                 markersRef.current.push(marker);
             }
         });
 
-        // Añade los marcadores de los puntos de interés
         if (pointsOfInterest) {
             pointsOfInterest.forEach(poi => {
                 const circleMarker = L.circleMarker(poi.coords, {
@@ -78,15 +85,14 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
                     fillOpacity: 0.7
                 }).bindPopup(`<b>${t(poi.nameKey)}</b><br>${t(poi.descriptionKey)}`);
                 
-                if (mapInstance.current) {
+                if(mapInstance.current) {
                     circleMarker.addTo(mapInstance.current);
                     markersRef.current.push(circleMarker);
                 }
             });
         }
-    }, [cities, pointsOfInterest, t]); // 't' es necesario aquí para los popups
+    }, [cities, pointsOfInterest, t]);
 
-    // Se eliminó la declaración 'declare const L: any;' porque ya se importa arriba.
     return <div ref={mapRef} className="leaflet-container" />;
 };
 

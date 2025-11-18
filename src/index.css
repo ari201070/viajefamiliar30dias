@@ -1,3 +1,15 @@
+/* src/index.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =============================================== */
+/* Estilos para el contenedor del mapa Leaflet     */
+/* =============================================== */
+.leaflet-container {
+  height: 400px; /* Le damos una altura para que sea visible */
+  width: 100%;
+  border-radius: 0.75rem;
+  z-index: 0;
+}
