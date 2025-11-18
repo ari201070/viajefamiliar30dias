@@ -236,6 +236,7 @@ const HomePage: FC = () => {
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
 
+      {/* --- SECCIÓN DE TICKETS DE VUELO --- */}
       <section>
         <div onClick={() => setIsTicketsOpen(!isTicketsOpen)} className={collapsibleHeaderClasses}>
             <h2 className="text-xl font-bold flex items-center">
@@ -251,6 +252,7 @@ const HomePage: FC = () => {
         )}
       </section>
 
+      {/* --- SECCIÓN DE RESERVAS Y DOCUMENTOS --- */}
        <section>
           <div onClick={() => setIsReservationsOpen(!isReservationsOpen)} className={collapsibleHeaderClasses}>
               <h2 className="text-xl font-bold flex items-center">
