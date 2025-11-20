@@ -1,9 +1,7 @@
-const CACHE_NAME = 'argentina-familia-cache-v5'; // Incremented version
+const CACHE_NAME = 'argentina-familia-cache-v6'; // Incremented version
 const urlsToCache = [
   './',
   './index.html',
-  // Tailwind CSS from CDN
-  'https://cdn.tailwindcss.com',
   // FontAwesome from CDN
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css',
   // Leaflet CSS & JS from CDN
