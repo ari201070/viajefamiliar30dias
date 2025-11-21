@@ -52,6 +52,7 @@ export interface City {
   nameKey: string;
   descriptionKey: string;
   image: string;
+  detailImage: string;
   coords: [number, number];
   budgetItems: BudgetItem[];
   pointsOfInterest: PointOfInterest[];

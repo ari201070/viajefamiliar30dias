@@ -14,7 +14,7 @@ export const CURRENCIES = [
 ];
 
 // --- IMAGE CONSTANTS ---
-export const DEFAULT_CITY_IMAGE = './docs/imagenes/argentina_default.jpg';
+export const DEFAULT_CITY_IMAGE = '/docs/imagenes/argentina_default.jpg';
 
 // --- CITIES DATA ---
 // This is the core data structure for the cities in the itinerary.
@@ -24,7 +24,8 @@ export const CITIES: City[] = [
     id: 'buenosaires',
     nameKey: 'buenosaires_name',
     descriptionKey: 'buenosaires_description',
-    image: './docs/imagenes/buenosaires/buenosaires.jpg',
+    image: '/docs/imagenes/buenosaires/buenosaires.jpg',
+	detailImage: '/docs/imagenes/buenosaires/Cabildo.jpg', 
     coords: [-34.6037, -58.3816],
     activitiesKey: 'buenosaires_activities_recommended',
     accommodationKey: 'buenosaires_accommodation_examples',
@@ -43,7 +44,7 @@ export const CITIES: City[] = [
     id: 'rosario',
     nameKey: 'rosario_name',
     descriptionKey: 'rosario_description',
-    image: './docs/imagenes/rosario/rosario.jpg',
+    image: '/docs/imagenes/rosario/rosario.jpg',
     coords: [-32.9446, -60.6500],
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
@@ -57,7 +58,7 @@ export const CITIES: City[] = [
     id: 'bariloche',
     nameKey: 'bariloche_name',
     descriptionKey: 'bariloche_description',
-    image: './docs/imagenes/bariloche/bariloche.jpg',
+    image: '/docs/imagenes/bariloche/bariloche.jpg',
     coords: [-41.1335, -71.3103],
     activitiesKey: 'bariloche_activities_recommended',
     accommodationKey: 'bariloche_accommodation_examples',
@@ -71,7 +72,7 @@ export const CITIES: City[] = [
     id: 'mendoza',
     nameKey: 'mendoza_name',
     descriptionKey: 'mendoza_description',
-    image: './docs/imagenes/mendoza/mendoza.jpg',
+    image: '/docs/imagenes/mendoza/mendoza.jpg',
     coords: [-32.8895, -68.8458],
     activitiesKey: 'mendoza_activities_recommended',
     accommodationKey: 'mendoza_accommodation_examples',
@@ -82,7 +83,7 @@ export const CITIES: City[] = [
     id: 'jujuy',
     nameKey: 'jujuy_name',
     descriptionKey: 'jujuy_description',
-    image: './docs/imagenes/jujuy/jujuy.jpg',
+    image: '/docs/imagenes/jujuy/jujuy.jpg',
     coords: [-24.1856, -65.2995],
     activitiesKey: 'jujuy_activities_recommended',
     accommodationKey: 'jujuy_accommodation_examples',
@@ -93,7 +94,7 @@ export const CITIES: City[] = [
     id: 'iguazu',
     nameKey: 'iguazu_name',
     descriptionKey: 'iguazu_description',
-    image: './docs/imagenes/iguazu/iguazu.jpg',
+    image: '/docs/imagenes/iguazu/iguazu.jpg',
     coords: [-25.6753, -54.4368],
     activitiesKey: 'iguazu_activities_recommended',
     accommodationKey: 'iguazu_accommodation_examples',
@@ -104,7 +105,8 @@ export const CITIES: City[] = [
     id: 'esteros_ibera',
     nameKey: 'esteros_ibera_name',
     descriptionKey: 'esteros_ibera_description',
-    image: './docs/imagenes/esteros_ibera/esteros_ibera.jpg',
+    image: '/docs/imagenes/esteros_ibera/ibera.jpg',
+	detailImage: '/docs/imagenes/esteros_ibera/DSCN1851.jpg', 
     coords: [-28.5333, -57.1667],
     activitiesKey: 'esteros_ibera_activities_recommended',
     accommodationKey: 'esteros_ibera_accommodation_examples',
@@ -115,7 +117,7 @@ export const CITIES: City[] = [
     id: 'corrientes',
     nameKey: 'corrientes_name',
     descriptionKey: 'corrientes_description',
-    image: './docs/imagenes/corrientes/corrientes.jpg',
+    image: '/docs/imagenes/corrientes/corrientes.jpg',
     coords: [-27.4674, -58.8341],
     activitiesKey: 'corrientes_activities_recommended',
     accommodationKey: 'corrientes_accommodation_examples',

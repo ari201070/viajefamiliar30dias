@@ -167,7 +167,7 @@ const CityDetailPage: FC = () => {
         <div className="lg:col-span-2 space-y-8">
           <section className={detailCardClasses}>
             <img 
-              src={city.image} 
+              src={city.detailImage} 
               alt={t(city.nameKey)} 
               className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-md mb-6"
               onError={handleImageError}
