@@ -51,21 +51,15 @@ const TopBar: FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-              <i className="fas fa-plane-departure mr-2"></i>
-              <span>{t('tituloPrincipal').split(' ').slice(0, 2).join(' ')}</span>
+              <i className="fas fa-plane-departure"></i>
             </Link>
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              {!isHomePage && (
-                 <Link to="/" className="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium">
-                  <i className="fas fa-arrow-left mr-2"></i> {t('volverItinerario')}
-                </Link>
-              )}
             </div>
           </div>
           <div className="flex items-center">
-             {user && <span className="hidden sm:inline-block text-sm text-gray-600 dark:text-slate-300 mr-4">{user.displayName || 'User'}</span>}
+            {user && <span className="hidden sm:inline-block text-sm text-gray-600 dark:text-slate-300 mr-4">{user.displayName || 'User'}</span>}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -75,7 +69,7 @@ const TopBar: FC = () => {
               </button>
               {isMenuOpen && (
                 <div className="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg py-1 bg-white dark:bg-slate-700 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                   <div className="px-4 py-3">
+                  <div className="px-4 py-3">
                     <p className="text-sm text-gray-700 dark:text-slate-200">{t('idioma')}</p>
                     <select
                       value={language}
@@ -85,7 +79,7 @@ const TopBar: FC = () => {
                       {LANGUAGES.map(lang => <option key={lang.code} value={lang.code}>{lang.name}</option>)}
                     </select>
                   </div>
-                   <div className="px-4 py-3">
+                  <div className="px-4 py-3">
                     <p className="text-sm text-gray-700 dark:text-slate-200">{t('moneda')}</p>
                     <select
                       value={currency}
@@ -105,12 +99,12 @@ const TopBar: FC = () => {
                       {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
                     </span>
                     <div className="relative">
-                        <div className={`w-12 h-6 rounded-full shadow-inner ${theme === 'light' ? 'bg-gray-300' : 'bg-indigo-500'}`}></div>
-                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${theme === 'light' ? 'left-0.5' : 'left-6'}`}></div>
+                      <div className={`w-12 h-6 rounded-full shadow-inner ${theme === 'light' ? 'bg-gray-300' : 'bg-indigo-500'}`}></div>
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${theme === 'light' ? 'left-0.5' : 'left-6'}`}></div>
                     </div>
                   </button>
-                   <div className="border-t border-gray-200 dark:border-slate-600"></div>
-                   <button
+                  <div className="border-t border-gray-200 dark:border-slate-600"></div>
+                  <button
                     onClick={() => authService.signOutUser()}
                     className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
                   >
@@ -123,7 +117,7 @@ const TopBar: FC = () => {
           </div>
         </div>
         <div className="py-2 border-t border-gray-200 dark:border-slate-700">
-           <CloudSyncInfo />
+          <CloudSyncInfo />
         </div>
       </nav>
     </header>

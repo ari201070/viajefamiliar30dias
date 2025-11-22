@@ -389,7 +389,7 @@ export const BOOKING_DATA: BookingItem[] = [
       confirmation: '5173150124',
       address: '88 Yapeyú Villa 14, 3370 Puerto Iguazú',
       phone: '+54 3757 42-2096',
-      price: { value: 0, currency: Currency.USD }
+      price: { value: 482, currency: Currency.USD }
     }
   },
   {
