@@ -30,10 +30,10 @@ export const CITIES: City[] = [
     activitiesKey: 'buenosaires_activities_recommended',
     accommodationKey: 'buenosaires_accommodation_examples',
     budgetItems: [
-        { conceptKey: 'accommodation_budget', value: '80-150', isPerDay: true },
-        { conceptKey: 'food_budget', value: '50-80', isPerDay: true },
-        { conceptKey: 'transport_budget', value: '10-20', isPerDay: true },
-        { conceptKey: 'activities_budget', value: '30-60', isPerDay: true },
+        { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
+        { conceptKey: 'food_budget', value: '25', isPerDay: true },
+        { conceptKey: 'transport_budget', value: '10', isPerDay: true },
+        { conceptKey: 'activities_budget', value: '45', isPerDay: true },
     ],
     pointsOfInterest: [
         { nameKey: 'poi_obelisco', descriptionKey: 'poi_obelisco_desc', coords: [-34.6037, -58.3816] },
@@ -49,8 +49,8 @@ export const CITIES: City[] = [
     activitiesKey: 'rosario_activities_recommended',
     accommodationKey: 'rosario_accommodation_examples',
     budgetItems: [
-        { conceptKey: 'accommodation_budget', value: '60-120', isPerDay: true },
-        { conceptKey: 'food_budget', value: '40-70', isPerDay: true },
+        { conceptKey: 'accommodation_budget', value: '0', isPerDay: true },
+        { conceptKey: 'food_budget', value: '20', isPerDay: true },
     ],
     pointsOfInterest: []
   },
