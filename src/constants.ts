@@ -357,7 +357,7 @@ export const BOOKING_DATA: BookingItem[] = [
       confirmation: '6400815558',
       address: '565 General Espejo, 5502 Mendoza',
       phone: '+54 261 274 8280',
-      price: { value: 558291, currency: Currency.ARS }
+      price: { value: 390.48, currency: Currency.USD }
     }
   },
   {
