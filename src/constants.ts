@@ -152,28 +152,6 @@ export const CITIES: City[] = [
     endDate: '2025-10-22'
   },
   {
-    id: 'corrientes',
-    nameKey: 'corrientes_name',
-    descriptionKey: 'corrientes_description',
-    image: '/docs/imagenes/corrientes/corrientes.jpg',
-    detailImage: '/docs/imagenes/corrientes/casa.jpg',
-    coords: [-27.4692, -58.8306],
-    activitiesKey: 'corrientes_activities_recommended',
-    accommodationKey: 'corrientes_accommodation_examples',
-    budgetItems: [
-      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
-      { conceptKey: 'food_budget', value: '20', isPerDay: true },
-      { conceptKey: 'transport_budget', value: '10', isPerDay: true },
-      { conceptKey: 'activities_budget', value: '30', isPerDay: true },
-    ],
-    pointsOfInterest: [
-      { nameKey: 'poi_costanera', descriptionKey: 'poi_costanera_desc', coords: [-27.4633, -58.8367] },
-      { nameKey: 'poi_teatro_vera', descriptionKey: 'poi_teatro_vera_desc', coords: [-27.4667, -58.8333] },
-    ],
-    startDate: '2025-10-24',
-    endDate: '2025-10-26'
-  },
-  {
     id: 'esteros_ibera',
     nameKey: 'esteros_ibera_name',
     descriptionKey: 'esteros_ibera_description',
@@ -194,6 +172,28 @@ export const CITIES: City[] = [
     ],
     startDate: '2025-10-22',
     endDate: '2025-10-24'
+  },
+  {
+    id: 'corrientes',
+    nameKey: 'corrientes_name',
+    descriptionKey: 'corrientes_description',
+    image: '/docs/imagenes/corrientes/corrientes.jpg',
+    detailImage: '/docs/imagenes/corrientes/casa.jpg',
+    coords: [-27.4692, -58.8306],
+    activitiesKey: 'corrientes_activities_recommended',
+    accommodationKey: 'corrientes_accommodation_examples',
+    budgetItems: [
+      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
+      { conceptKey: 'food_budget', value: '20', isPerDay: true },
+      { conceptKey: 'transport_budget', value: '10', isPerDay: true },
+      { conceptKey: 'activities_budget', value: '30', isPerDay: true },
+    ],
+    pointsOfInterest: [
+      { nameKey: 'poi_costanera', descriptionKey: 'poi_costanera_desc', coords: [-27.4633, -58.8367] },
+      { nameKey: 'poi_teatro_vera', descriptionKey: 'poi_teatro_vera_desc', coords: [-27.4667, -58.8333] },
+    ],
+    startDate: '2025-10-24',
+    endDate: '2025-10-26'
   }
 ];
 

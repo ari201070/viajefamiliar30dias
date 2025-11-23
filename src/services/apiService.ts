@@ -116,7 +116,8 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
             { role: 'user', parts: [{ text: newMessage }] }
         ];
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const client = getAiClient();
+        const response: GenerateContentResponse = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: contents,
             config: { systemInstruction: systemInstruction + languageInstruction },
@@ -138,7 +139,8 @@ export async function translateText(textToTranslate: string, language: Language)
         // systemInstruction debe cerrarse correctamente — aquí se especifica el idioma objetivo
         const systemInstruction = `You are a machine translation service that translates the given text to ${targetLanguageName}. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, or annotations.`;
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const client = getAiClient();
+        const response: GenerateContentResponse = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: textToTranslate,
             config: { systemInstruction }
