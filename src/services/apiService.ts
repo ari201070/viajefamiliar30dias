@@ -33,7 +33,7 @@ const getMockWeatherData = (lat: number, language: Language): WeatherData => {
             icon: i % 3 === 0 ? '02d' : (i % 3 === 1 ? '03d' : '01d'),
         };
     });
-    
+
     const currentFromForecast = forecast[0];
 
     return {
@@ -49,9 +49,9 @@ const getMockWeatherData = (lat: number, language: Language): WeatherData => {
 };
 
 const getFallbackExchangeRate = (from: Currency, to: Currency): number | null => {
-    const usdToArs = 900;
+    const usdToArs = 1424.25; // Updated 23/11/2025 - User specified
     const usdToEur = 0.93;
-    const usdToIls = 3.72;
+    const usdToIls = 3.28; // Updated 23/11/2025 - User specified
     const rates: Record<string, number> = {
         'USD_ARS': usdToArs, 'ARS_USD': 1 / usdToArs,
         'USD_EUR': usdToEur, 'EUR_USD': 1 / usdToEur,
@@ -68,30 +68,30 @@ const getFallbackExchangeRate = (from: Currency, to: Currency): number | null =>
 // --- AI API FUNCTIONS (Using Direct SDK) ---
 
 export async function askGemini(userPrompt: string, language: Language): Promise<string> {
-  // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
-  try {
-    const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
-    const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
-    
-    const response: GenerateContentResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: fullPrompt,
-    });
+    // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
+    try {
+        const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
+        const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
 
-    return response.text;
-  } catch (error: any) {
-    console.error("Gemini API error in askGemini:", error);
-    return language === 'he'
-        ? "מצטערים, אירעה שגיאה בתקשורת עם שירות ה-AI. אנא נסה שוב מאוחר יותר."
-        : "Lo sentimos, ocurrió un error al comunicarse con el servicio de IA. Por favor, intenta de nuevo más tarde.";
-  }
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: fullPrompt,
+        });
+
+        return response.text;
+    } catch (error: any) {
+        console.error("Gemini API error in askGemini:", error);
+        return language === 'he'
+            ? "מצטערים, אירעה שגיאה בתקשורת עם שירות ה-AI. אנא נסה שוב מאוחר יותר."
+            : "Lo sentimos, ocurrió un error al comunicarse con el servicio de IA. Por favor, intenta de nuevo más tarde.";
+    }
 }
 
 export async function sendMessageInChat(systemInstruction: string, history: ChatMessage[], newMessage: string, language: Language): Promise<string> {
     // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
-        const languageInstruction = language === 'he' 
-            ? "\n\nPlease respond exclusively in Hebrew." 
+        const languageInstruction = language === 'he'
+            ? "\n\nPlease respond exclusively in Hebrew."
             : "\n\nPlease respond exclusively in Spanish.";
 
         const formattedHistory = history
@@ -99,7 +99,7 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
             .map(msg => ({
                 role: msg.role === 'model' ? 'model' : 'user',
                 parts: [{ text: msg.text }]
-        }));
+            }));
 
         const contents = [
             ...formattedHistory,
@@ -111,7 +111,7 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
             contents: contents,
             config: { systemInstruction: systemInstruction + languageInstruction },
         });
-        
+
         return response.text;
     } catch (error) {
         console.error("Gemini API error in sendMessageInChat:", error);
@@ -135,9 +135,9 @@ export async function translateText(textToTranslate: string, language: Language)
         });
 
         return response.text.trim();
-    } catch(error) {
-       console.error("Gemini API error in translateText:", error);
-       return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
+    } catch (error) {
+        console.error("Gemini API error in translateText:", error);
+        return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
     }
 }
 
@@ -171,33 +171,33 @@ export async function findEventsWithGoogleSearch(prompt: string, language: Langu
 // The proxy endpoint was unstable. To guarantee app functionality, these now use reliable mock data.
 
 export async function convertCurrency(amount: number, fromCurrency: Currency, toCurrency: Currency): Promise<number | null> {
-  if (fromCurrency === toCurrency) return amount;
-  
-  console.warn("Using fallback currency conversion to ensure app stability.");
-  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network latency
-  const rate = getFallbackExchangeRate(fromCurrency, toCurrency);
-  return rate ? amount * rate : null;
+    if (fromCurrency === toCurrency) return amount;
+
+    console.warn("Using fallback currency conversion to ensure app stability.");
+    await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network latency
+    const rate = getFallbackExchangeRate(fromCurrency, toCurrency);
+    return rate ? amount * rate : null;
 }
 
 const exchangeRateCache: Record<string, { rate: number; timestamp: number }> = {};
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 export async function getCachedExchangeRate(from: Currency, to: Currency): Promise<number | null> {
-  if (from === to) return 1;
+    if (from === to) return 1;
 
-  const cacheKey = `${from}_${to}`;
-  const cached = exchangeRateCache[cacheKey];
+    const cacheKey = `${from}_${to}`;
+    const cached = exchangeRateCache[cacheKey];
 
-  if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-    return cached.rate;
-  }
-  
-  const rate = await convertCurrency(1, from, to);
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+        return cached.rate;
+    }
 
-  if (rate !== null) {
-    exchangeRateCache[cacheKey] = { rate, timestamp: Date.now() };
-  }
-  return rate;
+    const rate = await convertCurrency(1, from, to);
+
+    if (rate !== null) {
+        exchangeRateCache[cacheKey] = { rate, timestamp: Date.now() };
+    }
+    return rate;
 }
 
 export async function getWeatherForecast(coords: [number, number], language: Language): Promise<WeatherData | null> {
