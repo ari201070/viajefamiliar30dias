@@ -58,6 +58,8 @@ export interface City {
   pointsOfInterest: PointOfInterest[];
   activitiesKey: string;
   accommodationKey: string;
+  startDate?: string; // AGREGAR ESTA LÍNEA
+  endDate?: string;   // AGREGAR ESTA LÍNEA
 }
 
 // --- Budget ---
@@ -91,10 +93,10 @@ export interface ChatMessage {
 }
 
 export interface GroundingChunk {
-    web?: {
-      uri?: string;
-      title?: string;
-    };
+  web?: {
+    uri?: string;
+    title?: string;
+  };
 }
 
 export interface AIResponseType {
@@ -133,20 +135,20 @@ export interface HotelData {
 }
 
 export interface BusData {
-    company: string;
-    departure: string;
-    arrival: string;
-    duration: string;
-    passengers: { name: string; seat: string }[];
-    price: Price;
+  company: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  passengers: { name: string; seat: string }[];
+  price: Price;
 }
 
 export interface TransferData {
-    from: string;
-    to: string;
-    date: string;
-    duration: string;
-    price: Price;
+  from: string;
+  to: string;
+  date: string;
+  duration: string;
+  price: Price;
 }
 
 export interface BookingItem {
@@ -180,23 +182,23 @@ export interface PhotoItem {
 
 // --- Weather ---
 export interface CurrentWeather {
-    temp: number;
-    feels_like: number;
-    humidity: number;
-    description: string;
-    icon: string;
+  temp: number;
+  feels_like: number;
+  humidity: number;
+  description: string;
+  icon: string;
 }
 
 export interface DailyForecast {
-    dayOfWeek: string;
-    date: string;
-    temp_min: number;
-    temp_max: number;
-    description: string;
-    icon: string;
+  dayOfWeek: string;
+  date: string;
+  temp_min: number;
+  temp_max: number;
+  description: string;
+  icon: string;
 }
 
 export interface WeatherData {
-    current: CurrentWeather;
-    forecast: DailyForecast[];
+  current: CurrentWeather;
+  forecast: DailyForecast[];
 }

@@ -37,7 +37,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_obelisco', descriptionKey: 'poi_obelisco_desc', coords: [-34.6037, -58.3816] },
       { nameKey: 'poi_caminito', descriptionKey: 'poi_caminito_desc', coords: [-34.6383, -58.3623] },
-    ]
+    ],
+    startDate: '2025-09-26',
+    endDate: '2025-09-30'
   },
   {
     id: 'rosario',
@@ -57,7 +59,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_monumento_bandera', descriptionKey: 'poi_monumento_bandera_desc', coords: [-32.9477, -60.6305] },
       { nameKey: 'poi_parque_independencia', descriptionKey: 'poi_parque_independencia_desc', coords: [-32.9556, -60.6569] },
-    ]
+    ],
+    startDate: '2025-09-30',
+    endDate: '2025-10-04'
   },
   {
     id: 'bariloche',
@@ -77,7 +81,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_centro_civico', descriptionKey: 'poi_centro_civico_desc', coords: [-41.1335, -71.3103] },
       { nameKey: 'poi_cerro_catedral', descriptionKey: 'poi_cerro_catedral_desc', coords: [-41.1700, -71.4383] },
-    ]
+    ],
+    startDate: '2025-10-05',
+    endDate: '2025-10-10'
   },
   {
     id: 'mendoza',
@@ -97,7 +103,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_parque_san_martin', descriptionKey: 'poi_parque_san_martin_desc', coords: [-32.8908, -68.8783] },
       { nameKey: 'poi_cerro_gloria', descriptionKey: 'poi_cerro_gloria_desc', coords: [-32.8933, -68.8950] },
-    ]
+    ],
+    startDate: '2025-10-11',
+    endDate: '2025-10-14'
   },
   {
     id: 'jujuy',
@@ -117,7 +125,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_quebrada_humahuaca', descriptionKey: 'poi_quebrada_humahuaca_desc', coords: [-23.5833, -65.3500] },
       { nameKey: 'poi_cerro_siete_colores', descriptionKey: 'poi_cerro_siete_colores_desc', coords: [-23.7433, -65.4933] },
-    ]
+    ],
+    startDate: '2025-10-15',
+    endDate: '2025-10-18'
   },
   {
     id: 'iguazu',
@@ -137,7 +147,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_cataratas', descriptionKey: 'poi_cataratas_desc', coords: [-25.6953, -54.4367] },
       { nameKey: 'poi_hito_tres_fronteras', descriptionKey: 'poi_hito_tres_fronteras_desc', coords: [-25.5992, -54.5736] },
-    ]
+    ],
+    startDate: '2025-10-19',
+    endDate: '2025-10-22'
   },
   {
     id: 'corrientes',
@@ -157,7 +169,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_costanera', descriptionKey: 'poi_costanera_desc', coords: [-27.4633, -58.8367] },
       { nameKey: 'poi_teatro_vera', descriptionKey: 'poi_teatro_vera_desc', coords: [-27.4667, -58.8333] },
-    ]
+    ],
+    startDate: '2025-10-24',
+    endDate: '2025-10-26'
   },
   {
     id: 'esteros_ibera',
@@ -177,7 +191,9 @@ export const CITIES: City[] = [
     pointsOfInterest: [
       { nameKey: 'poi_portal_cambyreta', descriptionKey: 'poi_portal_cambyreta_desc', coords: [-27.8500, -56.8833] },
       { nameKey: 'poi_colonia_carlos_pellegrini', descriptionKey: 'poi_colonia_carlos_pellegrini_desc', coords: [-28.5333, -57.1667] },
-    ]
+    ],
+    startDate: '2025-10-22',
+    endDate: '2025-10-24'
   }
 ];
 
