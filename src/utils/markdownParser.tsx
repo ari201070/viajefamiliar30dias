@@ -39,7 +39,6 @@ export const parseMarkdownLinks = (text: string): React.ReactNode => {
 // Parses simple Markdown pipe tables
 export const parseMarkdownTable = (
   markdownTable: string,
-  t: (key: string) => string,
   lang: Language
 ): React.ReactNode => {
   const lines = markdownTable.trim().split('\n');
@@ -99,12 +98,11 @@ export const parseMarkdownTable = (
                 {
                   key: index,
                   scope: 'col',
-                  className: `px-4 py-3 ${
-                    columnAlignments[index] ||
+                  className: `px-4 py-3 ${columnAlignments[index] ||
                     (lang === Language.HE
                       ? 'text-right'
                       : 'text-left')
-                  } text-sm font-semibold text-indigo-700 dark:text-indigo-300`
+                    } text-sm font-semibold text-indigo-700 dark:text-indigo-300`
                 },
                 header
               )
@@ -150,12 +148,11 @@ export const parseMarkdownTable = (
                   'td',
                   {
                     key: cellIndex,
-                    className: `px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-slate-400 ${
-                      columnAlignments[cellIndex] ||
+                    className: `px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-slate-400 ${columnAlignments[cellIndex] ||
                       (lang === Language.HE
                         ? 'text-right'
                         : 'text-left')
-                    }`
+                      }`
                   },
                   cellContent
                 );

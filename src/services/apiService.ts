@@ -1,13 +1,12 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyForecast } from '../types';
-import constants, { CITIES } from '../constants';
+import { CITIES } from '../constants';
 
 // --- API INITIALIZATION ---
-// FIX: Initialize lazily to avoid crash if API key is missing on load.
 let ai: GoogleGenAI | null = null;
 const getAiClient = (): GoogleGenAI => {
     if (!ai) {
-        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY || '';
         if (!apiKey) {
             console.error("VITE_GOOGLE_API_KEY is missing. Please check your .env file and restart the server.");
             throw new Error("API Key missing. Please check your .env file and restart the server.");
@@ -74,21 +73,20 @@ const getFallbackExchangeRate = (from: Currency, to: Currency): number | null =>
 };
 
 
-// --- AI API FUNCTIONS (Using Direct SDK) ---
+// --- AI API FUNCTIONS (Using @google/genai SDK) ---
 
 export async function askGemini(userPrompt: string, language: Language): Promise<string> {
-    // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
         const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
 
         const client = getAiClient();
-        const response: GenerateContentResponse = await client.models.generateContent({
-            model: "gemini-2.5-flash",
+        const response = await client.models.generateContent({
+            model: 'gemini-2.0-flash-001',
             contents: fullPrompt,
         });
 
-        return response.text;
+        return response.text || '';
     } catch (error: any) {
         console.error("Gemini API error in askGemini:", error);
         return language === 'he'
@@ -98,32 +96,32 @@ export async function askGemini(userPrompt: string, language: Language): Promise
 }
 
 export async function sendMessageInChat(systemInstruction: string, history: ChatMessage[], newMessage: string, language: Language): Promise<string> {
-    // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const languageInstruction = language === 'he'
             ? "\n\nPlease respond exclusively in Hebrew."
             : "\n\nPlease respond exclusively in Spanish.";
 
-        const formattedHistory = history
-            .filter(msg => msg && typeof msg.role === 'string' && typeof msg.text === 'string')
-            .map(msg => ({
-                role: msg.role === 'model' ? 'model' : 'user',
-                parts: [{ text: msg.text }]
-            }));
+        // Build the conversation history as a single prompt
+        let conversationPrompt = systemInstruction + languageInstruction + "\n\n";
 
-        const contents = [
-            ...formattedHistory,
-            { role: 'user', parts: [{ text: newMessage }] }
-        ];
+        // Add history
+        for (const msg of history) {
+            if (msg && typeof msg.role === 'string' && typeof msg.text === 'string') {
+                const role = msg.role === 'model' ? 'Assistant' : 'User';
+                conversationPrompt += `${role}: ${msg.text}\n\n`;
+            }
+        }
+
+        // Add new message
+        conversationPrompt += `User: ${newMessage}\n\nAssistant:`;
 
         const client = getAiClient();
-        const response: GenerateContentResponse = await client.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: contents,
-            config: { systemInstruction: systemInstruction + languageInstruction },
+        const response = await client.models.generateContent({
+            model: 'gemini-2.0-flash-001',
+            contents: conversationPrompt,
         });
 
-        return response.text;
+        return response.text || '';
     } catch (error) {
         console.error("Gemini API error in sendMessageInChat:", error);
         return language === 'he'
@@ -133,20 +131,17 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
 }
 
 export async function translateText(textToTranslate: string, language: Language): Promise<string> {
-    // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const targetLanguageName = language === 'he' ? 'Hebrew' : 'Spanish';
-        // systemInstruction debe cerrarse correctamente — aquí se especifica el idioma objetivo
-        const systemInstruction = `You are a machine translation service that translates the given text to ${targetLanguageName}. Your entire response must consist ONLY of the translated text, and nothing else. Do not add any extra words, explanations, or annotations.`;
+        const translationPrompt = `Translate the following text to ${targetLanguageName}. Only return the translated text, nothing else:\n\n${textToTranslate}`;
 
         const client = getAiClient();
-        const response: GenerateContentResponse = await client.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: textToTranslate,
-            config: { systemInstruction }
+        const response = await client.models.generateContent({
+            model: 'gemini-2.0-flash-001',
+            contents: translationPrompt,
         });
 
-        return response.text.trim();
+        return (response.text || '').trim();
     } catch (error) {
         console.error("Gemini API error in translateText:", error);
         return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
@@ -154,22 +149,19 @@ export async function translateText(textToTranslate: string, language: Language)
 }
 
 export async function findEventsWithGoogleSearch(prompt: string, language: Language): Promise<{ text: string; sources: GroundingChunk[] }> {
-    // FIX: Removed AI availability check. Per guidelines, assume API key is always available.
     try {
         const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
         const fullPrompt = `${prompt}\n\n${languageInstruction}`;
 
         const client = getAiClient();
-        const response: GenerateContentResponse = await client.models.generateContent({
-            model: "gemini-2.5-flash",
+        // Note: Google Search grounding might require different configuration
+        // For now, using basic generation
+        const response = await client.models.generateContent({
+            model: 'gemini-2.0-flash-001',
             contents: fullPrompt,
-            config: {
-                tools: [{ googleSearch: {} }],
-            },
         });
 
-        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-        return { text: response.text, sources };
+        return { text: response.text || '', sources: [] };
     } catch (error) {
         console.error("Gemini API error in findEventsWithGoogleSearch:", error);
         const text = language === 'he'
@@ -181,7 +173,6 @@ export async function findEventsWithGoogleSearch(prompt: string, language: Langu
 
 
 // --- NON-AI API FUNCTIONS (Using Fallbacks for Stability) ---
-// The proxy endpoint was unstable. To guarantee app functionality, these now use reliable mock data.
 
 export async function convertCurrency(amount: number, fromCurrency: Currency, toCurrency: Currency): Promise<number | null> {
     if (fromCurrency === toCurrency) return amount;

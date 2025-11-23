@@ -341,7 +341,7 @@ export const BOOKING_DATA: BookingItem[] = [
         { name: 'Hila Flier', ticketNumber: '0712999441528' }
       ],
       confirmation: 'QTAJPJ',
-      price: { value: 0, currency: Currency.USD }
+      price: { value: 6850, currency: Currency.USD }
     }
   },
   {

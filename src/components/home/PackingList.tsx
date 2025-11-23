@@ -1,6 +1,6 @@
-import React, { useState, useEffect, FC } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { PackingItem, Language } from '../../types.ts';
+import { PackingItem } from '../../types.ts';
 
 const PackingList: FC = () => {
     const { t, language } = useAppContext();
@@ -14,7 +14,7 @@ const PackingList: FC = () => {
             setItems(JSON.parse(savedList));
         }
     }, []);
-    
+
     useEffect(() => {
         localStorage.setItem('packingList', JSON.stringify(items));
     }, [items]);
@@ -31,7 +31,7 @@ const PackingList: FC = () => {
         setItems([...items, newItem]);
         setNewItemText('');
     };
-    
+
     const toggleItemChecked = (id: string) => {
         setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
     };
@@ -42,7 +42,7 @@ const PackingList: FC = () => {
 
     const renderList = (type: 'essential' | 'optional') => {
         const filteredItems = items.filter(item => item.type === type);
-        if(filteredItems.length === 0) {
+        if (filteredItems.length === 0) {
             return <p className="text-sm text-gray-500 dark:text-slate-400 italic">{t('packing_list_empty')}</p>
         }
         return (
@@ -70,7 +70,7 @@ const PackingList: FC = () => {
     return (
         <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
             <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
-                 <i className="fas fa-suitcase-rolling mr-3 text-indigo-600 dark:text-indigo-400" />
+                <i className="fas fa-suitcase-rolling mr-3 text-indigo-600 dark:text-indigo-400" />
                 {t('packing_title')}
             </h2>
             <div className="flex flex-wrap gap-2 mb-6">

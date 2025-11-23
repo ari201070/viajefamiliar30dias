@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, FC, lazy, Suspense, useCallback } from 'react'; // <-- 1. IMPORTAR useCallback
+import { useState, useEffect, useMemo, FC, lazy, Suspense, useCallback } from 'react'; // <-- 1. IMPORTAR useCallback
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -122,7 +122,7 @@ const App: FC = () => {
     const protocol = window.location.protocol;
     const isSupportedAuthEnvironment = ['http:', 'https:', 'chrome-extension:'].includes(protocol);
     if (isFirebaseConfigured && isSupportedAuthEnvironment) {
-      auth.getRedirectResult().catch((error) => {
+      auth?.getRedirectResult().catch((error) => {
         console.error("Error getting redirect result:", error);
       });
       const unsubscribe = authService.onAuthChange(firebaseUser => {

@@ -58,8 +58,8 @@ export interface City {
   pointsOfInterest: PointOfInterest[];
   activitiesKey: string;
   accommodationKey: string;
-  startDate?: string; // AGREGAR ESTA LÍNEA
-  endDate?: string;   // AGREGAR ESTA LÍNEA
+  startDate?: string;
+  endDate?: string;
 }
 
 // --- Budget ---
@@ -122,6 +122,11 @@ export interface TransportLeg {
   timeKey: string;
   basePriceARS: Price | number;
   company: string;
+  date?: string;
+  flightNumber?: string;
+  duration?: string;
+  departure?: string;
+  arrival?: string;
 }
 
 export interface HotelData {
@@ -130,8 +135,10 @@ export interface HotelData {
   checkOut: string;
   guests: string;
   confirmation: string;
-  pin: string;
+  pin?: string;
   price: Price;
+  address?: string;
+  phone?: string;
 }
 
 export interface BusData {
@@ -151,12 +158,24 @@ export interface TransferData {
   price: Price;
 }
 
+export interface FlightData {
+  airline: string;
+  flightNumber: string;
+  departure: string;
+  arrival: string;
+  returnDeparture: string;
+  returnArrival: string;
+  passengers: { name: string; ticketNumber: string }[];
+  confirmation: string;
+  price: Price;
+}
+
 export interface BookingItem {
   id: string;
-  type: 'hotel' | 'bus' | 'transfer';
+  type: 'hotel' | 'bus' | 'transfer' | 'flight';
   titleKey: string;
   descriptionKey: string;
-  data: HotelData | BusData | TransferData;
+  data: HotelData | BusData | TransferData | FlightData;
 }
 
 

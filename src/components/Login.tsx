@@ -1,4 +1,4 @@
-import React, { useState, FC } from 'react';
+import { useState, FC } from 'react';
 import { authService } from '../services/authService.ts';
 import { useAppContext } from '../context/AppContext.tsx';
 

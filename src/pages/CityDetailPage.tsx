@@ -30,11 +30,11 @@ const CityDetailPage: FC = () => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = DEFAULT_CITY_IMAGE;
   };
-  
+
   const detailCardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg dark:shadow-slate-700/50 hover:shadow-xl dark:hover:shadow-slate-700 transition-shadow duration-300 ease-in-out";
   const detailSectionTitleClasses = "text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 pb-2 border-b border-indigo-200 dark:border-slate-600 flex items-center";
   const detailTextClasses = "text-gray-700 dark:text-slate-300 leading-relaxed";
-  
+
   const handleFindEvents = async () => {
     setIsEventsAiLoading(true);
     setEventsAiResponse(null);
@@ -43,25 +43,25 @@ const CityDetailPage: FC = () => {
     const dates = durationText.split('\n')[0].replace(/- \*\*Estadía\*\*:\s*/, '').trim();
 
     const prompt = `Find family-friendly events, festivals, or local markets in ${t(city.nameKey)}, Argentina that are happening during these dates: ${dates}. Focus on events that would be interesting for a family with children.`;
-    
+
     try {
-        const { text, sources } = await findEventsWithGoogleSearch(prompt, language);
-        setEventsAiResponse({
-            text: text || t('ai_event_finder_error'),
-            sources: sources,
-            lang: language,
-            originalBasePromptKey: '', 
-            originalUserInput: ''
-        });
+      const { text, sources } = await findEventsWithGoogleSearch(prompt, language);
+      setEventsAiResponse({
+        text: text || t('ai_event_finder_error'),
+        sources: sources,
+        lang: language,
+        originalBasePromptKey: '',
+        originalUserInput: ''
+      });
     } catch (error) {
-        setEventsAiResponse({
-            text: t('ai_event_finder_error'),
-            lang: language,
-            originalBasePromptKey: '',
-            originalUserInput: ''
-        });
+      setEventsAiResponse({
+        text: t('ai_event_finder_error'),
+        lang: language,
+        originalBasePromptKey: '',
+        originalUserInput: ''
+      });
     } finally {
-        setIsEventsAiLoading(false);
+      setIsEventsAiLoading(false);
     }
   };
 
@@ -69,7 +69,7 @@ const CityDetailPage: FC = () => {
   const renderSection = (titleKeySuffix: string, contentKey: string, iconClass: string) => {
     const title = t(`section_title_${titleKeySuffix}`);
     let content = t(contentKey);
-    
+
     if (!content || content === contentKey) return null;
 
     let contentNode;
@@ -86,17 +86,17 @@ const CityDetailPage: FC = () => {
         </ul>
       );
     } else if (titleKeySuffix === 'gastronomy_highlight') {
-      const sections = content.split(/\n###\s*(.+?)\n/); 
+      const sections = content.split(/\n###\s*(.+?)\n/);
       contentNode = sections.reduce<React.ReactNode[]>((acc, part, index) => {
-        if (index % 2 === 1) { 
-          const subtitleKey = part.toLowerCase().includes(t('gastronomy_restaurants_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_restaurants_subtitle' : 
-                              part.toLowerCase().includes(t('gastronomy_cafes_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_cafes_subtitle' : '';
+        if (index % 2 === 1) {
+          const subtitleKey = part.toLowerCase().includes(t('gastronomy_restaurants_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_restaurants_subtitle' :
+            part.toLowerCase().includes(t('gastronomy_cafes_subtitle').toLowerCase().split(' ')[0]) ? 'gastronomy_cafes_subtitle' : '';
           if (subtitleKey) {
             acc.push(<h3 key={`sub-${index}`} className="text-xl font-semibold text-gray-800 dark:text-slate-200 mt-4 mb-2">{t(subtitleKey)}</h3>);
           }
-        } else if (part.trim().startsWith('|')) { 
-          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, (k: string) => t(k), language as Language)}</div>);
-        } else if (part.trim()) { 
+        } else if (part.trim().startsWith('|')) {
+          acc.push(<div key={`table-${index}`}>{parseMarkdownTable(part, language as Language)}</div>);
+        } else if (part.trim()) {
           acc.push(<p key={`text-${index}`} className={`${detailTextClasses} mb-3 whitespace-pre-line`}>{part}</p>);
         }
         return acc;
@@ -115,14 +115,14 @@ const CityDetailPage: FC = () => {
       </section>
     );
   };
-  
+
   const renderLinkSection = (titleKeySuffix: string, textKeySuffix: string, urlKeySuffix: string, iconClass: string) => {
     const title = t(`section_title_${titleKeySuffix}`);
     const linkText = t(`${city.id}_${textKeySuffix}`);
     const linkUrl = t(`${city.id}_${urlKeySuffix}`);
     const mainTextContentKey = `${city.id}_${titleKeySuffix.toLowerCase()}_text`;
     const mainTextContent = t(mainTextContentKey);
-    
+
     const isMainTextValid = mainTextContent && mainTextContent !== mainTextContentKey;
     const isLinkTextValid = linkText && linkText !== `${city.id}_${textKeySuffix}`;
     const isLinkUrlValid = linkUrl && linkUrl !== `${city.id}_${urlKeySuffix}`;
@@ -130,7 +130,7 @@ const CityDetailPage: FC = () => {
     if (!isMainTextValid && !isLinkUrlValid) {
       return null;
     }
-    
+
     const displayText = isLinkTextValid ? linkText : t('explore_btn');
 
     return (
@@ -140,17 +140,17 @@ const CityDetailPage: FC = () => {
           {title}
         </h2>
         {isMainTextValid && (
-             <p className={`${detailTextClasses} mb-4 whitespace-pre-line`}>{mainTextContent}</p>
+          <p className={`${detailTextClasses} mb-4 whitespace-pre-line`}>{mainTextContent}</p>
         )}
         {isLinkUrlValid && (
-            <a
+          <a
             href={linkUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm"
-            >
+          >
             {displayText} <i className="fas fa-external-link-alt ml-1" />
-            </a>
+          </a>
         )}
       </section>
     );
@@ -166,9 +166,9 @@ const CityDetailPage: FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 space-y-8">
           <section className={detailCardClasses}>
-            <img 
-              src={city.detailImage} 
-              alt={t(city.nameKey)} 
+            <img
+              src={city.detailImage || city.image}
+              alt={t(city.nameKey)}
               className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-md mb-6"
               onError={handleImageError}
             />
@@ -225,31 +225,31 @@ const CityDetailPage: FC = () => {
           {renderSection('family_tips', `${city.id}_family_tips`, 'fa-users')}
           {renderSection('cultural_tips', `${city.id}_cultural_tips`, 'fa-landmark')}
           <section className={detailCardClasses}>
-             <h2 className={detailSectionTitleClasses}>
-                <i className={`fas fa-wallet mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
-                {t('section_title_budget_table')}
-             </h2>
-             <BudgetTable cityId={city.id} defaultBudgetItems={city.budgetItems} />
+            <h2 className={detailSectionTitleClasses}>
+              <i className={`fas fa-wallet mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
+              {t('section_title_budget_table')}
+            </h2>
+            <BudgetTable cityId={city.id} defaultBudgetItems={city.budgetItems} />
           </section>
           {renderLinkSection('city_map', 'map_link_text', 'map_link_url', 'fa-map')}
           {AI_PROMPT_CONFIGS.map(config => (
-              <AIChatBox 
-                key={config.promptKeySuffix} 
-                config={config} 
-                city={city} 
-                chatId={`${city.id}_${config.promptKeySuffix}`}
-              />
+            <AIChatBox
+              key={config.promptKeySuffix}
+              config={config}
+              city={city}
+              chatId={`${city.id}_${config.promptKeySuffix}`}
+            />
           ))}
         </div>
         <aside className="lg:col-span-1 space-y-8 sticky top-24">
-           <section className={detailCardClasses}>
+          <section className={detailCardClasses}>
             <h2 className={detailSectionTitleClasses}>
-                <i className={`fas fa-map-marked-alt mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
-                {t('mapaInteractivoTitulo')}
+              <i className={`fas fa-map-marked-alt mr-3 text-xl text-indigo-500 dark:text-indigo-400`} />
+              {t('mapaInteractivoTitulo')}
             </h2>
             <InteractiveMap
-              cities={[city]} 
-              selectedCityCoords={city.coords} 
+              cities={[city]}
+              selectedCityCoords={city.coords}
               pointsOfInterest={city.pointsOfInterest}
               zoomLevel={13}
             />

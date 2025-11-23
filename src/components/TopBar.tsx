@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, FC } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect, FC } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext.tsx';
 import { LANGUAGES, CURRENCIES } from '../constants.ts';
 import { Language, Theme } from '../types.ts';
@@ -14,7 +14,6 @@ const TopBar: FC = () => {
     theme, setTheme,
     user
   } = useAppContext();
-  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -38,12 +37,7 @@ const TopBar: FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const isHomePage = location.pathname === '/';
-  const getCityIdFromPath = () => {
-    const match = location.pathname.match(/\/city\/([^/]+)/);
-    return match ? match[1] : null;
-  };
-  const cityId = getCityIdFromPath();
+
 
   return (
     <header className="bg-white dark:bg-slate-800 shadow-md sticky top-0 z-50">

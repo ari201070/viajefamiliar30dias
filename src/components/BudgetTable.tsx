@@ -1,6 +1,6 @@
-import React, { useState, useEffect, FC } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
-import { BudgetItem, Currency } from '../types.ts';
+import { BudgetItem } from '../types.ts';
 
 interface BudgetTableProps {
     cityId: string;
@@ -8,7 +8,7 @@ interface BudgetTableProps {
 }
 
 const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
-    const { t, currency } = useAppContext();
+    const { t } = useAppContext();
     const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
     const [isSaved, setIsSaved] = useState(false);
 
@@ -33,7 +33,7 @@ const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 2000); // Hide message after 2s
     };
-    
+
     const restoreDefaults = () => {
         setBudgetItems(defaultBudgetItems);
         const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
@@ -81,7 +81,7 @@ const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
                 >
                     {t('budget_table_restore_defaults')}
                 </button>
-                 {isSaved && <span className="text-green-600 dark:text-green-400 animate-fade-in"><i className="fas fa-check-circle mr-1"></i>{t('status_budget_saved')}</span>}
+                {isSaved && <span className="text-green-600 dark:text-green-400 animate-fade-in"><i className="fas fa-check-circle mr-1"></i>{t('status_budget_saved')}</span>}
             </div>
         </div>
     );

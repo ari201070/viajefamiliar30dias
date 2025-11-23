@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { BudgetDetails } from '../../types.ts';
 
@@ -27,7 +27,7 @@ const BudgetSummary: FC<BudgetSummaryProps> = ({ budgetDetails }) => {
                     {total}
                 </p>
             </div>
-            
+
             <div>
                 <h4 className="text-xl font-bold text-gray-700 dark:text-slate-200 mb-4">{t('budget_summary_breakdown_title')}</h4>
                 <div className="space-y-3">

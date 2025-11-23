@@ -1,4 +1,4 @@
-import React, { useState, FC } from 'react';
+import { useState, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { CURRENCIES } from '../../constants.ts';
 import { Currency } from '../../types.ts';
@@ -49,10 +49,10 @@ const CurrencyConverter: FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <div>
-                         <label htmlFor="from" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('desde')}</label>
-                         <select id="from" value={fromCurrency} onChange={e => setFromCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
-                             {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                         </select>
+                        <label htmlFor="from" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('desde')}</label>
+                        <select id="from" value={fromCurrency} onChange={e => setFromCurrency(e.target.value as Currency)} className="w-full p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm bg-white dark:bg-slate-700">
+                            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                        </select>
                     </div>
                     <div>
                         <label htmlFor="to" className="mb-1 text-sm font-medium text-gray-600 dark:text-slate-300">{t('hasta')}</label>
@@ -62,7 +62,7 @@ const CurrencyConverter: FC = () => {
                     </div>
                 </div>
             </div>
-             <button
+            <button
                 onClick={handleConvert}
                 disabled={isLoading}
                 className="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-50"

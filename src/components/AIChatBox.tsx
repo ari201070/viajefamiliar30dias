@@ -22,7 +22,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     const description = t(config.descriptionKey, { cityName: city ? t(city.nameKey) : t('any_city_placeholder') });
     const placeholder = t(config.userInputPlaceholderKey);
     const basePrompt = t(city ? `${city.id}${config.promptKeySuffix}` : `homepage${config.promptKeySuffix}`, {
-      familyInfo: t('family_info_for_ai'),
+        familyInfo: t('family_info_for_ai'),
     });
 
     // Load history from localStorage on mount
@@ -37,7 +37,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
     useEffect(() => {
         localStorage.setItem(`chatHistory_${chatId}`, JSON.stringify(history));
     }, [history, chatId]);
-    
+
     // Auto-scroll to bottom of chat
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -85,17 +85,17 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
             setIsLoading(false);
         }
     };
-    
+
     const handleTranslate = async (messageId: string, targetLang: Language) => {
         const messageIndex = history.findIndex(m => m.id === messageId);
         if (messageIndex === -1) return;
-        
+
         const message = history[messageIndex];
         // If translation already exists, don't re-translate
-        if(message.translations[targetLang]) return;
+        if (message.translations[targetLang]) return;
 
         const translatedText = await translateText(message.text, targetLang);
-        
+
         const updatedHistory = [...history];
         updatedHistory[messageIndex].translations[targetLang] = translatedText;
         setHistory(updatedHistory);
@@ -116,26 +116,37 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
                 </h2>
                 <p className={`text-gray-600 dark:text-slate-400 transition-all duration-300 ${isExpanded ? 'mb-6' : 'mb-0'}`}>{description}</p>
             </div>
-            
+
             {isExpanded && (
                 <div className="animate-fade-in">
                     <div ref={chatContainerRef} className="h-80 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg mb-4 border border-gray-200 dark:border-slate-700 space-y-4">
                         {history.map(msg => (
-                           <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                            <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                                 {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-robot text-white"></i></div>}
                                 <div className={`max-w-md p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200'}`}>
-                                    <div className="whitespace-pre-wrap">{parseMarkdownLinks(msg.text)}</div>
-                                    {msg.role === 'model' && msg.text !== t('iaError') && (
-                                       <button onClick={() => handleTranslate(msg.id, language === 'es' ? Language.HE : Language.ES)} className="text-xs mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
-                                           {t('ai_translate_button_text', { lang: t(`language_name_${language === 'es' ? 'he' : 'es'}`) })}
-                                       </button>
-                                    )}
-                                    {msg.translations[language] && (
-                                        <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
-                                            <p className="text-xs italic text-gray-500 dark:text-slate-400 mb-1">{t('ai_translated_from_label', { lang: t(`language_name_${msg.originalLang}`) })}</p>
-                                            <p className="whitespace-pre-wrap">{msg.translations[language]}</p>
-                                        </div>
-                                    )}
+                                    <>
+                                        <div className="whitespace-pre-wrap">{parseMarkdownLinks(msg.text)}</div>
+                                        {msg.role === 'model' && msg.text !== t('iaError') && (
+                                            <button onClick={() => handleTranslate(msg.id, language === 'es' ? Language.HE : Language.ES)} className="text-xs mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                {t('ai_translate_button_text', { lang: t(`language_name_${language === 'es' ? 'he' : 'es'}`) })}
+                                            </button>
+                                        )}
+                                        {msg.role === 'model' && (() => {
+                                            const targetLang = language === 'es' ? 'he' : 'es';
+                                            const translation = msg.translations[targetLang];
+                                            if (translation) {
+                                                return (
+                                                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
+                                                        <p className="text-xs italic text-gray-500 dark:text-slate-400 mb-1">
+                                                            {t('ai_translated_from_label', { lang: t(`language_name_${msg.originalLang}`) })}
+                                                        </p>
+                                                        <p className="whitespace-pre-wrap">{translation}</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </>
                                 </div>
                                 {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-user text-white"></i></div>}
                             </div>

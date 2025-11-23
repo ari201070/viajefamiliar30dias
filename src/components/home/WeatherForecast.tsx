@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react';
+import { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { CITIES } from '../../constants.ts';
 import { WeatherData } from '../../types.ts';
@@ -47,14 +47,14 @@ const WeatherForecast: FC = () => {
                     {CITIES.map(c => <option key={c.id} value={c.id}>{t(c.nameKey)}</option>)}
                 </select>
             </div>
-            
+
             {isLoading && <div className="text-center p-4"><i className="fas fa-spinner fa-spin text-2xl text-indigo-500"></i></div>}
             {error && <div className="text-center p-4 text-red-500">{error}</div>}
 
             {weatherData && !isLoading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="flex flex-col items-center justify-center bg-gray-50 dark:bg-slate-700/50 p-6 rounded-lg">
-                        <img src={`https://openweathermap.org/img/wn/${weatherData.current.icon}@2x.png`} alt="weather icon" className="w-24 h-24"/>
+                        <img src={`https://openweathermap.org/img/wn/${weatherData.current.icon}@2x.png`} alt="weather icon" className="w-24 h-24" />
                         <p className="text-5xl font-bold text-gray-800 dark:text-slate-100">{Math.round(weatherData.current.temp)}°C</p>
                         <p className="text-lg text-gray-600 dark:text-slate-300 capitalize">{weatherData.current.description}</p>
                         <div className="text-sm text-gray-500 dark:text-slate-400 mt-2">
@@ -67,7 +67,7 @@ const WeatherForecast: FC = () => {
                         {weatherData.forecast.map((day, index) => (
                             <div key={index} className="flex items-center justify-between p-2 rounded-md bg-gray-50 dark:bg-slate-700/50">
                                 <span className="font-semibold w-1/4 text-gray-700 dark:text-slate-300">{day.dayOfWeek}</span>
-                                <img src={`https://openweathermap.org/img/wn/${day.icon}.png`} alt="weather icon" className="w-8 h-8"/>
+                                <img src={`https://openweathermap.org/img/wn/${day.icon}.png`} alt="weather icon" className="w-8 h-8" />
                                 <span className="w-1/4 text-center text-sm text-gray-500 dark:text-slate-400 capitalize">{day.description}</span>
                                 <span className="w-1/4 text-right font-medium text-gray-800 dark:text-slate-200">{Math.round(day.temp_min)}° / {Math.round(day.temp_max)}°</span>
                             </div>

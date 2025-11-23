@@ -1,6 +1,7 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
-import { Price, Currency } from '../../types';
+import { Price, Currency, FlightData } from '../../types';
+import { BOOKING_DATA } from '../../constants';
 
 interface FlightTicketsProps {
     getFormattedPrice: (price: Price | number) => string;
@@ -9,26 +10,29 @@ interface FlightTicketsProps {
 const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
     const { t, language } = useAppContext();
 
+    const flightBooking = BOOKING_DATA.find(b => b.id === 'intl_flight');
+    const bookingData = flightBooking?.data as FlightData;
+
     const flightData = {
-        airline: "El Al Israel Airlines",
-        confirmation: "ELAL-XYZ789",
-        price: { value: 6500, currency: Currency.USD },
-        passengers: ["Ariel Flier", "Shoshana Flier", "Liran Flier", "Hila Flier"],
+        airline: bookingData?.airline || "Ethiopian Airlines",
+        confirmation: bookingData?.confirmation || "QTAJPJ",
+        price: bookingData?.price || { value: 6850, currency: Currency.USD },
+        passengers: bookingData?.passengers?.map((p: any) => p.name) || [],
         outbound: {
-            flightNo: "LY582",
+            flightNo: "ET 405/506",
             from: "Tel Aviv (TLV)",
             to: "Buenos Aires (EZE)",
-            departure: "2025-09-25T23:55:00Z",
-            arrival: "2025-09-26T09:30:00Z",
-            duration: "15h 35m",
+            departure: bookingData?.departure || "2025-09-26T01:00:00Z",
+            arrival: bookingData?.arrival || "2025-09-26T20:25:00Z",
+            duration: "19h 25m",
         },
         inbound: {
-            flightNo: "LY583",
+            flightNo: "ET 507/404",
             from: "Buenos Aires (EZE)",
             to: "Tel Aviv (TLV)",
-            departure: "2025-10-28T15:00:00Z",
-            arrival: "2025-10-29T11:00:00Z",
-            duration: "14h 00m",
+            departure: bookingData?.returnDeparture || "2025-10-28T21:30:00Z",
+            arrival: bookingData?.returnArrival || "2025-10-30T03:00:00Z",
+            duration: "29h 30m",
         }
     };
 
@@ -82,9 +86,9 @@ const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
             {/* Inbound Flight */}
             <div>
                 <h4 className="font-semibold text-gray-700 dark:text-slate-300 mb-2 flex items-center"><i className="fas fa-plane-arrival mr-2 text-green-500"></i> {t('flight_tickets_inbound')}</h4>
-                 <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-inner border dark:border-slate-700">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-inner border dark:border-slate-700">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                         <div className="text-center md:text-left">
+                        <div className="text-center md:text-left">
                             <p className="font-bold text-lg">{flightData.inbound.from}</p>
                             <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.inbound.departure)}</p>
                         </div>
@@ -93,7 +97,7 @@ const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
                             <p className="text-xs font-mono">{flightData.inbound.flightNo}</p>
                             <p className="text-xs">{flightData.inbound.duration}</p>
                         </div>
-                         <div className="text-center md:text-right">
+                        <div className="text-center md:text-right">
                             <p className="font-bold text-lg">{flightData.inbound.to}</p>
                             <p className="text-sm text-gray-600 dark:text-slate-400">{formatFlightDateTime(flightData.inbound.arrival)}</p>
                         </div>
@@ -104,12 +108,12 @@ const FlightTickets: FC<FlightTicketsProps> = ({ getFormattedPrice }) => {
             <div>
                 <h4 className="font-semibold text-gray-700 dark:text-slate-300 mb-2">{t('reservations_bus_passengers')}</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-                    {flightData.passengers.map(name => (
+                    {flightData.passengers.map((name: string) => (
                         <div key={name} className="p-2 bg-gray-100 dark:bg-slate-700 rounded text-center">{name}</div>
                     ))}
                 </div>
             </div>
-            
+
             <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
                 <i className="fas fa-ticket-alt mr-2"></i>
                 {t('flight_tickets_view_button')}

@@ -1,0 +1,74 @@
+[
+  {
+    "desde": "Buenos Aires",
+    "hasta": "Rosario",
+    "medio": "Bus",
+    "tiempo": "4:30 h",
+    "precio": "ARS 12.000",
+    "compania": "<a href=\"https://www.busbud.com/es/bus-companies/chevallier\" target=\"_blank\" rel=\"noopener noreferrer\">Chevallier</a>"
+  },
+  {
+    "desde": "Rosario",
+    "hasta": "Bariloche",
+    "medio": "Vuelo",
+    "tiempo": "2:30 h",
+    "precio": "ARS 108.000",
+    "compania": "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">Aerolíneas Argentinas</a>"
+  },
+  {
+    "desde": "Bariloche",
+    "hasta": "Mendoza",
+    "medio": "Vuelo",
+    "tiempo": "2:00 h",
+    "precio": "ARS 117.000",
+    "compania": "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">Aerolíneas Argentinas</a>"
+  },
+  {
+    "desde": "Mendoza",
+    "hasta": "Malargüe",
+    "medio": "Bus",
+    "tiempo": "5:00 h",
+    "precio": "ARS 10.000",
+    "compania": "<a href=\"https://www.cata.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">CATA Internacional</a>"
+  },
+  {
+    "desde": "Malargüe",
+    "hasta": "Jujuy",
+    "medio": "Vuelo + Bus",
+    "tiempo": "10:00 h (vía Mendoza/Salta)",
+    "precio": "ARS 180.000",
+    "compania": "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">Aerolíneas Argentinas</a> + Bus"
+  },
+  {
+    "desde": "Jujuy",
+    "hasta": "Iguazú",
+    "medio": "Vuelo",
+    "tiempo": "2:00 h (escala Buenos Aires)",
+    "precio": "ARS 126.000",
+    "compania": "<a href=\"https://www.aerolineas.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">Aerolíneas Argentinas</a>"
+  },
+  {
+    "desde": "Iguazú",
+    "hasta": "Corrientes",
+    "medio": "Bus",
+    "tiempo": "8:00 h",
+    "precio": "ARS 10.000",
+    "compania": "<a href=\"https://www.crucerodelnorte.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">Crucero del Norte</a>"
+  },
+  {
+    "desde": "Corrientes",
+    "hasta": "Iberá",
+    "medio": "Bus/Transfer",
+    "tiempo": "5:00 h",
+    "precio": "ARS 7.000",
+    "compania": "Transfer local"
+  },
+  {
+    "desde": "Iberá",
+    "hasta": "Buenos Aires",
+    "medio": "Bus nocturno",
+    "tiempo": "11:00 h",
+    "precio": "ARS 18.000",
+    "compania": "<a href=\"https://www.eldoradobus.com.ar/\" target=\"_blank\" rel=\"noopener noreferrer\">El Dorado Bus</a>"
+  }
+]

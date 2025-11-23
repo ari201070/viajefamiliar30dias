@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { CITIES } from '../../constants.ts';
 
@@ -20,7 +20,7 @@ const ItineraryAnalysis: FC = () => {
     return (
         <section className={cardClasses}>
             <h2 className={titleClasses}>
-                 <i className="fas fa-route mr-3 text-indigo-600 dark:text-indigo-400" />
+                <i className="fas fa-route mr-3 text-indigo-600 dark:text-indigo-400" />
                 {t('itinerary_program_title')}
             </h2>
 
@@ -28,8 +28,8 @@ const ItineraryAnalysis: FC = () => {
                 <div>
                     <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-slate-300">{t('itinerary_program_current_plan_title')}</h3>
                     <ol className="relative border-l border-gray-200 dark:border-slate-600">
-                        {CITIES.map((city, index) => (
-                             <li key={city.id} className="mb-6 ml-6">
+                        {CITIES.map((city) => (
+                            <li key={city.id} className="mb-6 ml-6">
                                 <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-slate-800 dark:bg-blue-900">
                                     <i className="fas fa-map-marker-alt text-blue-800 dark:text-blue-300 text-xs"></i>
                                 </span>

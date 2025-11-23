@@ -2,7 +2,7 @@
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import React, { useEffect, useRef, FC } from 'react';
+import { useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { City, PointOfInterest } from '../types.ts';
 
@@ -12,9 +12,9 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
+    iconRetinaUrl,
+    iconUrl,
+    shadowUrl,
 });
 // --- FIN DEL ARREGLO ---
 
@@ -37,9 +37,9 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
     useEffect(() => {
         if (mapRef.current && !mapInstance.current) {
             const centerCoords: [number, number] = selectedCityCoords || [-40, -64];
-            
+
             mapInstance.current = L.map(mapRef.current).setView(centerCoords, zoomLevel);
-            
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapInstance.current);
@@ -56,7 +56,7 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
     // EFECTO 2: Centra la vista cuando las coordenadas cambian.
     useEffect(() => {
         if (mapInstance.current && selectedCityCoords) {
-             mapInstance.current.setView(selectedCityCoords, zoomLevel);
+            mapInstance.current.setView(selectedCityCoords, zoomLevel);
         }
     }, [selectedCityCoords, zoomLevel]);
 
@@ -65,13 +65,13 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
         if (!mapInstance.current) return;
 
         markersRef.current.forEach(marker => {
-            if(mapInstance.current) mapInstance.current.removeLayer(marker);
+            if (mapInstance.current) mapInstance.current.removeLayer(marker);
         });
         markersRef.current = [];
 
         cities.forEach(city => {
             const marker = L.marker(city.coords).bindPopup(`<b>${t(city.nameKey)}</b>`);
-            if(mapInstance.current) {
+            if (mapInstance.current) {
                 marker.addTo(mapInstance.current);
                 markersRef.current.push(marker);
             }
@@ -84,8 +84,8 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
                     radius: 8,
                     fillOpacity: 0.7
                 }).bindPopup(`<b>${t(poi.nameKey)}</b><br>${t(poi.descriptionKey)}`);
-                
-                if(mapInstance.current) {
+
+                if (mapInstance.current) {
                     circleMarker.addTo(mapInstance.current);
                     markersRef.current.push(circleMarker);
                 }
