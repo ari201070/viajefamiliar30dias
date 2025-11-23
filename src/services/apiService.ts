@@ -3,10 +3,19 @@ import { ChatMessage, Language, Currency, GroundingChunk, WeatherData, DailyFore
 import constants, { CITIES } from '../constants';
 
 // --- API INITIALIZATION ---
-// FIX: Per @google/genai coding guidelines, the GoogleGenAI client must be initialized directly with process.env.API_KEY.
-// The API key is assumed to be available in the execution environment.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
+// FIX: Initialize lazily to avoid crash if API key is missing on load.
+let ai: GoogleGenAI | null = null;
+const getAiClient = (): GoogleGenAI => {
+    if (!ai) {
+        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+        if (!apiKey) {
+            console.error("VITE_GOOGLE_API_KEY is missing. Please check your .env file and restart the server.");
+            throw new Error("API Key missing. Please check your .env file and restart the server.");
+        }
+        ai = new GoogleGenAI({ apiKey });
+    }
+    return ai;
+};
 
 // --- MOCK DATA AND FALLBACKS (For Stability) ---
 
@@ -73,7 +82,8 @@ export async function askGemini(userPrompt: string, language: Language): Promise
         const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
         const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const client = getAiClient();
+        const response: GenerateContentResponse = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: fullPrompt,
         });
@@ -147,7 +157,8 @@ export async function findEventsWithGoogleSearch(prompt: string, language: Langu
         const languageInstruction = language === 'he' ? "Respond in Hebrew." : "Respond in Spanish.";
         const fullPrompt = `${prompt}\n\n${languageInstruction}`;
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const client = getAiClient();
+        const response: GenerateContentResponse = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: fullPrompt,
             config: {
