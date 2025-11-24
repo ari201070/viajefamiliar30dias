@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, FC, lazy, Suspense, useCallback } from 'react'; // <-- 1. IMPORTAR useCallback
+import { useState, useEffect, useMemo, FC, lazy, Suspense, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -11,7 +11,6 @@ import he from './locales/he.json';
 import TopBar from './components/TopBar.tsx';
 import Footer from './components/Footer.tsx';
 import Login from './components/Login.tsx';
-// import ProtectedRoute from './components/ProtectedRoute.tsx'; // <-- Comenta este import
 
 // Import context and types
 import { AppContext } from './context/AppContext.tsx';
@@ -41,6 +40,47 @@ const ScrollToTop: FC = () => {
   return null;
 };
 
+// --- Scroll to Top Button Component ---
+const ScrollToTopButton: FC = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  const toggleVisibility = () => {
+    if (window.pageYOffset > 300) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', toggleVisibility);
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  return (
+    <>
+      {isVisible && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 bg-indigo-600 dark:bg-indigo-500 text-white p-0 w-14 h-14 rounded-full shadow-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900 transition-all duration-300 ease-in-out flex items-center justify-center"
+          aria-label="Volver arriba"
+        >
+          <i className="fas fa-chevron-up text-2xl"></i>
+        </button>
+      )}
+    </>
+  );
+};
+
 // --- Main App Layout ---
 const MainAppLayout: FC = () => (
   <div className="app-container bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen flex flex-col font-sans">
@@ -51,6 +91,7 @@ const MainAppLayout: FC = () => (
       </Suspense>
     </main>
     <Footer />
+    <ScrollToTopButton />
   </div>
 );
 
@@ -137,15 +178,13 @@ const App: FC = () => {
     }
   }, []);
 
-  // --- 2. CREAR UNA VERSIÓN ESTABLE DE LA FUNCIÓN 't' ---
   const t = useCallback((key: string, options?: any): string => {
     return String(i18n.t(key, options));
-  }, []); // El array vacío asegura que esta función NUNCA cambie.
+  }, []);
 
-  // --- 3. CONSTRUIR EL VALOR DEL CONTEXTO CON LA FUNCIÓN 't' ESTABLE ---
   const appContextValue = useMemo(() => ({
     language, setLanguage, currency, setCurrency, theme, setTheme, isOnline, user, setUser,
-    t, // Usamos la versión estable que creamos arriba
+    t,
     hasPendingPackingListChanges, setHasPendingPackingListChanges, pendingPhotos, setPendingPhotos,
   }), [language, currency, theme, isOnline, user, hasPendingPackingListChanges, pendingPhotos, t]);
 
@@ -167,11 +206,8 @@ const App: FC = () => {
           <Route element={<MainAppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/city/:cityId" element={<CityDetailPage />} />
-            {/* agrega aquí más páginas abiertas si tienes más */}
           </Route>
-          {/* Puedes dejar login si quieres probarlo a mano */}
           <Route path="/login" element={<Login />} />
-          {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

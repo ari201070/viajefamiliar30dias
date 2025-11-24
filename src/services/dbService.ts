@@ -46,8 +46,8 @@ export const dbService = {
       request.onerror = () => reject('Error fetching photos');
       request.onsuccess = () => {
         // Sort by date, newest first
-        const sortedPhotos = request.result.sort((a, b) => 
-            new Date(b.dateTaken || 0).getTime() - new Date(a.dateTaken || 0).getTime()
+        const sortedPhotos = request.result.sort((a, b) =>
+          new Date(b.dateTaken || 0).getTime() - new Date(a.dateTaken || 0).getTime()
         );
         resolve(sortedPhotos);
       };
@@ -78,16 +78,40 @@ export const dbService = {
     });
   },
 
+  async updatePhoto(id: string, updates: Partial<PhotoItem>): Promise<void> {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(PHOTO_STORE_NAME);
+      const getRequest = store.get(id);
+
+      getRequest.onerror = () => reject('Error fetching photo for update');
+      getRequest.onsuccess = () => {
+        const existingPhoto = getRequest.result;
+        if (!existingPhoto) {
+          reject('Photo not found');
+          return;
+        }
+
+        const updatedPhoto = { ...existingPhoto, ...updates };
+        const putRequest = store.put(updatedPhoto);
+
+        putRequest.onerror = () => reject('Error updating photo');
+        putRequest.onsuccess = () => resolve();
+      };
+    });
+  },
+
   async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
     const db = await openDB();
     return new Promise((resolve, reject) => {
-        const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-        const store = transaction.objectStore(PHOTO_STORE_NAME);
-        
-        photos.forEach(photo => store.put(photo));
+      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(PHOTO_STORE_NAME);
 
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject('Error adding batch of photos');
+      photos.forEach(photo => store.put(photo));
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject('Error adding batch of photos');
     });
   },
 };

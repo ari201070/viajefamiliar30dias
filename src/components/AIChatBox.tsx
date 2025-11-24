@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, FC } from 'react';
+import { useState, useEffect, useRef, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
-import { AIPromptContent, City, ChatMessage, Language, AIResponseType } from '../types.ts';
+import { AIPromptContent, City, ChatMessage, Language } from '../types.ts';
 import { sendMessageInChat, translateText } from '../services/apiService.ts';
 import { parseMarkdownLinks } from '../utils/markdownParser.tsx';
 
@@ -60,8 +60,6 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
         setUserInput('');
         setIsLoading(true);
 
-        const fullPrompt = `${basePrompt}\n\nUser question: "${userInput}"`;
-
         try {
             const responseText = await sendMessageInChat(basePrompt, history, userInput, language);
             const newModelMessage: ChatMessage = {
@@ -106,7 +104,6 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
         localStorage.removeItem(`chatHistory_${chatId}`);
     };
 
-
     return (
         <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
             <div onClick={() => setIsExpanded(!isExpanded)} className="cursor-pointer">
@@ -118,40 +115,59 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
             </div>
 
             {isExpanded && (
-                <div className="animate-fade-in">
-                    <div ref={chatContainerRef} className="h-80 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-900/50 rounded-lg mb-4 border border-gray-200 dark:border-slate-700 space-y-4">
-                        {history.map(msg => (
-                            <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                                {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-robot text-white"></i></div>}
-                                <div className={`max-w-md p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200'}`}>
-                                    <>
-                                        <div className="whitespace-pre-wrap">{parseMarkdownLinks(msg.text)}</div>
-                                        {msg.role === 'model' && msg.text !== t('iaError') && (
-                                            <button onClick={() => handleTranslate(msg.id, language === 'es' ? Language.HE : Language.ES)} className="text-xs mt-2 text-indigo-600 dark:text-indigo-400 hover:underline">
-                                                {t('ai_translate_button_text', { lang: t(`language_name_${language === 'es' ? 'he' : 'es'}`) })}
-                                            </button>
-                                        )}
-                                        {msg.role === 'model' && (() => {
-                                            const targetLang = language === 'es' ? 'he' : 'es';
-                                            const translation = msg.translations[targetLang];
-                                            if (translation) {
-                                                return (
-                                                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-slate-600">
-                                                        <p className="text-xs italic text-gray-500 dark:text-slate-400 mb-1">
-                                                            {t('ai_translated_from_label', { lang: t(`language_name_${msg.originalLang}`) })}
-                                                        </p>
-                                                        <p className="whitespace-pre-wrap">{translation}</p>
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        })()}
-                                    </>
+                <>
+                    <div
+                        ref={chatContainerRef}
+                        className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 h-96 overflow-y-auto mb-4 border border-gray-200 dark:border-slate-700"
+                    >
+                        {history.length === 0 && (
+                            <p className="text-center text-gray-400 dark:text-slate-500 italic mt-32">
+                                {t('ai_chat_empty_state')}
+                            </p>
+                        )}
+                        {history.map((msg) => (
+                            <div key={msg.id} className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                                <div className={`inline-block p-3 rounded-lg max-w-[80%] ${msg.role === 'user'
+                                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-900 dark:text-indigo-100 rounded-br-none'
+                                    : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-bl-none shadow-sm'
+                                    }`}>
+                                    {(() => {
+                                        const translationInCurrentLang = msg.translations?.[language];
+                                        const isOriginalInCurrentLang = msg.originalLang === language;
+
+                                        const textToShow = translationInCurrentLang || msg.text;
+                                        const isShowingTranslation = !!translationInCurrentLang;
+
+                                        return (
+                                            <div>
+                                                <div className="markdown-content text-sm sm:text-base">
+                                                    {parseMarkdownLinks(textToShow)}
+                                                </div>
+
+                                                {isShowingTranslation && (
+                                                    <p className="text-xs mt-2 opacity-70 italic flex items-center gap-1">
+                                                        <i className="fas fa-language"></i>
+                                                        {t('ai_translated_from_label', { lang: t(`language_name_${msg.originalLang}`) })}
+                                                    </p>
+                                                )}
+
+                                                {!isShowingTranslation && !isOriginalInCurrentLang && (
+                                                    <button
+                                                        onClick={() => handleTranslate(msg.id, language)}
+                                                        className="text-xs mt-2 underline opacity-80 hover:opacity-100 flex items-center gap-1"
+                                                    >
+                                                        <i className="fas fa-globe"></i>
+                                                        {t('ai_translate_button_text', { lang: t(`language_name_${language}`) })}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
-                                {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0"><i className="fas fa-user text-white"></i></div>}
                             </div>
                         ))}
                     </div>
+
                     <div className="flex items-center gap-2">
                         <input
                             type="text"
@@ -169,7 +185,7 @@ const AIChatBox: FC<AIChatBoxProps> = ({ config, city, chatId }) => {
                             <i className="fas fa-sync-alt"></i>
                         </button>
                     </div>
-                </div>
+                </>
             )}
         </section>
     );
