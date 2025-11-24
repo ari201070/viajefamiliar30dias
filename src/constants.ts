@@ -218,8 +218,8 @@ export const AI_PROMPT_CONFIGS: AIPromptContent[] = [
 
 // --- TRIP-WIDE BUDGET ITEMS ---
 export const TRIP_WIDE_BUDGET_ITEMS: BudgetItem[] = [
-  { conceptKey: 'international_flights_budget', value: '6000-7000', isPerDay: false },
-  { conceptKey: 'domestic_flights_budget', value: '1200-1600', isPerDay: false },
+  { conceptKey: 'international_flights_budget', value: '6850', isPerDay: false },
+  { conceptKey: 'domestic_flights_budget', value: '1216', isPerDay: false },
 ];
 
 // --- TRANSPORT DATA ---
