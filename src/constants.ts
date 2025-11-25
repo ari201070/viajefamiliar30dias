@@ -148,8 +148,8 @@ export const CITIES: City[] = [
       { nameKey: 'poi_cataratas', descriptionKey: 'poi_cataratas_desc', coords: [-25.6953, -54.4367] },
       { nameKey: 'poi_hito_tres_fronteras', descriptionKey: 'poi_hito_tres_fronteras_desc', coords: [-25.5992, -54.5736] },
     ],
-    startDate: '2025-10-19',
-    endDate: '2025-10-22'
+    startDate: '2025-10-22',
+    endDate: '2025-10-24'
   },
   {
     id: 'esteros_ibera',
@@ -170,8 +170,8 @@ export const CITIES: City[] = [
       { nameKey: 'poi_portal_cambyreta', descriptionKey: 'poi_portal_cambyreta_desc', coords: [-27.8500, -56.8833] },
       { nameKey: 'poi_colonia_carlos_pellegrini', descriptionKey: 'poi_colonia_carlos_pellegrini_desc', coords: [-28.5333, -57.1667] },
     ],
-    startDate: '2025-10-22',
-    endDate: '2025-10-24'
+    startDate: '2025-10-24',
+    endDate: '2025-10-26'
   },
   {
     id: 'corrientes',
@@ -437,6 +437,19 @@ export const BOOKING_DATA: BookingItem[] = [
       address: 'Hipólito Yrigoyen 1787, 3400 Corrientes',
       phone: '+543794605524',
       price: { value: 152.46, currency: Currency.USD }
+    }
+  },
+  {
+    id: 'transfer_eze_ba',
+    type: 'transfer',
+    titleKey: 'booking_title_transfer_eze_ba',
+    descriptionKey: 'booking_desc_transfer_eze_ba',
+    data: {
+      from: 'Ministro Pistarini International Airport (EZE)',
+      to: 'Av. Pueyrredón 1161',
+      date: '2025-09-26',
+      duration: '45 min',
+      price: { value: 125.50, currency: Currency.ILS }
     }
   }
 ];
