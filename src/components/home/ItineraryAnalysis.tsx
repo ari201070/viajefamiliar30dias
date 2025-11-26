@@ -28,15 +28,28 @@ const ItineraryAnalysis: FC = () => {
                 <div>
                     <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-slate-300">{t('itinerary_program_current_plan_title')}</h3>
                     <ol className="relative border-l border-gray-200 dark:border-slate-600">
-                        {CITIES.map((city) => (
-                            <li key={city.id} className="mb-6 ml-6">
-                                <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-slate-800 dark:bg-blue-900">
-                                    <i className="fas fa-map-marker-alt text-blue-800 dark:text-blue-300 text-xs"></i>
-                                </span>
-                                <h4 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">{t(city.nameKey)}</h4>
-                                <time className="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-slate-500">{t(`${city.id}_dates_duration`).split('\n')[1].replace(/- \*\*Fechas\*\*:\s*/, '').trim()}</time>
-                            </li>
-                        ))}
+                        {CITIES.map((city) => {
+                            const durationText = t(`${city.id}_dates_duration`);
+                            // Defensive coding: Handle cases where translation is missing or malformed
+                            const lines = durationText ? durationText.split('\n') : [];
+                            let dateLine = lines.length > 1 ? lines[1] : (lines[0] || '');
+
+                            // Remove markdown bold syntax and labels safely
+                            // Handles "- **Fechas**: ..." and "- **Dates**: ..." patterns
+                            dateLine = dateLine.replace(/^- /, '').replace(/\*\*(.*?)\*\*:\s*/, '').trim();
+
+                            return (
+                                <li key={city.id} className="mb-6 ml-6">
+                                    <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-slate-800 dark:bg-blue-900">
+                                        <i className="fas fa-map-marker-alt text-blue-800 dark:text-blue-300 text-xs"></i>
+                                    </span>
+                                    <h4 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">{t(city.nameKey)}</h4>
+                                    <time className="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-slate-500">
+                                        {dateLine}
+                                    </time>
+                                </li>
+                            );
+                        })}
                     </ol>
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'argentina-familia-cache-v9'; // Incremented version - Fix crash due to missing translation key
+const CACHE_NAME = 'argentina-familia-cache-v10'; // Incremented version - Defensive coding fix
 const urlsToCache = [
   './',
   './index.html',
