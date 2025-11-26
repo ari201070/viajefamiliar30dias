@@ -1,4 +1,4 @@
-const CACHE_NAME = 'argentina-familia-cache-v6'; // Incremented version
+const CACHE_NAME = 'argentina-familia-cache-v7'; // Incremented version - Force update for new translations
 const urlsToCache = [
   './',
   './index.html',
@@ -7,26 +7,31 @@ const urlsToCache = [
   // Leaflet CSS & JS from CDN
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js',
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
       .then(cache => {
-    console.log('Service Worker: Caching app shell');
-    const cachePromises = urlsToCache.map(urlToCache => {
-      // For CDN assets, create a request with 'no-cors' if you don't control headers
-      // This allows caching but not inspection of the response.
-      // For local assets, 'cors' or default mode is fine.
-      const request = new Request(urlToCache, { mode: urlToCache.startsWith('http') ? 'no-cors' : 'cors' });
-      return cache.add(request).catch(err => {
-        console.warn(`Service Worker: Failed to cache ${urlToCache} during install:`, err);
-      });
-    });
-    return Promise.all(cachePromises);
-  })
-    .then(() => {
-      console.log('Service Worker: Install completed');
-      return self.skipWaiting(); // Force the waiting service worker to become the active service worker.
-    })
-    .catch(error => {
-      console.error('Service Worker: Installation failed:', error);
-    })
+        console.log('Service Worker: Caching app shell');
+        const cachePromises = urlsToCache.map(urlToCache => {
+          // For CDN assets, create a request with 'no-cors' if you don't control headers
+          // This allows caching but not inspection of the response.
+          // For local assets, 'cors' or default mode is fine.
+          const request = new Request(urlToCache, { mode: urlToCache.startsWith('http') ? 'no-cors' : 'cors' });
+          return cache.add(request).catch(err => {
+            console.warn(`Service Worker: Failed to cache ${urlToCache} during install:`, err);
+          });
+        });
+        return Promise.all(cachePromises);
+      })
+      .then(() => {
+        console.log('Service Worker: Install completed');
+        return self.skipWaiting(); // Force the waiting service worker to become the active service worker.
+      })
+      .catch(error => {
+        console.error('Service Worker: Installation failed:', error);
+      })
   );
 });
 
