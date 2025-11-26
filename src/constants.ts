@@ -194,6 +194,28 @@ export const CITIES: City[] = [
     ],
     startDate: '2025-10-24',
     endDate: '2025-10-26'
+  },
+  {
+    id: 'buenosaires_final',
+    nameKey: 'buenosaires_name',
+    descriptionKey: 'buenosaires_description',
+    image: '/docs/imagenes/buenosaires/buenosaires.jpg',
+    detailImage: '/docs/imagenes/buenosaires/Cabildo.jpg',
+    coords: [-34.6037, -58.3816],
+    activitiesKey: 'buenosaires_activities_recommended',
+    accommodationKey: 'buenosaires_accommodation_examples',
+    budgetItems: [
+      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
+      { conceptKey: 'food_budget', value: '25', isPerDay: true },
+      { conceptKey: 'transport_budget', value: '10', isPerDay: true },
+      { conceptKey: 'activities_budget', value: '45', isPerDay: true },
+    ],
+    pointsOfInterest: [
+      { nameKey: 'poi_obelisco', descriptionKey: 'poi_obelisco_desc', coords: [-34.6037, -58.3816] },
+      { nameKey: 'poi_caminito', descriptionKey: 'poi_caminito_desc', coords: [-34.6383, -58.3623] },
+    ],
+    startDate: '2025-10-26',
+    endDate: '2025-10-28'
   }
 ];
 

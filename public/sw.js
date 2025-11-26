@@ -1,4 +1,4 @@
-const CACHE_NAME = 'argentina-familia-cache-v7'; // Incremented version - Force update for new translations
+const CACHE_NAME = 'argentina-familia-cache-v8'; // Incremented version - Force update for new city and translations
 const urlsToCache = [
   './',
   './index.html',
