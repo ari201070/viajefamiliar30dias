@@ -114,4 +114,27 @@ export const dbService = {
       transaction.onerror = () => reject('Error adding batch of photos');
     });
   },
+
+  async exportData(): Promise<string> {
+    const photos = await this.getPhotos();
+    const data = {
+      version: 1,
+      timestamp: new Date().toISOString(),
+      photos: photos
+    };
+    return JSON.stringify(data);
+  },
+
+  async importData(jsonData: string): Promise<void> {
+    try {
+      const data = JSON.parse(jsonData);
+      if (!data.photos || !Array.isArray(data.photos)) {
+        throw new Error('Invalid data format');
+      }
+      await this.addPhotosBatch(data.photos);
+    } catch (error) {
+      console.error('Import error:', error);
+      throw error;
+    }
+  }
 };
