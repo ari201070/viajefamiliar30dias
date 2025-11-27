@@ -1,139 +1,183 @@
-import { PhotoItem } from '../types.ts';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
+import { firebaseCredentials } from '../firebaseCredentials';
+import { PackingItem } from '../types';
 
-const DB_NAME = 'familyTripDB';
-const DB_VERSION = 1;
-const PHOTO_STORE_NAME = 'photos';
+// Initialize Firebase
+let db: firebase.firestore.Firestore | null = null;
 
-let db: IDBDatabase | null = null;
+try {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseCredentials);
+  }
+  db = firebase.firestore();
 
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    if (db) {
-      resolve(db);
-      return;
+  // Enable offline persistence
+  db.enablePersistence().catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.warn("Persistence failed: Multiple tabs open");
+    } else if (err.code == 'unimplemented') {
+      console.warn("Persistence not supported by browser");
     }
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = (event) => {
-      console.error('IndexedDB error:', (event.target as IDBOpenDBRequest).error);
-      reject('IndexedDB error');
-    };
-
-    request.onsuccess = (event) => {
-      db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const tempDb = (event.target as IDBOpenDBRequest).result;
-      if (!tempDb.objectStoreNames.contains(PHOTO_STORE_NAME)) {
-        const photoStore = tempDb.createObjectStore(PHOTO_STORE_NAME, { keyPath: 'id' });
-        photoStore.createIndex('dateTaken', 'dateTaken', { unique: false });
-      }
-    };
   });
-};
+
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+}
+
+const PACKING_COLLECTION = 'packing_list';
 
 export const dbService = {
-  async getPhotos(): Promise<PhotoItem[]> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readonly');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.getAll();
+  // --- Packing List ---
 
-      request.onerror = () => reject('Error fetching photos');
-      request.onsuccess = () => {
-        // Sort by date, newest first
-        const sortedPhotos = request.result.sort((a, b) =>
-          new Date(b.dateTaken || 0).getTime() - new Date(a.dateTaken || 0).getTime()
-        );
-        resolve(sortedPhotos);
-      };
-    });
+  subscribeToPackingList(onUpdate: (items: PackingItem[]) => void): () => void {
+    if (!db) {
+      onUpdate([]);
+      return () => { };
+    }
+
+    return db.collection(PACKING_COLLECTION)
+      .onSnapshot((snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as PackingItem[];
+        onUpdate(items);
+      }, (error) => {
+        console.error("Error subscribing to packing list:", error);
+      });
   },
 
-  async savePhoto(photo: PhotoItem): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.put(photo); // put handles both add and update
-
-      request.onerror = () => reject('Error saving photo');
-      request.onsuccess = () => resolve();
-    });
-  },
-
-  async deletePhoto(id: string): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const request = store.delete(id);
-
-      request.onerror = () => reject('Error deleting photo');
-      request.onsuccess = () => resolve();
-    });
-  },
-
-  async updatePhoto(id: string, updates: Partial<PhotoItem>): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-      const getRequest = store.get(id);
-
-      getRequest.onerror = () => reject('Error fetching photo for update');
-      getRequest.onsuccess = () => {
-        const existingPhoto = getRequest.result;
-        if (!existingPhoto) {
-          reject('Photo not found');
-          return;
-        }
-
-        const updatedPhoto = { ...existingPhoto, ...updates };
-        const putRequest = store.put(updatedPhoto);
-
-        putRequest.onerror = () => reject('Error updating photo');
-        putRequest.onsuccess = () => resolve();
-      };
-    });
-  },
-
-  async addPhotosBatch(photos: PhotoItem[]): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(PHOTO_STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(PHOTO_STORE_NAME);
-
-      photos.forEach(photo => store.put(photo));
-
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject('Error adding batch of photos');
-    });
-  },
-
-  async exportData(): Promise<string> {
-    const photos = await this.getPhotos();
-    const data = {
-      version: 1,
-      timestamp: new Date().toISOString(),
-      photos: photos
-    };
-    return JSON.stringify(data);
-  },
-
-  async importData(jsonData: string): Promise<void> {
+  async addPackingItem(item: Omit<PackingItem, 'id'>): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
     try {
-      const data = JSON.parse(jsonData);
-      if (!data.photos || !Array.isArray(data.photos)) {
-        throw new Error('Invalid data format');
-      }
-      await this.addPhotosBatch(data.photos);
+      await db.collection(PACKING_COLLECTION).add(item);
     } catch (error) {
-      console.error('Import error:', error);
+      console.error("Error adding packing item:", error);
+      throw error;
+    }
+  },
+
+  async updatePackingItem(id: string, updates: Partial<PackingItem>): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection(PACKING_COLLECTION).doc(id).update(updates);
+    } catch (error) {
+      console.error("Error updating packing item:", error);
+      throw error;
+    }
+  },
+
+  async deletePackingItem(id: string): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection(PACKING_COLLECTION).doc(id).delete();
+    } catch (error) {
+      console.error("Error deleting packing item:", error);
+      throw error;
+    }
+  },
+
+  // --- Photos ---
+
+  subscribeToPhotos(onUpdate: (photos: any[]) => void): () => void {
+    if (!db) {
+      onUpdate([]);
+      return () => { };
+    }
+
+    return db.collection('photos')
+      .onSnapshot((snapshot) => {
+        const photos = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        onUpdate(photos);
+      }, (error) => {
+        console.error("Error subscribing to photos:", error);
+      });
+  },
+
+  async addPhotosBatch(photos: any[]): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    const batch = db.batch();
+    photos.forEach(photo => {
+      const docRef = db!.collection('photos').doc(photo.id);
+      batch.set(docRef, photo);
+    });
+    try {
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding photos batch:", error);
+      throw error;
+    }
+  },
+
+  async updatePhoto(id: string, updates: any): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection('photos').doc(id).update(updates);
+    } catch (error) {
+      console.error("Error updating photo:", error);
+      throw error;
+    }
+  },
+
+  async deletePhoto(id: string, _src: string): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection('photos').doc(id).delete();
+      // Note: Deleting the actual file from Storage is not implemented here 
+      // as it requires firebase.storage() which might need separate config/init
+      // depending on how it was set up. For now, we just delete the metadata.
+      // If storage reference is available, we could do:
+      // await firebase.storage().refFromURL(src).delete();
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      throw error;
+    }
+  },
+
+  async uploadImageToStorage(file: File): Promise<string> {
+    if (!firebase.apps.length) throw new Error("Firebase not initialized");
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(`photos/${Date.now()}_${file.name}`);
+    try {
+      const snapshot = await fileRef.put(file);
+      return await snapshot.ref.getDownloadURL();
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  },
+
+  // --- Budgets ---
+
+  subscribeToBudgets(onUpdate: (budgets: Record<string, any[]>) => void): () => void {
+    if (!db) {
+      onUpdate({});
+      return () => { };
+    }
+
+    // We store budgets in a 'budgets' collection, where document ID is the cityId
+    return db.collection('budgets')
+      .onSnapshot((snapshot) => {
+        const budgets: Record<string, any[]> = {};
+        snapshot.docs.forEach(doc => {
+          budgets[doc.id] = doc.data().items || [];
+        });
+        onUpdate(budgets);
+      }, (error) => {
+        console.error("Error subscribing to budgets:", error);
+      });
+  },
+
+  async updateCityBudget(cityId: string, items: any[]): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection('budgets').doc(cityId).set({ items }, { merge: true });
+    } catch (error) {
+      console.error("Error updating city budget:", error);
       throw error;
     }
   }

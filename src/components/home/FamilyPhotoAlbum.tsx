@@ -14,26 +14,21 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [photoDetails, setPhotoDetails] = useState<{ caption: string, dateTaken: string, tripDay: number, cityId: string }[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null); // Track if we are editing
-    const [syncStatus, setSyncStatus] = useState<'synced' | 'pending' | 'syncing'>('synced');
+    const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Load photos on mount
+    // Subscribe to real-time updates
     useEffect(() => {
-        const loadPhotos = async () => {
-            try {
-                const loadedPhotos = await dbService.getPhotos();
-                // Filter by city if provided
-                const filteredPhotos = city
-                    ? loadedPhotos.filter(p => p.cityId === city.id)
-                    : loadedPhotos;
-                setPhotos(filteredPhotos);
-            } catch (error) {
-                console.error("Error loading photos:", error);
-            }
-        };
-        loadPhotos();
+        const unsubscribe = dbService.subscribeToPhotos((updatedPhotos) => {
+            const filteredPhotos = city
+                ? updatedPhotos.filter(p => p.cityId === city.id)
+                : updatedPhotos;
+            setPhotos(filteredPhotos);
+        });
+
+        // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, [city]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,44 +68,6 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
         setPhotoDetails(newDetails);
     };
 
-    const compressImage = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target?.result as string;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    const MAX_HEIGHT = 1200;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx?.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to JPEG with 0.7 quality
-                };
-                img.onerror = (err) => reject(err);
-            };
-            reader.onerror = (err) => reject(err);
-        });
-    };
-
     const handleSavePhotos = async () => {
         setIsLoading(true);
         try {
@@ -131,12 +88,12 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                     if (!file.type.startsWith('image/')) continue;
 
                     try {
-                        // Always compress to ensure consistency and save space
-                        const compressedSrc = await compressImage(file);
+                        // Upload to Firebase Storage
+                        const downloadURL = await dbService.uploadImageToStorage(file);
 
                         newPhotos.push({
                             id: `${Date.now()}-${i}`,
-                            src: compressedSrc,
+                            src: downloadURL, // Use the Storage URL
                             caption: photoDetails[i]?.caption || '',
                             originalLang: language,
                             dateTaken: photoDetails[i]?.dateTaken || new Date().toISOString(),
@@ -153,14 +110,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                 }
             }
 
-            // Refresh photos
-            const allPhotos = await dbService.getPhotos();
-            const filteredPhotos = city
-                ? allPhotos.filter(p => p.cityId === city.id)
-                : allPhotos;
-            setPhotos(filteredPhotos);
-            setSyncStatus('pending'); // Mark as pending sync after changes
-
+            // No need to manually refresh or set sync status, subscription handles it
             setIsModalOpen(false);
             setSelectedFiles([]);
             setPhotoDetails([]);
@@ -173,24 +123,10 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
         }
     };
 
-    const handleDeletePhoto = async (id: string) => {
+    const handleDeletePhoto = async (id: string, src: string) => {
         if (confirm(t('photo_album_confirm_delete'))) {
-            await dbService.deletePhoto(id);
-            const allPhotos = await dbService.getPhotos();
-            const filteredPhotos = city
-                ? allPhotos.filter(p => p.cityId === city.id)
-                : allPhotos;
-            setPhotos(filteredPhotos);
+            await dbService.deletePhoto(id, src);
         }
-    };
-
-    const handleSync = async () => {
-        setSyncStatus('syncing');
-        // Simulate sync delay
-        setTimeout(() => {
-            setSyncStatus('synced');
-            alert(t('status_synced'));
-        }, 2000);
     };
 
     return (
@@ -201,31 +137,28 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
             </h2>
 
             {/* Upload Button */}
-            <div className="mb-8 flex items-center">
-                <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    ref={fileInputRef}
-                />
-                <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center gap-2"
-                >
-                    <i className="fas fa-upload"></i> {t('photo_album_upload_button')}
-                </button>
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        ref={fileInputRef}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center gap-2"
+                    >
+                        <i className="fas fa-upload"></i> {t('photo_album_upload_button')}
+                    </button>
+                </div>
 
-                <button
-                    onClick={handleSync}
-                    className={`ml-4 font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center gap-2 ${syncStatus === 'synced' ? 'bg-green-600 hover:bg-green-700 text-white' :
-                            syncStatus === 'syncing' ? 'bg-yellow-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
-                >
-                    <i className={`fas ${syncStatus === 'syncing' ? 'fa-sync fa-spin' : 'fa-sync'}`}></i>
-                    {syncStatus === 'synced' ? t('status_synced') : syncStatus === 'syncing' ? t('status_syncing') : t('sync_button_now')}
-                </button>
+                <div className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2">
+                    <i className="fas fa-cloud text-indigo-500"></i>
+                    {t('status_synced')}
+                </div>
             </div>
 
             {/* Photo Grid */}
@@ -247,7 +180,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                             <p className="text-gray-800 dark:text-slate-100 font-semibold truncate">{photo.caption}</p>
                         </div>
                         <button
-                            onClick={() => handleDeletePhoto(photo.id)}
+                            onClick={() => handleDeletePhoto(photo.id, photo.src)}
                             className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-700"
                             title={t('photo_album_delete_tooltip')}
                         >

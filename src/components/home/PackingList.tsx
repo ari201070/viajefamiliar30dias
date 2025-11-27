@@ -1,6 +1,7 @@
 import { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../../context/AppContext.tsx';
 import { PackingItem } from '../../types.ts';
+import { dbService } from '../../services/dbService.ts';
 
 const PackingList: FC = () => {
     const { t, language } = useAppContext();
@@ -8,18 +9,15 @@ const PackingList: FC = () => {
     const [newItemText, setNewItemText] = useState('');
     const [newItemType, setNewItemType] = useState<'essential' | 'optional'>('essential');
 
+    // Subscribe to real-time updates from Firestore
     useEffect(() => {
-        const savedList = localStorage.getItem('packingList');
-        if (savedList) {
-            setItems(JSON.parse(savedList));
-        }
+        const unsubscribe = dbService.subscribeToPackingList((updatedItems) => {
+            setItems(updatedItems);
+        });
+        return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        localStorage.setItem('packingList', JSON.stringify(items));
-    }, [items]);
-
-    const handleAddItem = () => {
+    const handleAddItem = async () => {
         if (newItemText.trim() === '') return;
         const newItem: PackingItem = {
             id: Date.now().toString(),
@@ -28,16 +26,35 @@ const PackingList: FC = () => {
             originalLang: language,
             checked: false,
         };
-        setItems([...items, newItem]);
-        setNewItemText('');
+
+        try {
+            await dbService.addPackingItem(newItem);
+            setNewItemText('');
+        } catch (error) {
+            console.error("Error adding packing item:", error);
+            alert(t('error_saving_data') || 'Error saving data');
+        }
     };
 
-    const toggleItemChecked = (id: string) => {
-        setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+    const toggleItemChecked = async (id: string) => {
+        const item = items.find(i => i.id === id);
+        if (item) {
+            try {
+                await dbService.updatePackingItem(id, { checked: !item.checked });
+            } catch (error) {
+                console.error("Error updating packing item:", error);
+            }
+        }
     };
 
-    const deleteItem = (id: string) => {
-        setItems(items.filter(item => item.id !== id));
+    const deleteItem = async (id: string) => {
+        if (confirm(t('confirm_delete') || 'Are you sure?')) {
+            try {
+                await dbService.deletePackingItem(id);
+            } catch (error) {
+                console.error("Error deleting packing item:", error);
+            }
+        }
     };
 
     const renderList = (type: 'essential' | 'optional') => {

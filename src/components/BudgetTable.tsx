@@ -1,6 +1,7 @@
 import { useState, useEffect, FC } from 'react';
 import { useAppContext } from '../context/AppContext.tsx';
 import { BudgetItem } from '../types.ts';
+import { dbService } from '../services/dbService.ts';
 
 interface BudgetTableProps {
     cityId: string;
@@ -13,33 +14,36 @@ const BudgetTable: FC<BudgetTableProps> = ({ cityId, defaultBudgetItems }) => {
     const [isSaved, setIsSaved] = useState(false);
 
     useEffect(() => {
-        const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
-        setBudgetItems(savedBudgets[cityId] || defaultBudgetItems);
+        const unsubscribe = dbService.subscribeToBudgets((budgets) => {
+            setBudgetItems(budgets[cityId] || defaultBudgetItems);
+        });
+        return () => unsubscribe();
     }, [cityId, defaultBudgetItems]);
 
     const handleValueChange = (index: number, value: string) => {
         const updatedItems = [...budgetItems];
         updatedItems[index] = { ...updatedItems[index], value };
         setBudgetItems(updatedItems);
-        setIsSaved(false); // Mark as unsaved
+        setIsSaved(false);
     };
 
-    const saveBudget = () => {
-        const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
-        savedBudgets[cityId] = budgetItems;
-        localStorage.setItem('customBudgets', JSON.stringify(savedBudgets));
-        // Dispatch a storage event so HomePage can recalculate the total budget
-        window.dispatchEvent(new Event('storage'));
-        setIsSaved(true);
-        setTimeout(() => setIsSaved(false), 2000); // Hide message after 2s
+    const saveBudget = async () => {
+        try {
+            await dbService.updateCityBudget(cityId, budgetItems);
+            setIsSaved(true);
+            setTimeout(() => setIsSaved(false), 2000);
+        } catch (error) {
+            console.error('Error saving budget:', error);
+        }
     };
 
-    const restoreDefaults = () => {
+    const restoreDefaults = async () => {
         setBudgetItems(defaultBudgetItems);
-        const savedBudgets = JSON.parse(localStorage.getItem('customBudgets') || '{}');
-        delete savedBudgets[cityId];
-        localStorage.setItem('customBudgets', JSON.stringify(savedBudgets));
-        window.dispatchEvent(new Event('storage'));
+        try {
+            await dbService.updateCityBudget(cityId, defaultBudgetItems);
+        } catch (error) {
+            console.error('Error restoring defaults:', error);
+        }
     };
 
     return (
