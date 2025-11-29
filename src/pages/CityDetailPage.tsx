@@ -158,7 +158,7 @@ const CityDetailPage: FC = () => {
 
   return (
     <div className="space-y-10">
-      <header className="text-center py-10 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-xl shadow-2xl">
+      <header className="text-center py-10 bg-linear-to-r from-indigo-600 to-purple-700 rounded-xl shadow-2xl">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
           {t(city.nameKey)}
         </h1>

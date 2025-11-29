@@ -1,32 +1,22 @@
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
-import { firebaseCredentials } from '../firebaseCredentials';
 import { PackingItem } from '../types';
 
-// Initialize Firebase
+const PACKING_COLLECTION = 'packingItems';
+
+// Firestore database instance
 let db: firebase.firestore.Firestore | null = null;
 
+// Initialize Firestore
 try {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseCredentials);
+  if (firebase.apps.length > 0) {
+    db = firebase.firestore();
   }
-  db = firebase.firestore();
-
-  // Enable offline persistence
-  db.enablePersistence().catch((err) => {
-    if (err.code == 'failed-precondition') {
-      console.warn("Persistence failed: Multiple tabs open");
-    } else if (err.code == 'unimplemented') {
-      console.warn("Persistence not supported by browser");
-    }
-  });
-
 } catch (error) {
-  console.error("Firebase initialization error:", error);
+  console.error("Error initializing Firestore:", error);
 }
 
-const PACKING_COLLECTION = 'packing_list';
-
+// Database service object
 export const dbService = {
   // --- Packing List ---
 

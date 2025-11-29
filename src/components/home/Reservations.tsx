@@ -55,7 +55,7 @@ const Reservations: FC<ReservationsProps> = ({ getFormattedPrice }) => {
                         <h4 className="text-lg font-bold text-gray-800 dark:text-slate-200">{t(booking.titleKey)}</h4>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mb-3">{t(booking.descriptionKey)}</p>
                     </div>
-                    <div className="text-right flex-shrink-0 ml-4">
+                    <div className="text-right shrink-0 ml-4">
                         <span className="text-xl font-bold text-indigo-700 dark:text-indigo-300">{getFormattedPrice(data.price)}</span>
                     </div>
                 </div>

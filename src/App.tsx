@@ -85,7 +85,7 @@ const ScrollToTopButton: FC = () => {
 const MainAppLayout: FC = () => (
   <div className="app-container bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-h-screen flex flex-col font-sans">
     <TopBar />
-    <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+    <main className="grow container mx-auto p-4 sm:p-6 lg:p-8">
       <Suspense fallback={<LoadingSpinner />}>
         <Outlet /> {/* Pages render here */}
       </Suspense>
@@ -191,7 +191,7 @@ const App: FC = () => {
   // --- Render Logic ---
   if (isAuthLoading || !i18nInitialized) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-100 dark:bg-slate-900">
+      <div className="fixed inset-0 z-100 flex items-center justify-center bg-gray-100 dark:bg-slate-900">
         <i className="fas fa-spinner fa-spin text-5xl text-indigo-500" />
       </div>
     );

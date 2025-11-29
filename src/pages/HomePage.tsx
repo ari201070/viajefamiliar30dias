@@ -271,12 +271,12 @@ const HomePage: FC = () => {
   }, [calculateTripBudget]);
 
   const cardClasses = "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-700 transition-shadow duration-300";
-  const collapsibleHeaderClasses = "cursor-pointer p-4 rounded-lg flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md";
+  const collapsibleHeaderClasses = "cursor-pointer p-4 rounded-lg flex items-center justify-between bg-linear-to-r from-indigo-500 to-purple-600 text-white shadow-md";
 
 
   return (
     <div className="space-y-12">
-      <section className="text-center py-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+      <section className="text-center py-8 bg-linear-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">{t('tituloPrincipal')}</h1>
         <p className="text-lg text-indigo-100">{t('bienvenidaPrincipal')}</p>
       </section>
@@ -326,7 +326,7 @@ const HomePage: FC = () => {
         <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
         <InteractiveMap cities={CITIES} />
       </section>
-      <TransportTable getFormattedPrice={getFormattedPrice} />
+      <TransportTable />
       <ItineraryAnalysis />
       <FamilyPhotoAlbum />
       <PackingList />

@@ -11,5 +11,5 @@ export const firebaseCredentials = {
   projectId: "viajes-argentina-en-30-dias",
   storageBucket: "viajes-argentina-en-30-dias.firebasestorage.app",
   messagingSenderId: "52421464497",
-  appId: "1:52421464497:web:f0b3465b9492afa97bad90"
+  appId: "1:52421464497:web:5b48fe7b53783a087bad90"
 };

@@ -254,6 +254,7 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     timeKey: 'transport_time_4h20m',
     basePriceARS: { value: 100000, currency: Currency.ARS },
     company: 'General Urquiza',
+    link: 'https://www.generalurquiza.com.ar/',
     date: '30/09/2025',
     departure: '13:30',
     arrival: '17:50'
@@ -266,6 +267,7 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     timeKey: 'transport_time_26h',
     basePriceARS: { value: 347200, currency: Currency.ARS },
     company: 'Chevallier',
+    link: 'https://www.nuevachevallier.com/',
     date: '04/10/2025',
     departure: '11:30',
     arrival: '05/10/2025 13:15'
@@ -277,7 +279,8 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     meanKey: 'transport_mean_bus',
     timeKey: 'transport_time_18h',
     basePriceARS: { value: 321920, currency: Currency.ARS },
-    company: 'TRAMAT (Cama Ejecutivo)',
+    company: 'Andesmar (Cama Ejecutivo)',
+    link: 'https://www.andesmar.com/',
     date: '10/10/2025',
     departure: '13:00',
     arrival: '11/10/2025 07:00'
@@ -290,6 +293,7 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     timeKey: 'transport_time_18h30m',
     basePriceARS: { value: 528000, currency: Currency.ARS },
     company: 'Andesmar',
+    link: 'https://www.andesmar.com/',
     date: '14/10/2025',
     departure: '13:00',
     arrival: '15/10/2025 07:25'
@@ -302,6 +306,7 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     timeKey: 'transport_time_1h45m',
     basePriceARS: { value: 351120, currency: Currency.ARS },
     company: 'Aerolíneas Argentinas',
+    link: 'https://www.aerolineas.com.ar/',
     flightNumber: 'AR 1795',
     date: '19/10/2025',
     departure: '14:00',
@@ -312,9 +317,10 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     fromKey: 'iguazu_name',
     toKey: 'esteros_ibera_name',
     meanKey: 'transport_mean_4x4',
-    timeKey: 'transport_time_variable',
+    timeKey: '9h',
     basePriceARS: { value: 968704, currency: Currency.ARS },
-    company: 'Transfer Privado 4x4',
+    company: 'Arasari traslados y excursionesTransfer Privado 4x4',
+    link: 'https://www.instagram.com/traslados_arasari/',
     date: '22/10/2025'
   },
   {
@@ -322,9 +328,10 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     fromKey: 'esteros_ibera_name',
     toKey: 'corrientes_name',
     meanKey: 'transport_mean_4x4',
-    timeKey: 'transport_time_variable',
+    timeKey: '5h',
     basePriceARS: { value: 968704, currency: Currency.ARS },
     company: 'Transfer Privado 4x4',
+    link: 'https://www.instagram.com/rebullgustavoprion/',
     date: '24/10/2025'
   },
   {
@@ -335,6 +342,7 @@ export const TRANSPORT_DATA: TransportLeg[] = [
     timeKey: 'transport_time_1h30m',
     basePriceARS: { value: 1380387, currency: Currency.ARS },
     company: 'Flybondi',
+    link: 'https://flybondi.com/',
     flightNumber: 'FO-5151',
     date: '26/10/2025',
     departure: '16:00',
@@ -471,7 +479,7 @@ export const BOOKING_DATA: BookingItem[] = [
       to: 'Av. Pueyrredón 1161',
       date: '2025-09-26',
       duration: '45 min',
-      price: { value: 125.50, currency: Currency.ILS }
+      price: { value: 38, currency: Currency.USD }
     }
   }
 ];

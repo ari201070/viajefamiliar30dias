@@ -215,7 +215,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                             {/* If editing, show single form. If uploading, show list */}
                             {editingPhotoId ? (
                                 <div className="flex gap-4 items-start border-b border-gray-200 dark:border-slate-700 pb-4">
-                                    <div className="flex-grow space-y-2">
+                                    <div className="grow space-y-2">
                                         <input
                                             type="text"
                                             placeholder={t('photo_album_caption_placeholder')}
@@ -243,13 +243,13 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                             ) : (
                                 selectedFiles.map((file, index) => (
                                     <div key={index} className="flex gap-4 items-start border-b border-gray-200 dark:border-slate-700 pb-4">
-                                        <div className="w-20 h-20 bg-gray-200 dark:bg-slate-700 rounded-lg flex-shrink-0 overflow-hidden">
+                                        <div className="w-20 h-20 bg-gray-200 dark:bg-slate-700 rounded-lg shrink-0 overflow-hidden">
                                             {/* Preview would go here if we read the file immediately, for now just placeholder icon */}
                                             <div className="w-full h-full flex items-center justify-center text-gray-400">
                                                 <i className="fas fa-image text-2xl"></i>
                                             </div>
                                         </div>
-                                        <div className="flex-grow space-y-2">
+                                        <div className="grow space-y-2">
                                             <p className="font-semibold text-sm text-gray-700 dark:text-slate-300 truncate">{file.name}</p>
                                             <input
                                                 type="text"

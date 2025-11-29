@@ -96,7 +96,7 @@ const PackingList: FC = () => {
                     value={newItemText}
                     onChange={(e) => setNewItemText(e.target.value)}
                     placeholder={t('packing_placeholder')}
-                    className="flex-grow p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700"
+                    className="grow p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700"
                 />
                 <select value={newItemType} onChange={e => setNewItemType(e.target.value as any)} className="p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700">
                     <option value="essential">{t('packing_essential')}</option>

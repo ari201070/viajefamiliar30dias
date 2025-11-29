@@ -44,7 +44,7 @@ const TopBar: FC = () => {
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            <Link to="/" className="shrink-0 flex items-center text-2xl font-bold text-indigo-600 dark:text-indigo-400">
               <i className="fas fa-plane-departure"></i>
             </Link>
           </div>

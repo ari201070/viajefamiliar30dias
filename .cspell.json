@@ -1,0 +1,28 @@
+{
+    "ignorePaths": [
+        "src/locales/**",
+        "node_modules/**",
+        "dist/**",
+        ".git/**"
+    ],
+    "words": [
+        "ABIERTO",
+        "arriba",
+        "bienvenida",
+        "checkin",
+        "días",
+        "Español",
+        "Estadía",
+        "firestore",
+        "idioma",
+        "Interactivo",
+        "mapa",
+        "moneda",
+        "RUTA",
+        "SECUNDARIAS",
+        "Titulo",
+        "Volver",
+        "יומיים",
+        "ימים"
+    ]
+}

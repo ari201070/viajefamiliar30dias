@@ -119,24 +119,21 @@ export interface TransportLeg {
   fromKey: string;
   toKey: string;
   meanKey: string;
-  timeKey: string;
-  basePriceARS: Price | number;
-  company: string;
+  timeKey?: string;
+  from?: string;
+  to?: string;
+  time?: string;
+  basePriceARS?: Price;
+  company?: string;
+  link?: string;
   date?: string;
-  flightNumber?: string;
-  duration?: string;
   departure?: string;
   arrival?: string;
-}
-
-export interface HotelData {
-  name: string;
-  checkIn: string;
-  checkOut: string;
-  guests: string;
-  confirmation: string;
+  flightNumber?: string;
+  guests?: string;
+  confirmation?: string;
   pin?: string;
-  price: Price;
+  price?: Price;
   address?: string;
   phone?: string;
 }
@@ -155,6 +152,17 @@ export interface TransferData {
   to: string;
   date: string;
   duration: string;
+  price: Price;
+}
+
+export interface HotelData {
+  name: string;
+  checkIn: string;
+  checkOut: string;
+  guests: string;
+  confirmation: string;
+  address?: string;
+  phone?: string;
   price: Price;
 }
 
