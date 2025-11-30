@@ -81,12 +81,12 @@ export async function askGemini(userPrompt: string, language: Language): Promise
         const fullPrompt = `${userPrompt}\n\n${languageInstruction}`;
 
         const client = getAiClient();
-        const response = await client.models.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: fullPrompt,
+        const response = await client.generateContent({
+            model: 'gemini-2.0-flash-exp',
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
         });
 
-        return response.text || '';
+        return response.text() || '';
     } catch (error: any) {
         console.error("Gemini API error in askGemini:", error);
         return language === 'he'
@@ -116,12 +116,12 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
         conversationPrompt += `User: ${newMessage}\n\nAssistant:`;
 
         const client = getAiClient();
-        const response = await client.models.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: conversationPrompt,
+        const response = await client.generateContent({
+            model: 'gemini-2.0-flash-exp',
+            contents: [{ role: 'user', parts: [{ text: conversationPrompt }] }],
         });
 
-        return response.text || '';
+        return response.text() || '';
     } catch (error) {
         console.error("Gemini API error in sendMessageInChat:", error);
         return language === 'he'
@@ -136,12 +136,12 @@ export async function translateText(textToTranslate: string, language: Language)
         const translationPrompt = `Translate the following text to ${targetLanguageName}. Only return the translated text, nothing else:\n\n${textToTranslate}`;
 
         const client = getAiClient();
-        const response = await client.models.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: translationPrompt,
+        const response = await client.generateContent({
+            model: 'gemini-2.0-flash-exp',
+            contents: [{ role: 'user', parts: [{ text: translationPrompt }] }],
         });
 
-        return (response.text || '').trim();
+        return (response.text() || '').trim();
     } catch (error) {
         console.error("Gemini API error in translateText:", error);
         return `[${language === 'he' ? 'שגיאת תרגום' : 'Error de traducción'}]`;
@@ -156,12 +156,12 @@ export async function findEventsWithGoogleSearch(prompt: string, language: Langu
         const client = getAiClient();
         // Note: Google Search grounding might require different configuration
         // For now, using basic generation
-        const response = await client.models.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: fullPrompt,
+        const response = await client.generateContent({
+            model: 'gemini-2.0-flash-exp',
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
         });
 
-        return { text: response.text || '', sources: [] };
+        return { text: response.text() || '', sources: [] };
     } catch (error) {
         console.error("Gemini API error in findEventsWithGoogleSearch:", error);
         const text = language === 'he'
