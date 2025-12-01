@@ -1,4 +1,4 @@
-const CACHE_NAME = 'argentina-familia-cache-v10'; // Incremented version - Defensive coding fix
+const CACHE_NAME = 'argentina-familia-cache-v11'; // Incremented version - Force update
 const urlsToCache = [
   './',
   './index.html',

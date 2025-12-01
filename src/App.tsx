@@ -136,10 +136,18 @@ const App: FC = () => {
 
   useEffect(() => {
     if (i18nInitialized) {
-      i18n.changeLanguage(language);
-      localStorage.setItem('language', language);
-      document.documentElement.lang = language;
-      document.documentElement.dir = language === Language.HE ? 'rtl' : 'ltr';
+      // CRITICAL FIX: Make language change async to ensure complete i18n update
+      const changeLanguageAsync = async () => {
+        try {
+          await i18n.changeLanguage(language);
+          localStorage.setItem('language', language);
+          document.documentElement.lang = language;
+          document.documentElement.dir = language === Language.HE ? 'rtl' : 'ltr';
+        } catch (error) {
+          console.error('Failed to change language:', error);
+        }
+      };
+      changeLanguageAsync();
     }
   }, [language, i18nInitialized]);
 
@@ -178,9 +186,10 @@ const App: FC = () => {
     }
   }, []);
 
+  // CRITICAL FIX: Add language dependency to force re-render when language changes
   const t = useCallback((key: string, options?: any): string => {
     return String(i18n.t(key, options));
-  }, []);
+  }, [language]);
 
   const appContextValue = useMemo(() => ({
     language, setLanguage, currency, setCurrency, theme, setTheme, isOnline, user, setUser,

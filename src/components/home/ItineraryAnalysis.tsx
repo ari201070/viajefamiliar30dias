@@ -34,16 +34,46 @@ const ItineraryAnalysis: FC = () => {
                             const lines = durationText ? durationText.split('\n') : [];
                             let dateLine = lines.length > 1 ? lines[1] : (lines[0] || '');
 
+                            // Ensure dateLine is a string
+                            if (typeof dateLine !== 'string') {
+                                dateLine = '';
+                            }
+
                             // Remove markdown bold syntax and labels safely
                             // Handles "- **Fechas**: ..." and "- **Dates**: ..." patterns
                             dateLine = dateLine.replace(/^- /, '').replace(/\*\*(.*?)\*\*:\s*/, '').trim();
+
+                            // Calculate Day Range
+                            const tripStartDate = new Date('2025-09-26');
+                            let dayRangeText = '';
+
+                            if (city.startDate && city.endDate) {
+                                const cityStartDate = new Date(city.startDate);
+                                const cityEndDate = new Date(city.endDate);
+
+                                if (!isNaN(cityStartDate.getTime()) && !isNaN(cityEndDate.getTime())) {
+                                    // Calculate difference in days from trip start
+                                    const diffTimeStart = Math.abs(cityStartDate.getTime() - tripStartDate.getTime());
+                                    const startDay = Math.ceil(diffTimeStart / (1000 * 60 * 60 * 24)) + 1;
+
+                                    const diffTimeEnd = Math.abs(cityEndDate.getTime() - tripStartDate.getTime());
+                                    const endDay = Math.ceil(diffTimeEnd / (1000 * 60 * 60 * 24)) + 1;
+
+                                    dayRangeText = t('day_range_label', { start: startDay, end: endDay });
+                                }
+                            }
 
                             return (
                                 <li key={city.id} className="mb-6 ml-6">
                                     <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white dark:ring-slate-800 dark:bg-blue-900">
                                         <i className="fas fa-map-marker-alt text-blue-800 dark:text-blue-300 text-xs"></i>
                                     </span>
-                                    <h4 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">{t(city.nameKey)}</h4>
+                                    <h4 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                        {t(city.nameKey)}
+                                        <span className="ml-3 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 rounded-full">
+                                            {dayRangeText}
+                                        </span>
+                                    </h4>
                                     <time className="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-slate-500">
                                         {dateLine}
                                     </time>

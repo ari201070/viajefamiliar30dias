@@ -117,7 +117,7 @@ export const CITIES: City[] = [
     activitiesKey: 'jujuy_activities_recommended',
     accommodationKey: 'jujuy_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
+      { conceptKey: 'accommodation_budget', value: '84', isPerDay: true },
       { conceptKey: 'food_budget', value: '18', isPerDay: true },
       { conceptKey: 'transport_budget', value: '10', isPerDay: true },
       { conceptKey: 'activities_budget', value: '35', isPerDay: true },
@@ -127,7 +127,7 @@ export const CITIES: City[] = [
       { nameKey: 'poi_cerro_siete_colores', descriptionKey: 'poi_cerro_siete_colores_desc', coords: [-23.7433, -65.4933] },
     ],
     startDate: '2025-10-15',
-    endDate: '2025-10-18'
+    endDate: '2025-10-19'
   },
   {
     id: 'iguazu',
@@ -148,8 +148,8 @@ export const CITIES: City[] = [
       { nameKey: 'poi_cataratas', descriptionKey: 'poi_cataratas_desc', coords: [-25.6953, -54.4367] },
       { nameKey: 'poi_hito_tres_fronteras', descriptionKey: 'poi_hito_tres_fronteras_desc', coords: [-25.5992, -54.5736] },
     ],
-    startDate: '2025-10-22',
-    endDate: '2025-10-24'
+    startDate: '2025-10-19',
+    endDate: '2025-10-22'
   },
   {
     id: 'esteros_ibera',
@@ -161,17 +161,17 @@ export const CITIES: City[] = [
     activitiesKey: 'esteros_ibera_activities_recommended',
     accommodationKey: 'esteros_ibera_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
-      { conceptKey: 'food_budget', value: '22', isPerDay: true },
+      { conceptKey: 'accommodation_budget', value: '920', isPerDay: true },
+      { conceptKey: 'food_budget', value: '0', isPerDay: true },
       { conceptKey: 'transport_budget', value: '12', isPerDay: true },
-      { conceptKey: 'activities_budget', value: '40', isPerDay: true },
+      { conceptKey: 'activities_budget', value: '46', isPerDay: true },
     ],
     pointsOfInterest: [
       { nameKey: 'poi_portal_cambyreta', descriptionKey: 'poi_portal_cambyreta_desc', coords: [-27.8500, -56.8833] },
       { nameKey: 'poi_colonia_carlos_pellegrini', descriptionKey: 'poi_colonia_carlos_pellegrini_desc', coords: [-28.5333, -57.1667] },
     ],
-    startDate: '2025-10-24',
-    endDate: '2025-10-26'
+    startDate: '2025-10-22',
+    endDate: '2025-10-24'
   },
   {
     id: 'corrientes',
@@ -183,10 +183,10 @@ export const CITIES: City[] = [
     activitiesKey: 'corrientes_activities_recommended',
     accommodationKey: 'corrientes_accommodation_examples',
     budgetItems: [
-      { conceptKey: 'accommodation_budget', value: '', isPerDay: true },
+      { conceptKey: 'accommodation_budget', value: '76', isPerDay: true },
       { conceptKey: 'food_budget', value: '20', isPerDay: true },
-      { conceptKey: 'transport_budget', value: '10', isPerDay: true },
-      { conceptKey: 'activities_budget', value: '30', isPerDay: true },
+      { conceptKey: 'transport_budget', value: '0', isPerDay: true },
+      { conceptKey: 'activities_budget', value: '', isPerDay: true },
     ],
     pointsOfInterest: [
       { nameKey: 'poi_costanera', descriptionKey: 'poi_costanera_desc', coords: [-27.4633, -58.8367] },

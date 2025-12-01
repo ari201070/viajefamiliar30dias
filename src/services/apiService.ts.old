@@ -116,12 +116,11 @@ export async function sendMessageInChat(systemInstruction: string, history: Chat
         conversationPrompt += `User: ${newMessage}\n\nAssistant:`;
 
         const client = getAiClient();
-        const response = await client.models.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: conversationPrompt,
-        });
-
-        return response.text || '';
+        const response = await client.generateContent({  // ✅ Sin .models
+    model: 'gemini-2.0-flash-exp',
+            contents: [{ role: 'user', parts: [{ text: conversationPrompt }] }],
+});
+return response.text() || '';  // ✅ text() es función
     } catch (error) {
         console.error("Gemini API error in sendMessageInChat:", error);
         return language === 'he'
