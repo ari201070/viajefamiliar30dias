@@ -1,4 +1,4 @@
-{
+﻿{
   "tituloPrincipal": "Viaje Familiar de 30 días por Argentina",
   "bienvenidaPrincipal": "Una aventura interactiva para planificar nuestro viaje.",
   "footerText": "Itinerario Familiar a Argentina. Todos los derechos reservados.",
@@ -187,5 +187,24 @@
   "iguazu_dates_duration": "- **Estadía**: 3 días\n- **Fechas**: 19 Oct 2025 - 22 Oct 2025",
   "esteros_ibera_dates_duration": "- **Estadía**: 2 días\n- **Fechas**: 22 Oct 2025 - 24 Oct 2025",
   "corrientes_dates_duration": "- **Estadía**: 2 días\n- **Fechas**: 24 Oct 2025 - 26 Oct 2025",
-  "buenosaires_final_dates_duration": "- **Estadía**: 2 días\n- **Fechas**: 26 Oct 2025 - 28 Oct 2025"
+  "buenosaires_final_dates_duration": "- **Estadía**: 2 días\n- **Fechas**: 26 Oct 2025 - 28 Oct 2025",
+  "buenosaires_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Buenos Aires. {{familyInfo}} Estamos visitando Buenos Aires. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "rosario_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Rosario. {{familyInfo}} Estamos visitando Rosario. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "bariloche_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Bariloche. {{familyInfo}} Estamos visitando Bariloche. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "mendoza_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Mendoza. {{familyInfo}} Estamos visitando Mendoza. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "jujuy_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Salta/Jujuy. {{familyInfo}} Estamos visitando Salta. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "iguazu_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Iguazú. {{familyInfo}} Estamos visitando Iguazú. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "esteros_ibera_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Esteros del Iberá. {{familyInfo}} Estamos visitando los Esteros del Iberá. Ayúdame a analizar y optimizar mi presupuesto para esta región.",
+  "corrientes_ai_prompt_budget_analysis": "Eres un experto en planificación de viajes y presupuestos para Corrientes. {{familyInfo}} Estamos visitando Corrientes. Ayúdame a analizar y optimizar mi presupuesto para esta ciudad.",
+  "buenosaires_ai_prompt_recommendations": "Eres un experto en viajes a Buenos Aires. {{familyInfo}} Estamos planeando visitar Buenos Aires. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "rosario_ai_prompt_recommendations": "Eres un experto en viajes a Rosario. {{familyInfo}} Estamos planeando visitar Rosario. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "bariloche_ai_prompt_recommendations": "Eres un experto en viajes a Bariloche. {{familyInfo}} Estamos planeando visitar Bariloche. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "mendoza_ai_prompt_recommendations": "Eres un experto en viajes a Mendoza. {{familyInfo}} Estamos planeando visitar Mendoza. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "jujuy_ai_prompt_recommendations": "Eres un experto en viajes a Salta/Jujuy. {{familyInfo}} Estamos planeando visitar Salta. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "iguazu_ai_prompt_recommendations": "Eres un experto en viajes a Iguazú. {{familyInfo}} Estamos planeando visitar Iguazú. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "esteros_ibera_ai_prompt_recommendations": "Eres un experto en viajes a los Esteros del Iberá. {{familyInfo}} Estamos planeando visitar los Esteros del Iberá. Proporciona recomendaciones personalizadas sobre actividades de ecoturismo, excursiones y consejos útiles.",
+  "corrientes_ai_prompt_recommendations": "Eres un experto en viajes a Corrientes. {{familyInfo}} Estamos planeando visitar Corrientes. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
+  "album_others": "Otros / Sin Clasificar",
+  "photo_count_singular": "foto",
+  "photo_count_plural": "fotos"
 }
