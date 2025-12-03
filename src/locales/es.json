@@ -206,5 +206,17 @@
   "corrientes_ai_prompt_recommendations": "Eres un experto en viajes a Corrientes. {{familyInfo}} Estamos planeando visitar Corrientes. Proporciona recomendaciones personalizadas sobre lugares para comer, actividades familiares, y consejos útiles.",
   "album_others": "Otros / Sin Clasificar",
   "photo_count_singular": "foto",
-  "photo_count_plural": "fotos"
+  "photo_count_plural": "fotos",
+  "budget_estimated_label": "Presupuesto Estimado",
+  "budget_real_label": "Gasto Real",
+  "budget_category": "Categoría",
+  "budget_estimated": "Estimado",
+  "budget_real": "Real",
+  "budget_difference": "Diferencia",
+  "budget_under_budget": "Bajo presupuesto",
+  "budget_over_budget": "Sobre presupuesto",
+  "budget_on_budget": "Dentro del presupuesto",
+  "budget_free_accommodation": "Casa de familia",
+  "budget_comparison_title": "Comparación Presupuesto vs. Real",
+  "budget_chart_title": "Gráfico Comparativo"
 }

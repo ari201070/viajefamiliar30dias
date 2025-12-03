@@ -16,6 +16,7 @@ import WeatherForecast from '../components/home/WeatherForecast.tsx';
 import Reservations from '../components/home/Reservations.tsx';
 import FlightTickets from '../components/home/FlightTickets.tsx';
 import { dbService } from '../services/dbService.ts';
+import { getRealExpensesSummary, CATEGORY_KEY_MAPPING } from '../services/realExpensesService.ts';
 
 
 // --- Helper Functions for Budget Calculation ---
@@ -243,10 +244,29 @@ const HomePage: FC = () => {
           formattedTotal = `${globalCurrency} ${finalTotalMin.toLocaleString(locale, formattingOptions)} - ${finalTotalMax.toLocaleString(locale, formattingOptions)}`;
         }
 
+        // --- INTEGRATE REAL EXPENSES ---
+        const realExpensesSummary = getRealExpensesSummary();
+        const realBreakdown: Record<string, number> = {};
+
+        // Map budget categories to real expense categories
+        for (const conceptKey in totalsByCategory) {
+          const realCategory = CATEGORY_KEY_MAPPING[conceptKey];
+          if (realCategory && realExpensesSummary[realCategory]) {
+            if (!realBreakdown[conceptKey]) {
+              realBreakdown[conceptKey] = 0;
+            }
+            realBreakdown[conceptKey] += realExpensesSummary[realCategory];
+          }
+        }
+
         setBudgetDetails({
           total: formattedTotal,
           breakdown: formattedBreakdown,
           isCalculating: false,
+          realExpenses: {
+            total: realExpensesSummary.total,
+            breakdown: realBreakdown
+          }
         });
 
       } else {
@@ -317,15 +337,23 @@ const HomePage: FC = () => {
         </div>
       </section>
       <BudgetSummary budgetDetails={budgetDetails} />
-      <WeatherForecast />
-      <section className={cardClasses}>
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
-          <i className="fa-solid fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400" />
-          {t('mapaInteractivoTitulo')}
-        </h2>
-        <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
-        <InteractiveMap cities={CITIES} />
-      </section>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        <div className="h-full">
+            <WeatherForecast />
+        </div>
+        
+        <section className={`${cardClasses} h-full flex flex-col`}>
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 mb-6 pb-2 border-b-2 border-indigo-500 dark:border-indigo-600 flex items-center">
+            <i className="fa-solid fa-map-marked-alt mr-3 text-indigo-600 dark:text-indigo-400" />
+            {t('mapaInteractivoTitulo')}
+          </h2>
+          <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
+          <div className="flex-grow min-h-[800px] w-full">
+             <InteractiveMap cities={CITIES} />
+          </div>
+        </section>
+      </div>
       <TransportTable />
       <ItineraryAnalysis />
       <FamilyPhotoAlbum />

@@ -33,7 +33,7 @@ const WeatherForecast: FC = () => {
     }, [selectedCityId, language, t]);
 
     return (
-        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
+        <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50 h-full">
             <div className="flex flex-wrap justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-slate-200 flex items-center">
                     <i className="fas fa-cloud-sun-rain mr-3 text-indigo-600 dark:text-indigo-400" />

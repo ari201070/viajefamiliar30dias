@@ -206,5 +206,17 @@
   "corrientes_ai_prompt_recommendations": "אתה מומחה בנסיעות לקוריינטס. {{familyInfo}} אנחנו מתכננים לבקר בקוריינטס. ספק המלצות מותאמות אישית על מקומות לאכול, פעילויות משפחתיות וטיפים שימושיים.",
   "album_others": "אחרים / לא מסווג",
   "photo_count_singular": "תמונה",
-  "photo_count_plural": "תמונות"
+  "photo_count_plural": "תמונות",
+  "budget_estimated_label": "תקציב משוער",
+  "budget_real_label": "הוצאה בפועל",
+  "budget_category": "קטגוריה",
+  "budget_estimated": "משוער",
+  "budget_real": "בפועל",
+  "budget_difference": "הפרש",
+  "budget_under_budget": "מתחת לתקציב",
+  "budget_over_budget": "מעל לתקציב",
+  "budget_on_budget": "בתקציב",
+  "budget_free_accommodation": "בית משפחה",
+  "budget_comparison_title": "השוואה: תקציב לעומת בפועל",
+  "budget_chart_title": "גרף השוואה"
 }

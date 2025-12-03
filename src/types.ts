@@ -73,6 +73,10 @@ export interface BudgetDetails {
   total: string;
   breakdown: Record<string, string>;
   isCalculating: boolean;
+  realExpenses?: {
+    total: number;
+    breakdown: Record<string, number>;
+  };
 }
 
 // --- AI and Chat ---
