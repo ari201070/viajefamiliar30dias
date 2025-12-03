@@ -18,8 +18,8 @@
     "firebase": "^10.12.3",
     "i18next": "^25.5.2",
     "leaflet": "^1.9.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "react-i18next": "^15.7.3",
     "react-router-dom": "^7.6.2",
     "uuid": "^11.1.0"
