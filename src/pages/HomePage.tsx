@@ -349,7 +349,7 @@ const HomePage: FC = () => {
             {t('mapaInteractivoTitulo')}
           </h2>
           <p className="text-gray-600 dark:text-slate-400 mb-6">{t('mapaInteractivoBienvenida')}</p>
-          <div className="flex-grow min-h-[800px] w-full">
+          <div className="grow min-h-[800px] w-full">
              <InteractiveMap cities={CITIES} />
           </div>
         </section>
