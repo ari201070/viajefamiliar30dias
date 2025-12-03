@@ -93,7 +93,7 @@ const InteractiveMap: FC<InteractiveMapProps> = ({ cities, selectedCityCoords, p
         }
     }, [cities, pointsOfInterest, t]);
 
-    return <div ref={mapRef} className="leaflet-container" />;
+    return <div ref={mapRef} className="leaflet-container h-full w-full" style={{ minHeight: '100%' }} />;
 };
 
 export default InteractiveMap;
