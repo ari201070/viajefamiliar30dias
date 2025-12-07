@@ -72,10 +72,7 @@
   "photo_album_confirm_delete": "האם אתה בטוח שברצונך למחוק את התמונה הזו?",
   "save": "שמור",
   "cancel": "ביטול",
-  "packing_placeholder": "לדוגמה: קרם הגנה",
-  "packing_essential": "חיוני",
-  "packing_optional": "אופציונלי",
-  "packing_add": "הוסף",
+  "photo_album_batch_import_button": "ייבוא אצווה",
   "packing_list_empty": "אין פריטים ברשימה זו.",
   "transporte": "תחבורה בין ערים",
   "weather_select_city_label": "בחר עיר",
@@ -218,5 +215,6 @@
   "budget_on_budget": "בתקציב",
   "budget_free_accommodation": "בית משפחה",
   "budget_comparison_title": "השוואה: תקציב לעומת בפועל",
-  "budget_chart_title": "גרף השוואה"
+  "budget_chart_title": "גרף השוואה",
+  "photo_album_slideshow": "מצגת"
 }

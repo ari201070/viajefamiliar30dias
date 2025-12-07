@@ -72,10 +72,7 @@
   "photo_album_confirm_delete": "¿Estás seguro de que deseas eliminar esta foto?",
   "save": "Guardar",
   "cancel": "Cancelar",
-  "packing_placeholder": "Ej: Protector solar",
-  "packing_essential": "Esencial",
-  "packing_optional": "Opcional",
-  "packing_add": "Agregar",
+  "photo_album_batch_import_button": "Importar Lote",
   "packing_list_empty": "No hay artículos en esta lista.",
   "transporte": "Transporte entre Ciudades",
   "weather_select_city_label": "Seleccionar ciudad",
@@ -218,5 +215,6 @@
   "budget_on_budget": "Dentro del presupuesto",
   "budget_free_accommodation": "Casa de familia",
   "budget_comparison_title": "Comparación Presupuesto vs. Real",
-  "budget_chart_title": "Gráfico Comparativo"
+  "budget_chart_title": "Gráfico Comparativo",
+  "photo_album_slideshow": "Presentación de diapositivas"
 }
