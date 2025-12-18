@@ -21,18 +21,17 @@ if (firebaseCredentials && firebaseCredentials.apiKey && firebaseCredentials.api
     }
     db = firebase.firestore();
     
-    // Enable offline persistence to improve resilience against network issues.
-    // synchronizeTabs allows for a consistent offline state across multiple tabs.
+    // Temporarily disabled persistence to resolve "Unknown SID" 400 errors during Listen stream establishment.
+    /*
     db.enablePersistence({ synchronizeTabs: true })
       .catch((err) => {
         if (err.code === 'failed-precondition') {
-          // This can happen if multiple tabs are open.
           console.warn('Firebase persistence failed: multiple tabs open.');
         } else if (err.code === 'unimplemented') {
-          // The browser does not support all features required for persistence.
           console.warn('Firebase persistence not supported in this browser.');
         }
       });
+    */
 
     storage = firebase.storage();
     auth = firebase.auth();

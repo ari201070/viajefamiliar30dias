@@ -1,20 +1,7 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
+import { db } from './firebaseConfig.ts';
 import { PackingItem } from '../types';
 
 const PACKING_COLLECTION = 'packingItems';
-
-// Firestore database instance
-let db: firebase.firestore.Firestore | null = null;
-
-// Initialize Firestore
-try {
-  if (firebase.apps.length > 0) {
-    db = firebase.firestore();
-  }
-} catch (error) {
-  console.error("Error initializing Firestore:", error);
-}
 
 // Database service object
 export const dbService = {

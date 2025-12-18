@@ -26,7 +26,10 @@ Este documento aclara la función de cada clave, dónde se encuentra y cómo se 
 - Es la "llave" para que el usuario pueda hacer Login y que la base de datos acepte cambios.
   **Configuración Crítica:**
 - Se obtiene de la consola de Firebase -> Configuración del proyecto -> Tus Apps.
-- En este proyecto, usamos la clave que termina en `...iREQ`.
+- **API Key:** Termina en `...iREQ`.
+- **Project ID:** `viajes-argentina-en-30-dias`
+- **Messaging Sender ID:** `52421464497`
+- **App ID:** `1:52421464497:web:f0b3465b9492afa97bad90` (Configurada para viajes-argentina-en-30-dias).
 
 ---
 
