@@ -5,6 +5,7 @@ import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem, City } from '../../types.ts';
 import { dbService } from '../../services/dbService.ts';
 import { CITIES } from '../../constants.ts';
+import { extractPhotoMetadata } from '../../utils/photoMetadata.ts';
 
 interface FamilyPhotoAlbumProps {
     city?: City;
@@ -17,45 +18,142 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [photoDetails, setPhotoDetails] = useState<{ caption: string, dateTaken: string, tripDay: number, cityId: string }[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [viewingPhoto, setViewingPhoto] = useState<PhotoItem | null>(null);
+    const [isSlideshowPlaying, setIsSlideshowPlaying] = useState(false);
     const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Batch Import State
+    const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+    const [batchSelectedFiles, setBatchSelectedFiles] = useState<File[]>([]); // Files selected for batch import
+    const batchFileInputRef = useRef<HTMLInputElement>(null); // Ref for batch file input
+    const [batchConfig, setBatchConfig] = useState({
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        cityId: 'buenosaires'
+    });
+
     // Subscribe to real-time updates
     useEffect(() => {
         const unsubscribe = dbService.subscribeToPhotos((updatedPhotos) => {
-            // If a specific city prop is passed, we could filter here, but for the "All Albums" view we need all photos.
-            // We'll filter at render time or derived state to keep it simple.
             setPhotos(updatedPhotos);
         });
-
         return () => unsubscribe();
     }, []);
 
-    // Reset selection if city prop changes (though usually it won't change dynamically like that in this app)
+    // --- DERIVED STATE ---
+    const activeCityId = city ? city.id : selectedCityId;
+    const isPhotoGridView = !!activeCityId;
+
+    const getAlbumStats = () => {
+        const stats: Record<string, { count: number, cover: string | null }> = {};
+        CITIES.forEach(c => stats[c.id] = { count: 0, cover: null });
+        stats['unclassified'] = { count: 0, cover: null };
+
+        photos.forEach(p => {
+            const cid = p.cityId && stats[p.cityId] ? p.cityId : 'unclassified';
+            stats[cid].count++;
+            if (!stats[cid].cover) stats[cid].cover = p.src;
+        });
+        return stats;
+    };
+    const albumStats = getAlbumStats();
+
+    const filteredPhotos = isPhotoGridView
+        ? photos.filter(p => {
+            if (activeCityId === 'unclassified') {
+                return !p.cityId || !CITIES.find(c => c.id === p.cityId);
+            }
+            return p.cityId === activeCityId;
+        })
+        : [];
+
+    const activeCityObj = CITIES.find(c => c.id === activeCityId);
+    const activeCityName = activeCityId === 'unclassified' 
+        ? 'Otros / Sin Clasificar' 
+        : (activeCityObj ? t(activeCityObj.nameKey) : activeCityId);
+
+    // --- NAVIGATION & SLIDESHOW HANDLERS ---
+    const handleNextPhoto = () => {
+        if (!viewingPhoto || filteredPhotos.length === 0) return;
+        const currentIndex = filteredPhotos.findIndex(p => p.id === viewingPhoto.id);
+        const nextIndex = (currentIndex + 1) % filteredPhotos.length;
+        setViewingPhoto(filteredPhotos[nextIndex]);
+    };
+
+    const handlePrevPhoto = () => {
+        if (!viewingPhoto || filteredPhotos.length === 0) return;
+        const currentIndex = filteredPhotos.findIndex(p => p.id === viewingPhoto.id);
+        const prevIndex = (currentIndex - 1 + filteredPhotos.length) % filteredPhotos.length;
+        setViewingPhoto(filteredPhotos[prevIndex]);
+    };
+
+    const toggleSlideshow = () => {
+        setIsSlideshowPlaying(!isSlideshowPlaying);
+    };
+
+    // Slideshow Effect
+    useEffect(() => {
+        let interval: any;
+        if (isSlideshowPlaying && viewingPhoto) {
+            interval = setInterval(() => {
+                handleNextPhoto();
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [isSlideshowPlaying, viewingPhoto, filteredPhotos]);
+
+    // Reset selection if city prop changes
     useEffect(() => {
         if (city) {
             setSelectedCityId(null);
         }
     }, [city]);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files);
             setSelectedFiles(files);
 
             // Determine default city for new photos
-            // If we are in a specific city view (prop or selected), use that. Default to 'buenosaires' otherwise.
             const currentActiveCityId = city?.id || selectedCityId || 'buenosaires';
             const defaultCityId = currentActiveCityId === 'unclassified' ? 'buenosaires' : currentActiveCityId;
 
-            const initialDetails = files.map(() => ({
-                caption: '',
-                dateTaken: new Date().toISOString().split('T')[0],
-                tripDay: 1,
-                cityId: defaultCityId
-            }));
-            setPhotoDetails(initialDetails);
+            // Extract EXIF metadata from all files
+            try {
+                const metadataPromises = files.map(file => extractPhotoMetadata(file));
+                const metadataArray = await Promise.all(metadataPromises);
+
+                const initialDetails = files.map((_file, index) => {
+                    const metadata = metadataArray[index];
+                    
+                    return {
+                        // Use suggested place name if available, otherwise empty
+                        caption: metadata.suggestedCaption || '',
+                        // Use EXIF date if available, otherwise current date
+                        dateTaken: metadata.dateTaken || new Date().toISOString().split('T')[0],
+                        tripDay: 1,
+                        // Use suggested city from GPS if available, otherwise default
+                        cityId: metadata.suggestedCityId || defaultCityId
+                    };
+                });
+                
+                setPhotoDetails(initialDetails);
+                console.log('Auto-populated photo details from EXIF:', initialDetails);
+            } catch (error) {
+                console.error('Error extracting EXIF metadata:', error);
+                
+                // Fallback to default values if EXIF extraction fails
+                const initialDetails = files.map(() => ({
+                    caption: '',
+                    dateTaken: new Date().toISOString().split('T')[0],
+                    tripDay: 1,
+                    cityId: defaultCityId
+                }));
+                setPhotoDetails(initialDetails);
+            }
+            
             setEditingPhotoId(null);
             setIsModalOpen(true);
         }
@@ -133,46 +231,92 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
         }
     };
 
-    // --- DERIVED STATE & RENDER LOGIC ---
+    const handleBatchImport = async () => {
+        if (batchSelectedFiles.length === 0) {
+            alert(t('error')); // No files selected
+            return;
+        }
 
-    // 1. Determine which view to show: Album Grid or Photo Grid
-    // If 'city' prop is present, we are always in Photo Grid for that city.
-    // If 'selectedCityId' is present, we are in Photo Grid for that city.
-    // Otherwise, we are in Album Grid.
-    const activeCityId = city ? city.id : selectedCityId;
-    const isPhotoGridView = !!activeCityId;
+        setIsLoading(true);
+        try {
+            const newPhotos: PhotoItem[] = [];
+            const { description, date, cityId } = batchConfig;
 
-    // 2. Prepare data for Album Grid
-    const getAlbumStats = () => {
-        const stats: Record<string, { count: number, cover: string | null }> = {};
-        CITIES.forEach(c => stats[c.id] = { count: 0, cover: null });
-        stats['unclassified'] = { count: 0, cover: null };
+            // Extract EXIF metadata from all batch files
+            console.log('Extracting EXIF from batch files...');
+            const metadataPromises = batchSelectedFiles.map(file => extractPhotoMetadata(file));
+            const metadataArray = await Promise.all(metadataPromises);
 
-        photos.forEach(p => {
-            const cid = p.cityId && stats[p.cityId] ? p.cityId : 'unclassified';
-            stats[cid].count++;
-            // Use the first photo found as cover if not set
-            // Ideally we might want the *latest* photo, but random is fine for now
-            if (!stats[cid].cover) stats[cid].cover = p.src;
-        });
-        return stats;
-    };
-    const albumStats = getAlbumStats();
+            // Process each selected file
+            for (let i = 0; i < batchSelectedFiles.length; i++) {
+                const file = batchSelectedFiles[i];
+                if (!file.type.startsWith('image/')) continue;
 
-    // 3. Prepare data for Photo Grid
-    const filteredPhotos = isPhotoGridView
-        ? photos.filter(p => {
-            if (activeCityId === 'unclassified') {
-                return !p.cityId || !CITIES.find(c => c.id === p.cityId);
+                const metadata = metadataArray[i];
+
+                try {
+                    // Upload file to storage
+                    const downloadURL = await dbService.uploadImageToStorage(file);
+                    
+                    // Use metadata if available, otherwise use batch config
+                    // Priority: EXIF metadata > user input > defaults
+                    const finalCaption = metadata.suggestedCaption || description || file.name;
+                    const finalDate = metadata.dateTaken || date;
+                    const finalCity = metadata.suggestedCityId || cityId;
+
+                    newPhotos.push({
+                        id: `${Date.now()}-batch-${i}`,
+                        src: downloadURL,
+                        caption: finalCaption,
+                        originalLang: language,
+                        dateTaken: finalDate,
+                        tripDay: 1,
+                        cityId: finalCity,
+                    });
+
+                    console.log(`Batch photo ${i + 1}/${batchSelectedFiles.length}:`, {
+                        file: file.name,
+                        caption: finalCaption,
+                        date: finalDate,
+                        city: finalCity,
+                        fromEXIF: {
+                            caption: !!metadata.suggestedCaption,
+                            date: !!metadata.dateTaken,
+                            city: !!metadata.suggestedCityId
+                        }
+                    });
+                } catch (err) {
+                    console.error(`Error processing file ${file.name}:`, err);
+                }
             }
-            return p.cityId === activeCityId;
-        })
-        : [];
 
-    const activeCityObj = CITIES.find(c => c.id === activeCityId);
-    const activeCityName = activeCityId === 'unclassified' 
-        ? 'Otros / Sin Clasificar' 
-        : (activeCityObj ? t(activeCityObj.nameKey) : activeCityId);
+            if (newPhotos.length > 0) {
+                await dbService.addPhotosBatch(newPhotos);
+                alert(t('photo_album_batch_success'));
+            }
+            
+            setIsBatchModalOpen(false);
+            setBatchSelectedFiles([]); // Reset selection
+            setBatchConfig({
+                description: '',
+                date: new Date().toISOString().split('T')[0],
+                cityId: 'buenosaires'
+            });
+        } catch (error) {
+            console.error("Error batch importing:", error);
+            alert(t('photo_album_error_saving'));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        const [y, m, d] = dateStr.split('-');
+        return `${d}.${m}.${y}`;
+    };
+
+    // --- RENDER LOGIC ---
 
     return (
         <section className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl dark:shadow-slate-700/50">
@@ -207,7 +351,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
             </div>
 
             {/* Upload Button - Always visible */}
-            <div className="mb-8">
+            <div className="mb-8 flex gap-4">
                 <input
                     type="file"
                     multiple
@@ -221,6 +365,13 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center gap-2"
                 >
                     <i className="fas fa-upload"></i> {t('photo_album_upload_button')}
+                </button>
+
+                <button
+                    onClick={() => setIsBatchModalOpen(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center gap-2"
+                >
+                    <i className="fas fa-layer-group"></i> {t('photo_album_batch_import_button')}
                 </button>
             </div>
 
@@ -293,7 +444,8 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                             <img
                                 src={photo.src}
                                 alt={photo.caption}
-                                className="w-full h-48 object-cover"
+                                className="w-full h-48 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                                onClick={() => setViewingPhoto(photo)}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = 'https://via.placeholder.com/400x300?text=Image+Error';
@@ -301,7 +453,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                                 }}
                             />
                             <div className="p-3">
-                                <p className="text-sm text-gray-600 dark:text-slate-300 italic mb-1">{photo.dateTaken}</p>
+                                <p className="text-sm text-gray-600 dark:text-slate-300 italic mb-1">{formatDate(photo.dateTaken)}</p>
                                 <p className="text-gray-800 dark:text-slate-100 font-semibold truncate">{photo.caption}</p>
                             </div>
                             <button
@@ -423,6 +575,163 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                             >
                                 {isLoading && <i className="fas fa-spinner fa-spin"></i>}
                                 {t('save')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Batch Import Modal */}
+            {isBatchModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full p-6">
+                        <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-slate-100">
+                             {t('photo_album_batch_modal_title')}
+                        </h3>
+
+                        <div className="space-y-4 mb-6">
+                             {/* File Selection Button */}
+                             <div>
+                                 <input
+                                     type="file"
+                                     multiple
+                                     accept="image/*"
+                                     onChange={(e) => {
+                                         if (e.target.files && e.target.files.length > 0) {
+                                             setBatchSelectedFiles(Array.from(e.target.files));
+                                         }
+                                     }}
+                                     className="hidden"
+                                     ref={batchFileInputRef}
+                                 />
+                                 <button
+                                     onClick={() => batchFileInputRef.current?.click()}
+                                     className="w-full bg-emerald-100 dark:bg-emerald-900/30 border-2 border-dashed border-emerald-500 rounded-lg py-8 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors flex flex-col items-center gap-2"
+                                 >
+                                     <i className="fas fa-images text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                     <span className="text-emerald-700 dark:text-emerald-300 font-semibold">
+                                         {batchSelectedFiles.length > 0 
+                                             ? `${batchSelectedFiles.length} ${batchSelectedFiles.length === 1 ? 'foto seleccionada' : 'fotos seleccionadas'}`
+                                             : 'Haz clic para seleccionar fotos'}
+                                     </span>
+                                 </button>
+                             </div>
+
+                             {/* Description */}
+                             <div>
+                                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_description_label')}</label>
+                                 <input
+                                     type="text"
+                                     value={batchConfig.description}
+                                     onChange={(e) => setBatchConfig({...batchConfig, description: e.target.value})}
+                                     placeholder={t('photo_album_upload_caption_placeholder') || 'Descripción común (opcional)'}
+                                     className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
+                                 />
+                             </div>
+
+                             {/* Date & City */}
+                             <div className="flex gap-4">
+                                 <div className="w-1/2">
+                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_date_label')}</label>
+                                     <input
+                                         type="date"
+                                         value={batchConfig.date}
+                                         onChange={(e) => setBatchConfig({...batchConfig, date: e.target.value})}
+                                         className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
+                                     />
+                                 </div>
+                                 <div className="w-1/2">
+                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_city_label')}</label>
+                                     <select
+                                         value={batchConfig.cityId}
+                                         onChange={(e) => setBatchConfig({...batchConfig, cityId: e.target.value})}
+                                         className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
+                                     >
+                                          {CITIES.map(c => (
+                                              <option key={c.id} value={c.id}>{t(c.nameKey)}</option>
+                                          ))}
+                                          <option value="unclassified">{t('album_others')}</option>
+                                     </select>
+                                 </div>
+                             </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setIsBatchModalOpen(false);
+                                    setBatchSelectedFiles([]);
+                                }}
+                                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                                {t('cancel')}
+                            </button>
+                            <button
+                                onClick={handleBatchImport}
+                                disabled={isLoading || batchSelectedFiles.length === 0}
+                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isLoading && <i className="fas fa-spinner fa-spin"></i>}
+                                {t('photo_album_batch_import_action')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Photo Viewer Modal */}
+            {viewingPhoto && (
+                <div 
+                    className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setViewingPhoto(null);
+                        setIsSlideshowPlaying(false);
+                    }}
+                >
+                    <button
+                        onClick={() => setViewingPhoto(null)}
+                        className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 focus:outline-hidden"
+                    >
+                        &times;
+                    </button>
+                    <div 
+                        className="max-w-5xl max-h-screen w-full flex flex-col items-center"
+                        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking content
+                    >
+                        <img
+                            src={viewingPhoto.src}
+                            alt={viewingPhoto.caption}
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                        />
+                        <div className="mt-4 text-center text-white">
+                            <h3 className="text-xl font-bold">{viewingPhoto.caption}</h3>
+                            <p className="text-sm opacity-80">{formatDate(viewingPhoto.dateTaken)}</p>
+                        </div>
+                        
+                        {/* Navigation Controls */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2"
+                        >
+                            <i className="fas fa-chevron-left text-4xl"></i>
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2"
+                        >
+                            <i className="fas fa-chevron-right text-4xl"></i>
+                        </button>
+
+                        {/* Top Controls */}
+                        <div className="absolute top-4 right-16 flex items-center gap-4">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleSlideshow(); }}
+                                className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
+                                    isSlideshowPlaying ? 'bg-indigo-600 text-white' : 'bg-black/50 text-white hover:bg-black/70'
+                                }`}
+                            >
+                                <i className={`fas ${isSlideshowPlaying ? 'fa-pause' : 'fa-play'}`}></i>
+                                <span className="text-sm font-medium">{t('photo_album_slideshow')}</span>
                             </button>
                         </div>
                     </div>

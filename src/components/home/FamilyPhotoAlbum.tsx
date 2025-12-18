@@ -5,6 +5,7 @@ import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem, City } from '../../types.ts';
 import { dbService } from '../../services/dbService.ts';
 import { CITIES } from '../../constants.ts';
+import { extractPhotoMetadata } from '../../utils/photoMetadata.ts';
 
 interface FamilyPhotoAlbumProps {
     city?: City;
@@ -25,10 +26,9 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
 
     // Batch Import State
     const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+    const [batchSelectedFiles, setBatchSelectedFiles] = useState<File[]>([]); // Files selected for batch import
+    const batchFileInputRef = useRef<HTMLInputElement>(null); // Ref for batch file input
     const [batchConfig, setBatchConfig] = useState({
-        prefix: 'DSCN',
-        start: 0,
-        end: 0,
         description: '',
         date: new Date().toISOString().split('T')[0],
         cityId: 'buenosaires'
@@ -111,23 +111,49 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
         }
     }, [city]);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const files = Array.from(e.target.files);
             setSelectedFiles(files);
 
             // Determine default city for new photos
-            // If we are in a specific city view (prop or selected), use that. Default to 'buenosaires' otherwise.
             const currentActiveCityId = city?.id || selectedCityId || 'buenosaires';
             const defaultCityId = currentActiveCityId === 'unclassified' ? 'buenosaires' : currentActiveCityId;
 
-            const initialDetails = files.map(() => ({
-                caption: '',
-                dateTaken: new Date().toISOString().split('T')[0],
-                tripDay: 1,
-                cityId: defaultCityId
-            }));
-            setPhotoDetails(initialDetails);
+            // Extract EXIF metadata from all files
+            try {
+                const metadataPromises = files.map(file => extractPhotoMetadata(file));
+                const metadataArray = await Promise.all(metadataPromises);
+
+                const initialDetails = files.map((_file, index) => {
+                    const metadata = metadataArray[index];
+                    
+                    return {
+                        // Use suggested place name if available, otherwise empty
+                        caption: metadata.suggestedCaption || '',
+                        // Use EXIF date if available, otherwise current date
+                        dateTaken: metadata.dateTaken || new Date().toISOString().split('T')[0],
+                        tripDay: 1,
+                        // Use suggested city from GPS if available, otherwise default
+                        cityId: metadata.suggestedCityId || defaultCityId
+                    };
+                });
+                
+                setPhotoDetails(initialDetails);
+                console.log('Auto-populated photo details from EXIF:', initialDetails);
+            } catch (error) {
+                console.error('Error extracting EXIF metadata:', error);
+                
+                // Fallback to default values if EXIF extraction fails
+                const initialDetails = files.map(() => ({
+                    caption: '',
+                    dateTaken: new Date().toISOString().split('T')[0],
+                    tripDay: 1,
+                    cityId: defaultCityId
+                }));
+                setPhotoDetails(initialDetails);
+            }
+            
             setEditingPhotoId(null);
             setIsModalOpen(true);
         }
@@ -206,36 +232,62 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
     };
 
     const handleBatchImport = async () => {
+        if (batchSelectedFiles.length === 0) {
+            alert(t('error')); // No files selected
+            return;
+        }
+
         setIsLoading(true);
         try {
             const newPhotos: PhotoItem[] = [];
-            const { prefix, start, end, description, date, cityId } = batchConfig;
+            const { description, date, cityId } = batchConfig;
 
-            if (start > end) {
-                alert(t('error')); // Basic validation
-                setIsLoading(false);
-                return;
-            }
+            // Extract EXIF metadata from all batch files
+            console.log('Extracting EXIF from batch files...');
+            const metadataPromises = batchSelectedFiles.map(file => extractPhotoMetadata(file));
+            const metadataArray = await Promise.all(metadataPromises);
 
-            for (let i = start; i <= end; i++) {
-                // Pad number to 4 digits if prefix implies it (standard camera format)
-                // If the user inputs 916, we want 0916.
-                const paddedNumber = i.toString().padStart(4, '0');
-                const filename = `${prefix}${paddedNumber}.JPG`;
-                
-                // Construct URL based on known "100NIKON" folder
-                // We assume files are already there as per instructions
-                const src = `/docs/imagenes/100NIKON/${filename}`;
-                
-                newPhotos.push({
-                    id: `${Date.now()}-batch-${i}`,
-                    src: src,
-                    caption: description,
-                    originalLang: language,
-                    dateTaken: date,
-                    tripDay: 1, // Default or calculate?
-                    cityId: cityId,
-                });
+            // Process each selected file
+            for (let i = 0; i < batchSelectedFiles.length; i++) {
+                const file = batchSelectedFiles[i];
+                if (!file.type.startsWith('image/')) continue;
+
+                const metadata = metadataArray[i];
+
+                try {
+                    // Upload file to storage
+                    const downloadURL = await dbService.uploadImageToStorage(file);
+                    
+                    // Use metadata if available, otherwise use batch config
+                    // Priority: EXIF metadata > user input > defaults
+                    const finalCaption = metadata.suggestedCaption || description || file.name;
+                    const finalDate = metadata.dateTaken || date;
+                    const finalCity = metadata.suggestedCityId || cityId;
+
+                    newPhotos.push({
+                        id: `${Date.now()}-batch-${i}`,
+                        src: downloadURL,
+                        caption: finalCaption,
+                        originalLang: language,
+                        dateTaken: finalDate,
+                        tripDay: 1,
+                        cityId: finalCity,
+                    });
+
+                    console.log(`Batch photo ${i + 1}/${batchSelectedFiles.length}:`, {
+                        file: file.name,
+                        caption: finalCaption,
+                        date: finalDate,
+                        city: finalCity,
+                        fromEXIF: {
+                            caption: !!metadata.suggestedCaption,
+                            date: !!metadata.dateTaken,
+                            city: !!metadata.suggestedCityId
+                        }
+                    });
+                } catch (err) {
+                    console.error(`Error processing file ${file.name}:`, err);
+                }
             }
 
             if (newPhotos.length > 0) {
@@ -244,7 +296,12 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
             }
             
             setIsBatchModalOpen(false);
-            // Reset config optionally or keep for next batch
+            setBatchSelectedFiles([]); // Reset selection
+            setBatchConfig({
+                description: '',
+                date: new Date().toISOString().split('T')[0],
+                cityId: 'buenosaires'
+            });
         } catch (error) {
             console.error("Error batch importing:", error);
             alert(t('photo_album_error_saving'));
@@ -533,37 +590,31 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                         </h3>
 
                         <div className="space-y-4 mb-6">
-                             {/* Prefix */}
+                             {/* File Selection Button */}
                              <div>
-                                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_prefix_label')}</label>
                                  <input
-                                     type="text"
-                                     value={batchConfig.prefix}
-                                     onChange={(e) => setBatchConfig({...batchConfig, prefix: e.target.value})}
-                                     className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
+                                     type="file"
+                                     multiple
+                                     accept="image/*"
+                                     onChange={(e) => {
+                                         if (e.target.files && e.target.files.length > 0) {
+                                             setBatchSelectedFiles(Array.from(e.target.files));
+                                         }
+                                     }}
+                                     className="hidden"
+                                     ref={batchFileInputRef}
                                  />
-                             </div>
-
-                             {/* Range */}
-                             <div className="flex gap-4">
-                                 <div className="w-1/2">
-                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_from_label')}</label>
-                                     <input
-                                         type="number"
-                                         value={batchConfig.start}
-                                         onChange={(e) => setBatchConfig({...batchConfig, start: parseInt(e.target.value) || 0})}
-                                         className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
-                                     />
-                                 </div>
-                                 <div className="w-1/2">
-                                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{t('photo_album_batch_to_label')}</label>
-                                     <input
-                                         type="number"
-                                         value={batchConfig.end}
-                                         onChange={(e) => setBatchConfig({...batchConfig, end: parseInt(e.target.value) || 0})}
-                                         className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
-                                     />
-                                 </div>
+                                 <button
+                                     onClick={() => batchFileInputRef.current?.click()}
+                                     className="w-full bg-emerald-100 dark:bg-emerald-900/30 border-2 border-dashed border-emerald-500 rounded-lg py-8 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors flex flex-col items-center gap-2"
+                                 >
+                                     <i className="fas fa-images text-4xl text-emerald-600 dark:text-emerald-400"></i>
+                                     <span className="text-emerald-700 dark:text-emerald-300 font-semibold">
+                                         {batchSelectedFiles.length > 0 
+                                             ? `${batchSelectedFiles.length} ${batchSelectedFiles.length === 1 ? 'foto seleccionada' : 'fotos seleccionadas'}`
+                                             : 'Haz clic para seleccionar fotos'}
+                                     </span>
+                                 </button>
                              </div>
 
                              {/* Description */}
@@ -573,6 +624,7 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
                                      type="text"
                                      value={batchConfig.description}
                                      onChange={(e) => setBatchConfig({...batchConfig, description: e.target.value})}
+                                     placeholder={t('photo_album_upload_caption_placeholder') || 'Descripción común (opcional)'}
                                      className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600"
                                  />
                              </div>
@@ -606,14 +658,17 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
 
                         <div className="flex justify-end gap-3">
                             <button
-                                onClick={() => setIsBatchModalOpen(false)}
+                                onClick={() => {
+                                    setIsBatchModalOpen(false);
+                                    setBatchSelectedFiles([]);
+                                }}
                                 className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
                                 {t('cancel')}
                             </button>
                             <button
                                 onClick={handleBatchImport}
-                                disabled={isLoading}
+                                disabled={isLoading || batchSelectedFiles.length === 0}
                                 className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md disabled:opacity-50 flex items-center gap-2"
                             >
                                 {isLoading && <i className="fas fa-spinner fa-spin"></i>}
