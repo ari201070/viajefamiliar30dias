@@ -96,9 +96,19 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                 // For Geocoding API, the 'name' field isn't always top-level like Places API.
                 // Usually formatted_address starts with the name for establishments.
                 const name = result.formatted_address.split(',')[0];
-                console.log('📍 [Geocoding] Found POI via Geocoding:', name);
-                saveGeocodeResult(latitude, longitude, name);
-                return name;
+                
+                // CRITICAL FIX: Google sometimes returns a "Plus Code" (e.g., "6J54+XR") as the name.
+                // We MUST reject this to force the Places Nearby fallback, which finds real names like "Cerro San Bernardo".
+                // Regex checks for typical Plus Code pattern (alphanumeric + '+' + alphanumeric, no spaces usually in the code part)
+                const isPlusCode = /^[A-Z0-9]{2,8}\+[A-Z0-9]{2,5}$/.test(name.trim()) || name.includes('+'); 
+
+                if (!isPlusCode) {
+                    console.log('📍 [Geocoding] Found POI via Geocoding:', name);
+                    saveGeocodeResult(latitude, longitude, name);
+                    return name;
+                } else {
+                    console.log('📍 [Geocoding] Result was a Plus Code (' + name + '), falling back to Places Nearby...');
+                }
             }
         }
 
