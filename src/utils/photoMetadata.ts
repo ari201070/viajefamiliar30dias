@@ -105,7 +105,8 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                 
                 // 2. Check for Street Address patterns (starts with Av., Calle, Ruta, or contains numbers likely being an address)
                 // This prevents "Av. Belgrano 500" from being accepted as a landmark name.
-                const isAddress = /^(Av\.|Calle|Ruta|Camino|Bv\.|Autopista)\s/i.test(name) || (/\d+/.test(name) && !/^\d+\sde\s/.test(name)); // Allow "25 de Mayo" but reject "Belgrano 1234"
+                // Updated to include full words "Avenida", "Boulevard"
+                const isAddress = /^(Av\.|Avenida|Calle|Ruta|Camino|Bv\.|Boulevard|Autopista)\s/i.test(name) || (/\d+/.test(name) && !/^\d+\sde\s/.test(name)); // Allow "25 de Mayo" but reject "Belgrano 1234"
 
                 if (!isPlusCode && !isAddress) {
                     console.log('📍 [Geocoding] Found POI via Geocoding:', name);
