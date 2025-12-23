@@ -97,17 +97,22 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                 // Usually formatted_address starts with the name for establishments.
                 const name = result.formatted_address.split(',')[0];
                 
-                // CRITICAL FIX: Google sometimes returns a "Plus Code" (e.g., "6J54+XR") as the name.
-                // We MUST reject this to force the Places Nearby fallback, which finds real names like "Cerro San Bernardo".
-                // Regex checks for typical Plus Code pattern (alphanumeric + '+' + alphanumeric, no spaces usually in the code part)
-                const isPlusCode = /^[A-Z0-9]{2,8}\+[A-Z0-9]{2,5}$/.test(name.trim()) || name.includes('+'); 
+                // CRITICAL FIX: Google sometimes returns a "Plus Code" (e.g., "6J54+XR") OR a street address as the name.
+                // We MUST reject these to force the Places Nearby fallback.
+                
+                // 1. Check for Plus Code
+                const isPlusCode = /^[A-Z0-9]{2,8}\+[A-Z0-9]{2,5}$/.test(name.trim()) || name.includes('+');
+                
+                // 2. Check for Street Address patterns (starts with Av., Calle, Ruta, or contains numbers likely being an address)
+                // This prevents "Av. Belgrano 500" from being accepted as a landmark name.
+                const isAddress = /^(Av\.|Calle|Ruta|Camino|Bv\.|Autopista)\s/i.test(name) || (/\d+/.test(name) && !/^\d+\sde\s/.test(name)); // Allow "25 de Mayo" but reject "Belgrano 1234"
 
-                if (!isPlusCode) {
+                if (!isPlusCode && !isAddress) {
                     console.log('📍 [Geocoding] Found POI via Geocoding:', name);
                     saveGeocodeResult(latitude, longitude, name);
                     return name;
                 } else {
-                    console.log('📍 [Geocoding] Result was a Plus Code (' + name + '), falling back to Places Nearby...');
+                    console.log(`📍 [Geocoding] Result "${name}" rejected (PlusCode/Address), falling back to Places Nearby...`);
                 }
             }
         }
@@ -119,7 +124,17 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
         
         const placesUrl = `https://places.googleapis.com/v1/places:searchNearby`;
         const requestBody = {
-            includedTypes: ["tourist_attraction", "lodging", "restaurant", "park", "museum"],
+            includedTypes: [
+                "tourist_attraction", 
+                "lodging", 
+                "restaurant", 
+                "park", 
+                "museum", 
+                "historical_landmark", 
+                "place_of_worship", 
+                "town_square", 
+                "cultural_center"
+            ],
             maxResultCount: 1,
             locationRestriction: {
                 circle: {
@@ -127,7 +142,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                         latitude: latitude,
                         longitude: longitude
                     },
-                    radius: 150.0
+                    radius: 300.0 // Increased from 150m to capture large monuments/plazas even if photo is from edge
                 }
             },
             languageCode: "es"
