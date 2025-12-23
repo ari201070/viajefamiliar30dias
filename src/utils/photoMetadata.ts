@@ -102,26 +102,51 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
             }
         }
 
-        // 3. Fallback: Places Nearby Search
-        // If Geocoding didn't return a specific POI, we look for nearby places.
-        // Radius: 100 meters. Rank by prominence or distance.
-        console.log('📍 [Geocoding] No specific POI from Geocoding, trying Places Nearby...');
-        const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=100&type=tourist_attraction|lodging|restaurant|food|park|museum&key=${apiKey}&language=es`;
+        // 3. Fallback: Places Nearby Search (New API v1)
+        // Updated to use the modern "Places API (New)" which supports CORS and is what the user enabled.
+        // Endpoint: https://places.googleapis.com/v1/places:searchNearby
+        console.log('📍 [Geocoding] No specific POI from Geocoding, trying Places Nearby (New API)...');
         
-        // CORX/Allow-Origin might block client-side calls to Places API without a proxy in some setups,
-        // but typically enabled for Browser keys. Note: Places API often doesn't output JSON format directly compatible without headers if strict CORS.
-        // Assuming standard Firebase/cloud setup allows it or we rely on the same proxy behavior as Geocoding.
-        
-        const placesRes = await fetch(placesUrl);
-        const placesData = await placesRes.json();
+        const placesUrl = `https://places.googleapis.com/v1/places:searchNearby`;
+        const requestBody = {
+            includedTypes: ["tourist_attraction", "lodging", "restaurant", "park", "museum"],
+            maxResultCount: 1,
+            locationRestriction: {
+                circle: {
+                    center: {
+                        latitude: latitude,
+                        longitude: longitude
+                    },
+                    radius: 150.0
+                }
+            },
+            languageCode: "es"
+        };
 
-        if (placesData.status === 'OK' && placesData.results.length > 0) {
-            // Get the first result (most prominent/closest)
-            const place = placesData.results[0];
-            const name = place.name;
-            console.log('📍 [Geocoding] Found via Places Nearby:', name);
-            saveGeocodeResult(latitude, longitude, name);
-            return name;
+        const placesRes = await fetch(placesUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': apiKey,
+                'X-Goog-FieldMask': 'places.displayName,places.id,places.formattedAddress'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!placesRes.ok) {
+             const errText = await placesRes.text();
+             console.warn('⚠️ [Geocoding] Places API (New) request failed:', placesRes.status, errText);
+        } else {
+             const placesData = await placesRes.json();
+             if (placesData.places && placesData.places.length > 0) {
+                 const place = placesData.places[0];
+                 const name = place.displayName ? place.displayName.text : null;
+                 if (name) {
+                     console.log('📍 [Geocoding] Found via Places Nearby (New):', name);
+                     saveGeocodeResult(latitude, longitude, name);
+                     return name;
+                 }
+             }
         }
 
         // 4. Final Fallback: Basic Geocoding (Address/Route)
