@@ -11,7 +11,7 @@ Este documento aclara la función de cada clave, dónde se encuentra y cómo se 
 - Proporciona servicios de **Geocoding Inverso** (convertir coordenadas de fotos en nombres de lugares como "Mendoza" o "VIP Rosario").
 - Se usa en el archivo: `src/utils/photoMetadata.ts`.
   **Configuración Crítica:**
-- Debe estar habilitada la **"Geocoding API"** en la consola de Google Cloud.
+- Debe estar habilitada la **"Geocoding API"** y la **"Places API" (New)** en la consola de Google Cloud.
 - Por seguridad, en el código se usa un "fail-safe" que busca esta clave primero en el entorno (`import.meta.env`) y luego en las credenciales de Firebase como respaldo.
 
 ---

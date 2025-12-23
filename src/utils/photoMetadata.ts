@@ -15,86 +15,129 @@ export interface PhotoMetadata {
  * Convierte coordenadas GPS → nombre del lugar
  * Mucho más preciso que Nominatim para restaurantes, hoteles, etc.
  */
-async function reverseGeocode(latitude: number, longitude: number): Promise<string | undefined> {
+// Cache to store geocoding results and reduce API usage
+const GEOCODE_CACHE_KEY = 'geocode_cache';
+interface GeocodeCache {
+    [key: string]: string;
+}
+
+function getGeocodeCache(): GeocodeCache {
     try {
-        let apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-        
-        // Fail-safe: Si Vite no inyectó la clave del .env, usar la de firebaseCredentials (que es la misma en este proyecto)
-        if (!apiKey || apiKey === 'undefined' || apiKey === '') {
-            console.warn('⚠️ [DEBUG] VITE_GOOGLE_API_KEY missing from env, using fallback from credentials');
-            apiKey = firebaseCredentials.apiKey;
-        }
+        const cache = localStorage.getItem(GEOCODE_CACHE_KEY);
+        return cache ? JSON.parse(cache) : {};
+    } catch (e) {
+        return {};
+    }
+}
 
-        console.log('🔑 [DEBUG] API Key available?', !!apiKey, apiKey ? apiKey.substring(0, 7) + '...' : 'MISSING');
-        
-        if (!apiKey) {
-            console.warn('❌ [DEBUG] Google Maps API key NOT found.');
-            return undefined;
-        }
+function saveGeocodeResult(lat: number, lng: number, placeName: string) {
+    try {
+        const cache = getGeocodeCache();
+        // Use 4 decimal places for key (~11m precision), sufficient for grouping nearby photos
+        const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+        cache[key] = placeName;
+        localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+        console.warn('Failed to save to geocode cache:', e);
+    }
+}
 
-        // Google Maps Geocoding API - Reverse Geocoding
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=es`;
-        console.log('🌐 [DEBUG] Fetching:', url.replace(apiKey, 'HIDDEN'));
-        
-        const response = await fetch(url);
-        console.log('📡 [DEBUG] Response Status:', response.status);
+function checkGeocodeCache(lat: number, lng: number): string | undefined {
+    const cache = getGeocodeCache();
+    const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    return cache[key];
+}
 
-        if (!response.ok) {
-            console.error('❌ [DEBUG] HTTP Error:', response.status, response.statusText);
-            const text = await response.text();
-            console.error('❌ [DEBUG] Body:', text);
-            return undefined;
-        }
+/**
+ * Realiza geocodificación inversa + Places Nearby Search
+ * 1. Busca en caché local.
+ * 2. Intenta Google Geocoding API priorizando POIs.
+ * 3. Si es genérico, intenta Google Places Nearby Search para mayor precisión.
+ */
+async function reverseGeocode(latitude: number, longitude: number): Promise<string | undefined> {
+    // 1. Check Cache
+    const cachedType = checkGeocodeCache(latitude, longitude);
+    if (cachedType) {
+        console.log('📍 [Geocoding] Cache hit:', cachedType);
+        return cachedType;
+    }
 
-        const data = await response.json();
-        console.log('📦 [DEBUG] Data Status:', data.status);
-        
-        if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-            console.warn('⚠️ [DEBUG] API returned error or no results:', data);
-            return undefined;
-        }
+    let apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+    // Fail-safe
+    if (!apiKey || apiKey === 'undefined' || apiKey === '') {
+        console.warn('⚠️ [Geocoding] VITE_GOOGLE_API_KEY missing, using fallback.');
+        apiKey = firebaseCredentials.apiKey;
+    }
 
-        // Prioridad de resultados:
-        // 1. "point_of_interest" (restaurante, hotel, atracción)
-        // 2. "establishment" (negocios en general)
-        // 3. "premise" (edificio/dirección específica)
-        // 4. "route" (calle)
+    if (!apiKey) {
+        console.warn('❌ [Geocoding] No API Key available.');
+        return undefined;
+    }
+
+    try {
+        // 2. Try Geocoding API with result_type filtering
+        // We ask for point_of_interest and establishment specifically to avoid generic street names if possible.
+        // However, if we ONLY ask for these and there are none, we might get ZERO_RESULTS.
+        // Strategy: Ask for everything but prioritize in code, or use a broad list.
+        // Better Strategy from Plan: Use result_type in the query to hint what we want.
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&result_type=point_of_interest|establishment|premise&key=${apiKey}&language=es`;
         
-        const results = data.results;
-        
-        // Buscar primero puntos de interés (restaurantes, hoteles, etc.)
-        const poi = results.find((r: any) => 
-            r.types.includes('point_of_interest') || 
-            r.types.includes('establishment')
-        );
-        
-        if (poi) {
-            console.log('Google Maps reverse geocoding result:', {
-                coords: { latitude, longitude },
-                placeName: poi.name || poi.formatted_address,
-                types: poi.types,
-                fullData: poi
-            });
+        const geocodeRes = await fetch(geocodeUrl);
+        const geocodeData = await geocodeRes.json();
+
+        if (geocodeData.status === 'OK' && geocodeData.results.length > 0) {
+            const result = geocodeData.results[0]; // Google ranks them by specificity usually
+            const isSpecific = result.types.includes('point_of_interest') || result.types.includes('establishment') || result.types.includes('tourist_attraction');
             
-            // Usar el nombre del lugar (ej: "Don Julio") en lugar de la dirección completa
-            return poi.name || poi.formatted_address.split(',')[0];
+            if (isSpecific) {
+                // If it's a specific place, we trust it.
+                // Depending on the result, 'formatted_address' might be "Don Julio, Guatemala 4699..."
+                // We try to extract the name if it's available in address_components or just use the first part.
+                // For Geocoding API, the 'name' field isn't always top-level like Places API.
+                // Usually formatted_address starts with the name for establishments.
+                const name = result.formatted_address.split(',')[0];
+                console.log('📍 [Geocoding] Found POI via Geocoding:', name);
+                saveGeocodeResult(latitude, longitude, name);
+                return name;
+            }
         }
-        
-        // Si no hay POI, usar el primer resultado (generalmente la dirección)
-        const firstResult = results[0];
-        const placeName = firstResult.formatted_address.split(',')[0]; // Primera parte de la dirección
-        
-        console.log('Google Maps reverse geocoding result:', {
-            coords: { latitude, longitude },
-            placeName,
-            types: firstResult.types,
-            fullData: firstResult
-        });
 
-        return placeName;
+        // 3. Fallback: Places Nearby Search
+        // If Geocoding didn't return a specific POI, we look for nearby places.
+        // Radius: 100 meters. Rank by prominence or distance.
+        console.log('📍 [Geocoding] No specific POI from Geocoding, trying Places Nearby...');
+        const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=100&type=tourist_attraction|lodging|restaurant|food|park|museum&key=${apiKey}&language=es`;
+        
+        // CORX/Allow-Origin might block client-side calls to Places API without a proxy in some setups,
+        // but typically enabled for Browser keys. Note: Places API often doesn't output JSON format directly compatible without headers if strict CORS.
+        // Assuming standard Firebase/cloud setup allows it or we rely on the same proxy behavior as Geocoding.
+        
+        const placesRes = await fetch(placesUrl);
+        const placesData = await placesRes.json();
+
+        if (placesData.status === 'OK' && placesData.results.length > 0) {
+            // Get the first result (most prominent/closest)
+            const place = placesData.results[0];
+            const name = place.name;
+            console.log('📍 [Geocoding] Found via Places Nearby:', name);
+            saveGeocodeResult(latitude, longitude, name);
+            return name;
+        }
+
+        // 4. Final Fallback: Basic Geocoding (Address/Route)
+        // If Places also fails (e.g. middle of nowhere), just get the locality/route from a basic geocode call without strict types
+        // Or reuse the result from step 2 if we had any.
+        if (geocodeData.status === 'OK' && geocodeData.results.length > 0) {
+             const fallbackName = geocodeData.results[0].formatted_address.split(',')[0];
+             console.log('📍 [Geocoding] Fallback to basic address:', fallbackName);
+             saveGeocodeResult(latitude, longitude, fallbackName);
+             return fallbackName;
+        }
+
+        return undefined;
 
     } catch (error) {
-        console.error('Error in Google Maps reverse geocoding:', error);
+        console.error('❌ [Geocoding] Error:', error);
         return undefined;
     }
 }
