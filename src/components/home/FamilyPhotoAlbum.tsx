@@ -5,7 +5,7 @@ import { useAppContext } from '../../context/AppContext.tsx';
 import { PhotoItem, City } from '../../types.ts';
 import { dbService } from '../../services/dbService.ts';
 import { CITIES } from '../../constants.ts';
-import { extractPhotoMetadata } from '../../utils/photoMetadata.ts';
+import { extractPhotoMetadata, extractBatchMetadata } from '../../utils/photoMetadata.ts';
 
 interface FamilyPhotoAlbumProps {
     city?: City;
@@ -120,10 +120,9 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
             const currentActiveCityId = city?.id || selectedCityId || 'buenosaires';
             const defaultCityId = currentActiveCityId === 'unclassified' ? 'buenosaires' : currentActiveCityId;
 
-            // Extract EXIF metadata from all files
+            // Extract EXIF metadata from all files with context-aware clustering
             try {
-                const metadataPromises = files.map(file => extractPhotoMetadata(file));
-                const metadataArray = await Promise.all(metadataPromises);
+                const metadataArray = await extractBatchMetadata(files);
 
                 const initialDetails = files.map((_file, index) => {
                     const metadata = metadataArray[index];
@@ -242,10 +241,9 @@ const FamilyPhotoAlbum: FC<FamilyPhotoAlbumProps> = ({ city }) => {
             const newPhotos: PhotoItem[] = [];
             const { description, date, cityId } = batchConfig;
 
-            // Extract EXIF metadata from all batch files
+            // Extract EXIF metadata from all batch files with context-aware clustering
             console.log('Extracting EXIF from batch files...');
-            const metadataPromises = batchSelectedFiles.map(file => extractPhotoMetadata(file));
-            const metadataArray = await Promise.all(metadataPromises);
+            const metadataArray = await extractBatchMetadata(batchSelectedFiles);
 
             // Process each selected file
             for (let i = 0; i < batchSelectedFiles.length; i++) {
