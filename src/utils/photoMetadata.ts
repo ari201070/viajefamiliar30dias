@@ -150,7 +150,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                         latitude: latitude,
                         longitude: longitude
                     },
-                    radius: 300.0 // Increased from 150m to capture large monuments/plazas even if photo is from edge
+                    radius: 100.0 // Reduced from 300m: balance between precision and coverage
                 }
             },
             languageCode: "es"
