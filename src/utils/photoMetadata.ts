@@ -334,9 +334,127 @@ export async function extractPhotoMetadata(file: File): Promise<PhotoMetadata> {
 }
 
 /**
- * Extrae metadatos de múltiples archivos en paralelo
+ * Extrae metadatos de múltiples archivos en paralelo con análisis de contexto
+ * Si múltiples fotos están tomadas en el mismo momento y lugar, usa el lugar más común
  */
 export async function extractBatchMetadata(files: File[]): Promise<PhotoMetadata[]> {
+    // 1. Extract all metadata in parallel
     const promises = files.map(file => extractPhotoMetadata(file));
-    return Promise.all(promises);
+    const allMetadata = await Promise.all(promises);
+    
+    // 2. Apply context-aware correction for photos with GPS
+    const photosWithGPS = allMetadata.filter(m => m.latitude && m.longitude && m.dateTaken);
+    
+    if (photosWithGPS.length > 1) {
+        // Group photos by spatial-temporal proximity
+        const clusters = clusterPhotosByContext(photosWithGPS);
+        
+        // For each cluster with multiple photos, apply consensus
+        for (const cluster of clusters) {
+            if (cluster.length > 1) {
+                const consensusCaption = getMostCommonCaption(cluster);
+                if (consensusCaption) {
+                    console.log(`📍 [Context] Applying consensus "${consensusCaption}" to ${cluster.length} photos`);
+                    cluster.forEach(photo => {
+                        photo.suggestedCaption = consensusCaption;
+                    });
+                }
+            }
+        }
+    }
+    
+    return allMetadata;
+}
+
+/**
+ * Agrupa fotos por proximidad temporal y espacial
+ * Fotos tomadas en < 5 minutos y < 20 metros se consideran del mismo contexto
+ */
+function clusterPhotosByContext(photos: PhotoMetadata[]): PhotoMetadata[][] {
+    const clusters: PhotoMetadata[][] = [];
+    const processed = new Set<PhotoMetadata>();
+    
+    for (const photo of photos) {
+        if (processed.has(photo)) continue;
+        
+        const cluster: PhotoMetadata[] = [photo];
+        processed.add(photo);
+        
+        // Find all photos near this one
+        for (const other of photos) {
+            if (processed.has(other)) continue;
+            
+            const timeClose = arePhotosTemporallyClose(photo, other);
+            const spaceClose = arePhotosSpatiallyClose(photo, other);
+            
+            if (timeClose && spaceClose) {
+                cluster.push(other);
+                processed.add(other);
+            }
+        }
+        
+        clusters.push(cluster);
+    }
+    
+    return clusters;
+}
+
+/**
+ * Verifica si 2 fotos están tomadas con < 5 minutos de diferencia
+ */
+function arePhotosTemporallyClose(photo1: PhotoMetadata, photo2: PhotoMetadata): boolean {
+    if (!photo1.dateTaken || !photo2.dateTaken) return false;
+    
+    const time1 = new Date(photo1.dateTaken).getTime();
+    const time2 = new Date(photo2.dateTaken).getTime();
+    const diffMinutes = Math.abs(time1 - time2) / (1000 * 60);
+    
+    return diffMinutes < 5; // 5 minutes threshold
+}
+
+/**
+ * Verifica si 2 fotos están a < 20 metros de distancia
+ */
+function arePhotosSpatiallyClose(photo1: PhotoMetadata, photo2: PhotoMetadata): boolean {
+    if (!photo1.latitude || !photo1.longitude || !photo2.latitude || !photo2.longitude) {
+        return false;
+    }
+    
+    const distance = calculateDistance(
+        photo1.latitude, 
+        photo1.longitude, 
+        photo2.latitude, 
+        photo2.longitude
+    );
+    
+    return distance < 0.02; // 20 meters in km
+}
+
+/**
+ * Obtiene el caption más común entre un grupo de fotos (consenso)
+ */
+function getMostCommonCaption(photos: PhotoMetadata[]): string | undefined {
+    const captionCounts = new Map<string, number>();
+    
+    for (const photo of photos) {
+        if (photo.suggestedCaption) {
+            const count = captionCounts.get(photo.suggestedCaption) || 0;
+            captionCounts.set(photo.suggestedCaption, count + 1);
+        }
+    }
+    
+    if (captionCounts.size === 0) return undefined;
+    
+    // Return the most common caption
+    let maxCount = 0;
+    let mostCommon: string | undefined;
+    
+    for (const [caption, count] of captionCounts) {
+        if (count > maxCount) {
+            maxCount = count;
+            mostCommon = caption;
+        }
+    }
+    
+    return mostCommon;
 }
