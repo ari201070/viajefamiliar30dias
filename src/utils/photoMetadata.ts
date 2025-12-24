@@ -143,7 +143,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                 "museum",
                 "historical_landmark"
             ],
-            maxResultCount: 1,
+            maxResultCount: 5, // Increased from 1: we'll manually select the closest one
             locationRestriction: {
                 circle: {
                     center: {
@@ -161,7 +161,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
             headers: {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': apiKey,
-                'X-Goog-FieldMask': 'places.displayName,places.id,places.formattedAddress'
+                'X-Goog-FieldMask': 'places.displayName,places.id,places.formattedAddress,places.location'
             },
             body: JSON.stringify(requestBody)
         });
@@ -172,10 +172,29 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
         } else {
              const placesData = await placesRes.json();
              if (placesData.places && placesData.places.length > 0) {
-                 const place = placesData.places[0];
-                 const name = place.displayName ? place.displayName.text : null;
-                 if (name) {
-                     console.log('📍 [Geocoding] Found via Places Nearby (New):', name);
+                 // Manually select the CLOSEST place to prioritize distance over prominence
+                 let closestPlace = null;
+                 let minDistance = Infinity;
+                 
+                 for (const place of placesData.places) {
+                     if (place.location && place.displayName) {
+                         const distance = calculateDistance(
+                             latitude, 
+                             longitude, 
+                             place.location.latitude, 
+                             place.location.longitude
+                         );
+                         
+                         if (distance < minDistance) {
+                             minDistance = distance;
+                             closestPlace = place;
+                         }
+                     }
+                 }
+                 
+                 if (closestPlace) {
+                     const name = closestPlace.displayName.text;
+                     console.log(`📍 [Geocoding] Found via Places Nearby (New): ${name} (${(minDistance * 1000).toFixed(0)}m away)`);
                      saveGeocodeResult(latitude, longitude, name);
                      return name;
                  }
