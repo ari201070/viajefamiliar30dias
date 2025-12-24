@@ -103,10 +103,17 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
                 // 1. Check for Plus Code
                 const isPlusCode = /^[A-Z0-9]{2,8}\+[A-Z0-9]{2,5}$/.test(name.trim()) || name.includes('+');
                 
-                // 2. Check for Street Address patterns (starts with Av., Calle, Ruta, or contains numbers likely being an address)
-                // This prevents "Av. Belgrano 500" from being accepted as a landmark name.
-                // Updated to include full words "Avenida", "Boulevard"
-                const isAddress = /^(Av\.|Avenida|Calle|Ruta|Camino|Bv\.|Boulevard|Autopista)\s/i.test(name) || (/\d+/.test(name) && !/^\d+\sde\s/.test(name)); // Allow "25 de Mayo" but reject "Belgrano 1234"
+                // 2. Check for Street Address patterns
+                // This prevents "Av. Belgrano 500", "Montevideo 675", etc. from being accepted as landmark names.
+                // Updated patterns:
+                // - Starts with street type: Av., Avenida, Calle, etc.
+                // - OR ends with " [number]" (e.g., "Montevideo 675", "Belgrano 1234")
+                // - BUT allow historical dates like "25 de Mayo" (number + "de")
+                const startsWithStreetType = /^(Av\.|Avenida|Calle|Ruta|Camino|Bv\.|Boulevard|Autopista|Pasaje|Diagonal)\s/i.test(name);
+                const endsWithNumber = /\s\d+$/.test(name); // Ends with space + number (classic address format)
+                const isHistoricalDate = /^\d+\sde\s/i.test(name); // Like "25 de Mayo"
+                
+                const isAddress = startsWithStreetType || (endsWithNumber && !isHistoricalDate);
 
                 if (!isPlusCode && !isAddress) {
                     console.log('📍 [Geocoding] Found POI via Geocoding:', name);
@@ -125,16 +132,16 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
         
         const placesUrl = `https://places.googleapis.com/v1/places:searchNearby`;
         const requestBody = {
+            // CRITICAL: Only use types supported by Places API (New) v1
+            // Removed: place_of_worship, town_square, cultural_center (causing 400 errors)
+            // Reference: https://developers.google.com/maps/documentation/places/web-service/place-types
             includedTypes: [
                 "tourist_attraction", 
                 "lodging", 
                 "restaurant", 
                 "park", 
-                "museum", 
-                "historical_landmark", 
-                "place_of_worship", 
-                "town_square", 
-                "cultural_center"
+                "museum",
+                "historical_landmark"
             ],
             maxResultCount: 1,
             locationRestriction: {
