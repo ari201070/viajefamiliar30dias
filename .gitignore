@@ -5,7 +5,7 @@
 /dist
 
 # Heavy Media (User Local)
-/public/docs/imagenes
+#/public/docs/imagenes
 
 # Logs
 npm-debug.log*
