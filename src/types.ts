@@ -209,6 +209,8 @@ export interface PhotoItem {
   dateTaken: string;
   tripDay: number;
   cityId: string;
+  originalFilename?: string; // New field for duplicate detection
+  timestamp?: number;
 }
 
 // --- Weather ---

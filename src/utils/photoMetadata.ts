@@ -1,5 +1,6 @@
 import exifr from 'exifr';
 import { firebaseCredentials } from '../firebaseCredentials';
+import { identifyPlaceFromImage } from '../services/apiService';
 
 export interface PhotoMetadata {
     dateTaken?: string; // ISO date string
@@ -306,15 +307,33 @@ export async function extractPhotoMetadata(file: File): Promise<PhotoMetadata> {
                 exif.longitude
             );
 
-            // Obtener nombre del lugar (geocodificación inversa)
+            // 2. Geocodificación Inversa (Fallback o Refinamiento)
+            let geocodedPlace: string | undefined;
             try {
-                metadata.suggestedCaption = await reverseGeocode(
+                geocodedPlace = await reverseGeocode(
                     exif.latitude,
                     exif.longitude
                 );
             } catch (error) {
-                console.warn('Reverse geocoding failed, continuing without place name:', error);
+                console.warn('Reverse geocoding failed:', error);
             }
+
+             // Store geocoded place for later combination
+            if (geocodedPlace) {
+                 metadata.suggestedCaption = geocodedPlace;
+            }
+        }
+
+        // 1. Prioridad: Reconocimiento Visual (Vision AI) - RUN ALWAYS
+        try {
+            const visualPlace = await identifyPlaceFromImage(file);
+            if (visualPlace) {
+                 // Overwrite or Combine? Usually Vision AI is more specific for "What is this?"
+                 // If we have a GPS place (e.g. "Buenos Aires"), but Vision says "Obelisco", we prefer "Obelisco".
+                 metadata.suggestedCaption = visualPlace;
+            }
+        } catch (err) {
+            console.warn("Vision AI failed or skipped:", err);
         }
 
         // Información de cámara (opcional)

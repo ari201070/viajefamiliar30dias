@@ -1,5 +1,7 @@
 import { db } from './firebaseConfig.ts';
-import { PackingItem } from '../types';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/storage';
+import { PackingItem, PhotoItem } from '../types';
 
 const PACKING_COLLECTION = 'packingItems';
 
@@ -86,6 +88,16 @@ export const dbService = {
       await batch.commit();
     } catch (error) {
       console.error("Error adding photos batch:", error);
+      throw error;
+    }
+  },
+
+  async addPhoto(photo: PhotoItem): Promise<void> {
+    if (!db) throw new Error("Firestore not initialized");
+    try {
+      await db.collection('photos').doc(photo.id).set(photo);
+    } catch (error) {
+      console.error("Error adding photo:", error);
       throw error;
     }
   },

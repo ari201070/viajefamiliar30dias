@@ -9,9 +9,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      port: 9002,
+      port: 9003,
       host: '0.0.0.0',
       hmr: false, // HMR disabled
+      open: false, // Explicitly disable auto-open
     },
     plugins: [react()],
     envPrefix: 'VITE_', // Expose all VITE_ prefixed env vars
@@ -25,6 +26,12 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       },
       extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
+    },
+    build: {
+      sourcemap: false, // Critical: Disable source maps to save memory
+      minify: 'esbuild', // Faster minification
+      reportCompressedSize: false, // Turn off gzip reporting to save time/memory
+      chunkSizeWarningLimit: 1000, 
     }
   };
 });

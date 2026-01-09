@@ -1,0 +1,118 @@
+[debug] [2025-12-15T18:03:54.322Z] ----------------------------------------------------------------------
+[debug] [2025-12-15T18:03:54.507Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\flier\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting --non-interactive
+[debug] [2025-12-15T18:03:54.507Z] CLI Version:   14.15.0
+[debug] [2025-12-15T18:03:54.507Z] Platform:      win32
+[debug] [2025-12-15T18:03:54.508Z] Node Version:  v20.19.3
+[debug] [2025-12-15T18:03:54.508Z] Time:          Mon Dec 15 2025 20:03:54 GMT+0200 (שעון ישראל (חורף))
+[debug] [2025-12-15T18:03:54.508Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-15T18:03:54.841Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-15T18:03:54.841Z] > authorizing via signed-in user (ariflier1970@gmail.com)
+[debug] [2025-12-15T18:03:54.841Z] [iam] checking project viajes-argentina-en-30-dias for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-12-15T18:03:54.843Z] Checked if tokens are valid: false, expires at: 1765822489363
+[debug] [2025-12-15T18:03:54.843Z] Checked if tokens are valid: false, expires at: 1765822489363
+[debug] [2025-12-15T18:03:54.844Z] > refreshing access token with scopes: []
+[debug] [2025-12-15T18:03:54.846Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-15T18:03:54.846Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-15T18:03:55.425Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-12-15T18:03:55.426Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-15T18:03:55.741Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/viajes-argentina-en-30-dias:testIamPermissions [none]
+[debug] [2025-12-15T18:03:55.742Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/viajes-argentina-en-30-dias:testIamPermissions x-goog-quota-user=projects/viajes-argentina-en-30-dias
+[debug] [2025-12-15T18:03:55.742Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/viajes-argentina-en-30-dias:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-12-15T18:03:56.088Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/viajes-argentina-en-30-dias:testIamPermissions 200
+[debug] [2025-12-15T18:03:56.088Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/viajes-argentina-en-30-dias:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-12-15T18:03:56.089Z] Checked if tokens are valid: true, expires at: 1765825434426
+[debug] [2025-12-15T18:03:56.089Z] Checked if tokens are valid: true, expires at: 1765825434426
+[debug] [2025-12-15T18:03:56.089Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/viajes-argentina-en-30-dias [none]
+[debug] [2025-12-15T18:03:56.529Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/viajes-argentina-en-30-dias 200
+[debug] [2025-12-15T18:03:56.529Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/viajes-argentina-en-30-dias {"projectId":"viajes-argentina-en-30-dias","projectNumber":"52421464497","displayName":"Viajes Argentina en 30 dias","name":"projects/viajes-argentina-en-30-dias","resources":{"hostingSite":"viajes-argentina-en-30-dias"},"state":"ACTIVE","etag":"1_2405c0ec-77d3-41ed-8678-ef8faae32675"}
+[info] 
+[info] === Deploying to 'viajes-argentina-en-30-dias'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2025-12-15T18:03:56.705Z] Checked if tokens are valid: true, expires at: 1765825434426
+[debug] [2025-12-15T18:03:56.705Z] Checked if tokens are valid: true, expires at: 1765825434426
+[debug] [2025-12-15T18:03:56.706Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/viajes-argentina-en-30-dias/versions [none]
+[debug] [2025-12-15T18:03:56.706Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/viajes-argentina-en-30-dias/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2025-12-15T18:03:58.181Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/viajes-argentina-en-30-dias/versions 200
+[debug] [2025-12-15T18:03:58.181Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/viajes-argentina-en-30-dias/versions {"name":"projects/52421464497/sites/viajes-argentina-en-30-dias/versions/984a5e35fbf05049","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[viajes-argentina-en-30-dias]: beginning deploy... 
+[info] i  hosting[viajes-argentina-en-30-dias]: found 1067 files in dist 
+[debug] [2025-12-15T18:03:58.799Z] [hosting] uploading with 200 concurrency
+[debug] [2025-12-15T18:03:58.847Z] [hosting] hash cache [ZGlzdA] not populated
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [9/1067] (0%) 
+[info] i  hosting: hashing files [10/1067] (0%) 
+[info] i  hosting: hashing files [11/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [12/1067] (1%) 
+[info] i  hosting: hashing files [13/1067] (1%) 
+[info] i  hosting: hashing files [16/1067] (1%) 
+[info] i  hosting: hashing files [17/1067] (1%) 
+[info] i  hosting: hashing files [20/1067] (1%) 
+[info] i  hosting: hashing files [25/1067] (2%) 
+[info] i  hosting: hashing files [28/1067] (2%) 
+[info] i  hosting: hashing files [38/1067] (3%) 
+[info] i  hosting: hashing files [52/1067] (4%) 
+[info] i  hosting: hashing files [57/1067] (5%) 
+[info] i  hosting: hashing files [59/1067] (5%) 
+[info] i  hosting: hashing files [59/1067] (5%) 
+[info] i  hosting: hashing files [59/1067] (5%) 
+[info] i  hosting: hashing files [59/1067] (5%) 
+[info] i  hosting: hashing files [61/1067] (5%) 
+[info] i  hosting: hashing files [61/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [62/1067] (5%) 
+[info] i  hosting: hashing files [63/1067] (5%) 
+[info] i  hosting: hashing files [64/1067] (5%) 
+[info] i  hosting: hashing files [64/1067] (5%) 
+[info] i  hosting: hashing files [66/1067] (6%) 
+[info] i  hosting: hashing files [77/1067] (7%) 
+[info] i  hosting: hashing files [79/1067] (7%) 
+[info] i  hosting: hashing files [81/1067] (7%) 
+[info] i  hosting: hashing files [81/1067] (7%) 
+[info] i  hosting: hashing files [81/1067] (7%) 
+[info] i  hosting: hashing files [81/1067] (7%) 
+[info] i  hosting: hashing files [85/1067] (7%) 
+[info] i  hosting: hashing files [88/1067] (8%) 
+[info] i  hosting: hashing files [94/1067] (8%) 
+[info] i  hosting: hashing files [96/1067] (8%) 
+[info] i  hosting: hashing files [100/1067] (9%) 
+[info] i  hosting: hashing files [103/1067] (9%) 
+[info] i  hosting: hashing files [109/1067] (10%) 
+[info] i  hosting: hashing files [111/1067] (10%) 
+[info] i  hosting: hashing files [112/1067] (10%) 
+[info] i  hosting: hashing files [112/1067] (10%) 
+[info] i  hosting: hashing files [112/1067] (10%) 
+[info] i  hosting: hashing files [113/1067] (10%) 
+[info] i  hosting: hashing files [113/1067] (10%) 
+[info] i  hosting: hashing files [114/1067] (10%) 
+[info] i  hosting: hashing files [114/1067] (10%) 
+[info] i  hosting: hashing files [114/1067] (10%) 
+[info] i  hosting: hashing files [114/1067] (10%) 
+[info] i  hosting: hashing files [115/1067] (10%) 
+[info] i  hosting: hashing files [115/1067] (10%) 
+[info] i  hosting: hashing files [116/1067] (10%) 
+[info] i  hosting: hashing files [116/1067] (10%) 
+[info] i  hosting: hashing files [116/1067] (10%) 

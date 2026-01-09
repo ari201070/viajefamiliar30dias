@@ -171,6 +171,47 @@ export async function findEventsWithGoogleSearch(prompt: string, language: Langu
     }
 }
 
+/**
+ * Identifica un lugar específico analizando el contenido visual de la imagen.
+ * Prioriza nombres de parques, museos o monumentos sobre nombres de calles.
+ */
+export async function identifyPlaceFromImage(file: File): Promise<string | null> {
+    try {
+        const client = getAiClient();
+        
+        // Convert file to base64 for Gemini
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+            reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        const base64Data = await base64Promise;
+
+        const response = await client.models.generateContent({
+            model: 'gemini-2.0-flash-001',
+            contents: [
+                {
+                    inlineData: {
+                        mimeType: file.type,
+                        data: base64Data
+                    }
+                },
+                "Identifica el nombre específico de este lugar (ej. 'Aquafan', 'Teatro Colón', 'Glaciar Perito Moreno'). Si hay carteles visibles, úsalos. Responde SOLO con el nombre del lugar, sin explicaciones. Si no es un punto de interés claro, responde 'Desconocido'."
+            ],
+        });
+
+        const result = (response.text || '').trim();
+        return result === 'Desconocido' ? null : result;
+    } catch (error) {
+        console.error("Gemini Vision API error:", error);
+        return null;
+    }
+}
+
 
 // --- NON-AI API FUNCTIONS (Using Fallbacks for Stability) ---
 

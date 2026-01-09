@@ -4,6 +4,9 @@
 # Build output
 /dist
 
+# Heavy Media (User Local)
+/public/docs/imagenes
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
